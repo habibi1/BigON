@@ -1,0 +1,1326 @@
+<title>Sinema — Technical Solution</title>
+
+<style>
+  /* ─────────── tokens: mirrors the project's own SinemaColors ─────────── */
+  :root {
+    --ground: #0A0D10;
+    --surface: #151A1F;
+    --surface-2: #1D242B;
+    --hairline: #2C353E;
+    --hairline-soft: #212931;
+    --accent: #FFB648;
+    --accent-dim: #4A3600;
+    --accent-ink: #FFC978;
+    --ink: #E8ECEF;
+    --ink-2: #9AA6B0;
+    --ink-3: #6B7783;
+    --ok-bg: #16281F;
+    --ok-ink: #79C79B;
+    --gap-bg: #2E1F1F;
+    --gap-ink: #F0A9A2;
+    --warn-bg: #2C2413;
+    --warn-ink: #D9B463;
+
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+    --measure: 68ch;
+    --pad: clamp(20px, 5vw, 60px);
+    color-scheme: dark;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --ground: #EFEDE9;
+      --surface: #FFFFFF;
+      --surface-2: #F6F3EE;
+      --hairline: #D9D3C9;
+      --hairline-soft: #E6E1D8;
+      --accent: #8A5A00;
+      --accent-dim: #FFDDB0;
+      --accent-ink: #6E4700;
+      --ink: #1C1B18;
+      --ink-2: #5E5A52;
+      --ink-3: #857F74;
+      --ok-bg: #DCEEE2;
+      --ok-ink: #1F6B45;
+      --gap-bg: #FFDAD6;
+      --gap-ink: #8C000B;
+      --warn-bg: #FBEBC8;
+      --warn-ink: #6B4E10;
+      color-scheme: light;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0A0D10; --surface: #151A1F; --surface-2: #1D242B;
+    --hairline: #2C353E; --hairline-soft: #212931;
+    --accent: #FFB648; --accent-dim: #4A3600; --accent-ink: #FFC978;
+    --ink: #E8ECEF; --ink-2: #9AA6B0; --ink-3: #6B7783;
+    --ok-bg: #16281F; --ok-ink: #79C79B;
+    --gap-bg: #2E1F1F; --gap-ink: #F0A9A2;
+    --warn-bg: #2C2413; --warn-ink: #D9B463;
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] {
+    --ground: #EFEDE9; --surface: #FFFFFF; --surface-2: #F6F3EE;
+    --hairline: #D9D3C9; --hairline-soft: #E6E1D8;
+    --accent: #8A5A00; --accent-dim: #FFDDB0; --accent-ink: #6E4700;
+    --ink: #1C1B18; --ink-2: #5E5A52; --ink-3: #857F74;
+    --ok-bg: #DCEEE2; --ok-ink: #1F6B45;
+    --gap-bg: #FFDAD6; --gap-ink: #8C000B;
+    --warn-bg: #FBEBC8; --warn-ink: #6B4E10;
+    color-scheme: light;
+  }
+
+  /* ─────────── base ─────────── */
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 var(--pad) 96px;
+  }
+  p, ul, ol { max-width: var(--measure); }
+  p { margin: 0; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+  a:hover { border-bottom-color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  /* ─────────── masthead ─────────── */
+  header.mast {
+    padding: clamp(48px, 9vw, 96px) 0 32px;
+    border-bottom: 1px solid var(--hairline);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  h1 {
+    font-size: clamp(34px, 7vw, 52px);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    font-weight: 700;
+    text-wrap: balance;
+    margin: 0;
+  }
+  h1 .dim { color: var(--ink-3); font-weight: 400; letter-spacing: -0.02em; }
+  .standfirst {
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    max-width: 60ch;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 0;
+    border-top: 1px solid var(--hairline-soft);
+    padding-top: 18px;
+    margin-top: 6px;
+  }
+  .meta div {
+    flex: 1 1 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding-right: 18px;
+  }
+  .meta dt, .meta .k {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .meta .v {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ─────────── sections ─────────── */
+  section { padding-top: 56px; }
+  .shead {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: 10px;
+    margin-bottom: 24px;
+  }
+  .shead .no {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    flex: none;
+  }
+  h2 {
+    font-size: clamp(21px, 3.4vw, 27px);
+    letter-spacing: -0.02em;
+    font-weight: 650;
+    margin: 0;
+    text-wrap: balance;
+  }
+  h3 {
+    font-size: 15px;
+    font-weight: 650;
+    letter-spacing: 0.005em;
+    margin: 0;
+  }
+  .stack { display: flex; flex-direction: column; gap: 16px; }
+  .stack-lg { display: flex; flex-direction: column; gap: 28px; }
+
+  /* ─────────── panels ─────────── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--hairline-soft);
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .panel.flag { background: var(--surface-2); border-color: var(--hairline); }
+  .callout {
+    border-left: 2px solid var(--accent);
+    background: var(--surface);
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+
+  /* ─────────── tables ─────────── */
+  .scroller { overflow-x: auto; border: 1px solid var(--hairline-soft); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 560px; }
+  th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--hairline-soft); vertical-align: top; }
+  thead th {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 400;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--hairline);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.mono, td .mono, th.mono { font-family: var(--font-mono); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .t-note { color: var(--ink-2); }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--surface-2);
+    border: 1px solid var(--hairline-soft);
+    padding: 1px 5px;
+    color: var(--accent-ink);
+    white-space: nowrap;
+  }
+  pre {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.62;
+    background: var(--surface);
+    border: 1px solid var(--hairline-soft);
+    padding: 16px 18px;
+    overflow-x: auto;
+    margin: 0;
+  }
+  pre code { background: none; border: none; padding: 0; color: var(--ink); white-space: pre; font-size: 12.5px; }
+  pre .c { color: var(--ink-3); }
+  pre .k { color: var(--accent); }
+
+  /* ─────────── pills ─────────── */
+  .pill {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    white-space: nowrap;
+  }
+  .pill.ok { background: var(--ok-bg); color: var(--ok-ink); }
+  .pill.gap { background: var(--gap-bg); color: var(--gap-ink); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn-ink); }
+
+  /* ─────────── roadmap spine ─────────── */
+  ol.spine { list-style: none; padding: 0; margin: 0; max-width: none; display: flex; flex-direction: column; }
+  ol.spine > li {
+    display: grid;
+    grid-template-columns: 42px 1fr;
+    gap: 0 18px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--hairline-soft);
+  }
+  ol.spine > li:last-child { border-bottom: none; }
+  ol.spine .step {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    padding-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  ol.spine .body { display: flex; flex-direction: column; gap: 6px; }
+  ol.spine .body p { color: var(--ink-2); font-size: 14px; }
+
+  ul.tight { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+  ul.tight li { color: var(--ink-2); }
+  ul.tight li strong { color: var(--ink); font-weight: 600; }
+  ul.none { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+
+  .mermaid { background: var(--surface); border: 1px solid var(--hairline-soft); padding: 20px; overflow-x: auto; }
+
+  footer {
+    margin-top: 72px;
+    padding-top: 20px;
+    border-top: 1px solid var(--hairline);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 0.05em;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="mast">
+    <div class="eyebrow">Technical solution · Revision 13 · Native Android</div>
+    <h1>Sinema <span class="dim">— architecture &amp; delivery plan</span></h1>
+    <p class="standfirst">
+      A TMDB movie explorer built as a modular, offline-first native Android app. This document records the
+      architecture as it exists in the repository today, the reasoning behind each stack decision, and an honest
+      account of what is built versus what is still scaffolding.
+    </p>
+    <div class="meta">
+      <div><span class="k">Repository</span><span class="v">BigON</span></div>
+      <div><span class="k">Package</span><span class="v">com.bigon.sinema</span></div>
+      <div><span class="k">Platform</span><span class="v">minSdk 26 / SDK 37</span></div>
+      <div><span class="k">Modules</span><span class="v">13 Gradle</span></div>
+      <div><span class="k">Unit tests</span><span class="v">65 passing</span></div>
+      <div><span class="k">Build</span><span class="v">AGP 9.3.1 · Gradle 9.6.1</span></div>
+    </div>
+  </header>
+
+  <section>
+    <div class="shead"><span class="no">§1</span><h2>Summary &amp; scope</h2></div>
+    <div class="stack-lg">
+      <div class="stack">
+        <p>
+          Sinema browses TMDB content — trending and popular lists, movie detail, search, favorites — and must remain
+          usable without a network connection. The technical solution therefore rests on three commitments: a strict
+          Clean Architecture dependency rule, a local database as the single source of truth, and compile-time
+          enforcement of both so the structure cannot decay silently.
+        </p>
+        <p>
+          The project was originally specified as Kotlin Multiplatform–ready. That requirement was withdrawn: the app
+          is now <strong>native Android only</strong>, and the stack was realigned to the platform-idiomatic choice in
+          every position where portability had dictated an alternative.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="eyebrow">Decision of record</div>
+        <p>
+          KMP is out of scope. Hilt replaces Koin, Room replaces SQLDelight, <strong>Retrofit replaces Ktor</strong>,
+          <code>java.time</code> replaces kotlinx-datetime, Timber replaces Kermit, and the design system reverted from
+          Compose Multiplatform to a standard Android library. kotlinx.serialization was deliberately <em>kept</em> —
+          it is first-class on native Android and pairs with Retrofit through Square's official converter.
+        </p>
+      </div>
+
+      <div class="callout">
+        <div class="eyebrow">Decision of record · naming</div>
+        <p>
+          <strong>The product is Sinema.</strong> The name applies to everything a user or a reader of this document
+          encounters: the launcher label, the application module and package, the in-app attribution line, and the
+          title of this document. <span class="mono">Cinelog</span> is retired as a product name — the last references
+          to it, in preview sample data, were rewritten when this decision was taken, so it no longer appears anywhere
+          in the codebase as a name.
+        </p>
+        <p>
+          The design system was renamed with it. Every <code>Cine*</code> identifier is now <code>Sinema*</code> —
+          129 symbols across 17 files, plus the files themselves. The earlier argument for keeping the old prefix was
+          that it marked shared components at a glance and that renaming would churn every UI file for no new
+          information. That was a real cost but the wrong trade: a prefix is read constantly by anyone learning the
+          codebase, and one that names a product that no longer exists teaches them something false on every line. The
+          churn is paid once; the confusion would have been paid forever.
+        </p>
+        <p>
+          The rename also removed an inconsistency worth noting, because it argues the same point. The token accessor
+          was <code>CineTheme</code> while the theme composable that provides those tokens was already
+          <code>SinemaTheme</code> — two names for one concept, split across the old boundary. They are now a single
+          name in the Material 3 shape, an <code>object</code> and a <code>@Composable fun</code> sharing an
+          identifier because Kotlin resolves classifiers and callables separately:
+        </p>
+        <pre><code>SinemaTheme { … }              <span class="c">// wraps a subtree — the composable</span>
+SinemaTheme.colors.textPrimary <span class="c">// reads a token — the object</span></code></pre>
+        <p>
+          One identifier deliberately keeps its own name, and this is not an unresolved remainder:
+          <strong><code>BigON</code>, the repository and Gradle root.</strong> No user encounters it, and renaming a
+          Gradle root is not free — the configuration cache is keyed to absolute paths, so it breaks the build until
+          the stale state is cleared (§11). The distinction that settles it: the design-system prefix is <em>read</em>
+          by everyone working in the codebase, whereas the Gradle root is <em>typed</em> by no one and displayed
+          nowhere.
+        </p>
+        <p class="t-note">
+          The rule for any future instance: <strong>a name anyone reads — user or developer — is Sinema; a name only
+          the build machinery sees may keep its own.</strong>
+        </p>
+      </div>
+
+      <div class="scroller">
+        <table>
+          <thead>
+            <tr><th>Layer</th><th>Responsibility</th><th>Knows about</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Presentation</strong></td>
+              <td>Compose screens, ViewModels, UI state. No business rules.</td>
+              <td class="mono">:domain, design system</td>
+            </tr>
+            <tr>
+              <td><strong>Domain</strong></td>
+              <td>Use cases and repository interfaces. Framework-free Kotlin.</td>
+              <td class="mono">:core:model, :core:common</td>
+            </tr>
+            <tr>
+              <td><strong>Data</strong></td>
+              <td>Repository implementations, DTO/entity mapping, data sources.</td>
+              <td class="mono">:domain, network, database</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§2</span><h2>Module graph</h2></div>
+    <div class="stack-lg">
+      <p>
+        Thirteen Gradle modules in three bands. Business logic lives in <strong>framework-free Kotlin/JVM
+        modules</strong> — not for portability, but because a module that cannot import <code>android.*</code> cannot
+        leak platform types into business rules, and its tests run on the JVM in milliseconds.
+      </p>
+
+      <pre class="mermaid">
+graph TD
+  APP[":sinema — composition root"]
+  subgraph UI["Compose UI (Android)"]
+    DSN[":core:designsystem"]
+    CUI[":core:ui"]
+  end
+  subgraph ANDROID["Android + Hilt"]
+    DATA[":data"]
+    DB[":core:database — Room"]
+    DS[":core:datastore"]
+  end
+  subgraph JVM["Framework-free Kotlin/JVM"]
+    DOM[":domain"]
+    NET[":core:network — Retrofit"]
+    TRK[":core:tracker:api"]
+    CFG[":core:config:api"]
+    COM[":core:common"]
+    MOD[":core:model"]
+    NAV[":core:navigation"]
+  end
+
+  APP --> DATA
+  APP --> DSN
+  APP --> CUI
+  APP --> NET
+  APP --> TRK
+  APP --> CFG
+  APP --> NAV
+  DATA --> DOM
+  DATA --> DB
+  DATA --> DS
+  DATA --> NET
+  DATA --> CFG
+  DOM --> MOD
+  DOM --> COM
+  NET --> COM
+  DB --> COM
+  DS --> COM
+  CUI --> COM
+      </pre>
+
+      <div class="scroller">
+        <table>
+          <thead>
+            <tr><th>Rule</th><th>Why</th><th>Enforced by</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>:sinema</code> is the only composition root</td>
+              <td>SDK adapters bind in one place; nothing else sees a vendor SDK.</td>
+              <td class="mono t-note">Hilt graph + review</td>
+            </tr>
+            <tr>
+              <td>Features never depend on <code>:data</code></td>
+              <td>Implementations arrive by injection, so data can be swapped or faked.</td>
+              <td class="mono t-note">Konsist</td>
+            </tr>
+            <tr>
+              <td>Features never depend on each other</td>
+              <td>Cross-feature traffic goes through navigation contracts or use cases.</td>
+              <td class="mono t-note">Konsist</td>
+            </tr>
+            <tr>
+              <td>No <code>android.*</code> in JVM modules</td>
+              <td>Keeps business logic testable without Robolectric or a device.</td>
+              <td class="mono t-note">Konsist + plugin</td>
+            </tr>
+            <tr>
+              <td><code>Context</code> only in app and adapters</td>
+              <td>Prevents Context creeping into constructors of logic classes.</td>
+              <td class="mono t-note">Konsist</td>
+            </tr>
+            <tr>
+              <td><code>androidx.navigation</code> only in the shell</td>
+              <td>Screens take callbacks, so the navigation host stays replaceable in one place.</td>
+              <td class="mono t-note">Konsist</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§3</span><h2>Stack decisions</h2></div>
+    <div class="stack-lg">
+      <div class="scroller">
+        <table>
+          <thead>
+            <tr><th>Concern</th><th>Decision</th><th>Rejected</th><th>Rationale</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Dependency injection</td>
+              <td class="mono">Hilt 2.60.1</td>
+              <td class="t-note">Koin, manual DI</td>
+              <td>Compile-time graph validation — a missing binding fails the build, not production. Standard on Android teams.</td>
+            </tr>
+            <tr>
+              <td>Database</td>
+              <td class="mono">Room 2.8.4</td>
+              <td class="t-note">SQLDelight, Realm</td>
+              <td>First-party, Flow-native, compile-time query verification, best tooling and hiring familiarity.</td>
+            </tr>
+            <tr>
+              <td>Networking</td>
+              <td class="mono">Retrofit 3.0.0 · OkHttp 5.4.0</td>
+              <td class="t-note">Ktor</td>
+              <td>The Android standard: declarative service interfaces, suspend support, and an interceptor stack the whole ecosystem (auth, logging, caching, Chucker) plugs into.</td>
+            </tr>
+            <tr>
+              <td>Serialization</td>
+              <td class="mono">kotlinx.serialization</td>
+              <td class="t-note">Moshi, Gson</td>
+              <td>Compiler-plugin based, no reflection, native Kotlin nullability. Bridged by Square's official Retrofit converter.</td>
+            </tr>
+            <tr>
+              <td>UI</td>
+              <td class="mono">Compose BOM 2026.06.01</td>
+              <td class="t-note">Views/XML</td>
+              <td>Declarative UI with a token-driven design system; adaptive layouts without duplicate screens.</td>
+            </tr>
+            <tr>
+              <td>Async</td>
+              <td class="mono">Coroutines + Flow</td>
+              <td class="t-note">RxJava, LiveData</td>
+              <td>Structured concurrency; dispatchers injected rather than referenced statically.</td>
+            </tr>
+            <tr>
+              <td>Key–value storage</td>
+              <td class="mono">DataStore 1.2.1</td>
+              <td class="t-note">SharedPreferences</td>
+              <td>Async, transactional, Flow-based reads.</td>
+            </tr>
+            <tr>
+              <td>Date &amp; time</td>
+              <td class="mono">java.time</td>
+              <td class="t-note">kotlinx-datetime</td>
+              <td>Platform standard, desugared safely at minSdk 26.</td>
+            </tr>
+            <tr>
+              <td>Logging</td>
+              <td class="mono">Timber 5.0.1</td>
+              <td class="t-note">Kermit</td>
+              <td>Android idiom; debug-only tree planted in the Application.</td>
+            </tr>
+            <tr>
+              <td>Codegen</td>
+              <td class="mono">KSP 2.3.10</td>
+              <td class="t-note">kapt</td>
+              <td>Substantially faster; required by AGP 9's built-in Kotlin.</td>
+            </tr>
+            <tr>
+              <td>Pagination</td>
+              <td class="mono">Manual append</td>
+              <td class="t-note">Paging 3 + RemoteMediator</td>
+              <td>Paging 3 would leak <code>PagingData</code> through every domain signature, replacing framework-free <code>Flow&lt;List&lt;Movie&gt;&gt;</code> contracts with a library type, and its remote-keys table and load-state machine buy placeholders and eviction this app does not need. A <code>page</code> column plus an append path keeps the domain clean and every case unit-testable with the existing fakes.</td>
+            </tr>
+            <tr>
+              <td>Architecture guardrails</td>
+              <td class="mono">Konsist 0.17.3</td>
+              <td class="t-note">Review only</td>
+              <td>Layering rules run as unit tests, so violations fail CI instead of accumulating.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel flag">
+        <div class="eyebrow">Build-tooling constraint</div>
+        <p>
+          The catalog currently pins <span class="mono">AGP 9.3.1</span>, and the Gradle CLI builds cleanly with it.
+          Android Studio on the Quail line (2026.1.x) has previously rejected anything above
+          <span class="mono">9.2.1</span> at sync time — an IDE-side restriction, not a compiler one. If sync fails,
+          drop <code>agp</code> to <span class="mono">9.2.1</span> in the version catalog; it is a one-line change and
+          the whole graph follows it.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§4</span><h2>Cross-cutting contracts</h2></div>
+    <div class="stack-lg">
+
+      <div class="stack">
+        <h3>Errors are values</h3>
+        <p>
+          No exception crosses a layer boundary. Retrofit service calls are wrapped by <code>ApiCaller</code>, which
+          converts transport, HTTP and parsing failures into a sealed result — so callers handle failure exhaustively
+          and the compiler proves they did.
+        </p>
+        <pre><code><span class="k">sealed interface</span> AppResult&lt;<span class="k">out</span> T&gt; {
+    <span class="k">data class</span> Success&lt;T&gt;(<span class="k">val</span> value: T) : AppResult&lt;T&gt;
+    <span class="k">data class</span> Failure(<span class="k">val</span> error: AppError) : AppResult&lt;Nothing&gt;
+}
+
+<span class="k">sealed interface</span> AppError {
+    <span class="k">sealed interface</span> Network : AppError {
+        <span class="k">data object</span> NoConnection : Network
+        <span class="k">data object</span> Timeout : Network
+        <span class="k">data class</span> Http(<span class="k">val</span> code: Int, <span class="k">val</span> body: String?) : Network
+    }
+    <span class="k">data class</span> Serialization(<span class="k">val</span> cause: String) : AppError
+    <span class="k">data class</span> Unknown(<span class="k">val</span> cause: String) : AppError
+}</code></pre>
+        <p>
+          Service interfaces stay plain Retrofit and live beside their DTOs in <code>:data</code>; the safe-call wrapper
+          is the only thing repositories share.
+        </p>
+        <pre><code><span class="c">// :data — endpoint contract owned by the feature that uses it</span>
+<span class="k">interface</span> MovieApi {
+    <span class="k">@GET</span>(<span class="c">"movie/popular"</span>)
+    <span class="k">suspend fun</span> popular(<span class="k">@Query</span>(<span class="c">"page"</span>) page: Int): MovieListDto
+}
+
+<span class="c">// :data — repository call site: failure is a value, never a throw</span>
+<span class="k">val</span> result: AppResult&lt;MovieListDto&gt; = apiCaller.execute { movieApi.popular(page = 1) }</code></pre>
+      </div>
+
+      <div class="stack">
+        <h3>Ports &amp; adapters</h3>
+        <p>
+          Every third-party capability is consumed through an interface owned by a framework-free module. Analytics is
+          the worked example: screens depend on <code>AnalyticsTracker</code> and a typed event catalog, while each SDK
+          arrives as an <code>AnalyticsSink</code> contributed to a Hilt multibinding. Consent gating and off-caller
+          dispatch live in the pipeline, never at the call site.
+        </p>
+        <pre><code><span class="c">// :core:tracker:api — the port screens see</span>
+<span class="k">interface</span> AnalyticsTracker { <span class="k">fun</span> track(event: AnalyticsEvent) }
+
+<span class="c">// :sinema — adding an SDK is one binding, invisible to callers</span>
+<span class="k">@Provides</span> <span class="k">@IntoSet</span>
+<span class="k">fun</span> provideTimberSink(): AnalyticsSink = TimberAnalyticsSink()</code></pre>
+        <p>
+          Remote config follows the same shape: a typed <code>FeatureFlag</code> registry with compile-time defaults, a
+          <code>FeatureFlagRepository</code> port, and a swappable <code>FeatureFlagDataSource</code> backend. Value
+          resolution is local override → backend → compile-time default, so the app is fully functional offline and
+          before first fetch.
+        </p>
+      </div>
+
+      <div class="stack">
+        <h3>Navigation</h3>
+        <p>
+          One approach, committed: <strong>Navigation Compose with type-safe routes</strong>. Destinations are
+          <code>@Serializable</code> values in <code>:core:navigation</code> — a framework-free JVM module with no
+          Compose, no Android and no navigation library on its classpath. A movie id therefore travels as a
+          <code>Long</code>, and a wrong argument is a compile error rather than a blank screen at runtime.
+        </p>
+        <pre><code><span class="c">// :core:navigation — no framework on the classpath</span>
+<span class="k">@Serializable</span> <span class="k">sealed interface</span> SinemaDestination
+<span class="k">@Serializable</span> <span class="k">sealed interface</span> TopLevelDestination : SinemaDestination
+
+<span class="k">@Serializable</span> <span class="k">data object</span> HomeDestination : TopLevelDestination
+<span class="k">@Serializable</span> <span class="k">data class</span> MovieDetailDestination(<span class="k">val</span> movieId: Long) : SinemaDestination</code></pre>
+        <p>
+          The <code>Navigator</code> contract that revision 10 reported was <strong>deleted rather than
+          finished</strong>. A navigator injected into ViewModels is a second back stack living in the DI graph, and a
+          second back stack can disagree with the real one. Screens raise plain callbacks —
+          <code>onMovieClick: (Long) -&gt; Unit</code>, <code>onBack: () -&gt; Unit</code> — and a single
+          <code>NavHost</code> in <code>:sinema</code> decides what they mean. Exactly three files in the codebase
+          import <code>androidx.navigation</code>; the Konsist rule in §2 keeps it that way, which is what makes the
+          host replaceable without touching a screen.
+        </p>
+        <p>
+          Chrome is <strong>derived from the back stack</strong>, never tracked beside it. The selected tab is computed
+          from the current back-stack entry, so it survives process death and cannot disagree with what is displayed.
+          Tab switches use <code>saveState</code>/<code>restoreState</code> with <code>launchSingleTop</code>, so each
+          tab keeps its own scroll position and repeated taps do not grow the stack. The host sits inside the app's
+          single <code>SharedTransitionLayout</code> — that placement is what lets a poster animate from any grid into
+          the detail header across a real back stack, rather than only within one screen.
+        </p>
+      </div>
+
+      <div class="stack">
+        <h3>Composable identity is positional — keep the tree shape stable</h3>
+        <p>
+          Hiding the navigation bar on full-bleed destinations looks like a one-line conditional, and the first version
+          was one: content rendered directly when the bar was hidden and inside a <code>Column</code> when it was
+          shown. It compiled, it looked right on both screens, and it quietly broke scroll restoration on the way back
+          from detail — which reads as a navigation bug even though nothing in the navigation code is wrong.
+        </p>
+        <p>
+          Compose identifies state by <em>position in the tree</em>. Moving <code>content()</code> between two
+          different parents is not a re-render; it is a different composable, so every <code>rememberSaveable</code>
+          beneath it — including the <code>LazyGridState</code> holding the scroll offset — is discarded and rebuilt at
+          zero. The fix is to keep one structure for every combination of width and bar visibility, varying only what
+          is <em>added around</em> the content so its path never changes:
+        </p>
+        <pre><code>Row {
+    <span class="k">if</span> (useRail &amp;&amp; showNavigation) SinemaNavigationRail(…)
+    Column(Modifier.weight(1f)) {
+        Box(Modifier.weight(1f)) { content() }   <span class="c">// always Row → Column → Box</span>
+        <span class="k">if</span> (!useRail &amp;&amp; showNavigation) SinemaBottomBar(…)
+    }
+}</code></pre>
+        <p class="t-note">
+          Verified by pixel comparison on device: scroll to an arbitrary offset, open a detail, press back — the grid
+          region is now byte-identical, as is the case where the tab is switched away and back.
+        </p>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <h3>Threading contract</h3>
+          <p class="t-note">
+            Dispatchers are injected via <code>DispatcherProvider</code>. Data sources switch to IO internally;
+            ViewModels consume already main-safe APIs and never call <code>withContext</code>. Main-safety is a
+            documented property of every repository function.
+          </p>
+        </div>
+        <div class="panel">
+          <h3>Presentation pattern</h3>
+          <p class="t-note">
+            Unidirectional data flow: each screen declares <code>UiState</code>, <code>Intent</code>, and
+            <code>Effect</code> beside its ViewModel. State flows down as <code>StateFlow</code>, events flow up as
+            intents, one-shot effects go through a channel. Composables hold no logic.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§5</span><h2>Design system</h2></div>
+    <div class="stack-lg">
+      <p>
+        <code>:core:designsystem</code> is a living style guide in code: no screen hardcodes a color, size, or text
+        style. Tokens are provided through composition locals and read via a single <code>SinemaTheme</code> accessor,
+        which also mirrors them into <code>MaterialTheme</code> so stock Material 3 components inherit the palette.
+        Switching theme recolors the entire app with zero component changes.
+      </p>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>Level</th><th>Contents</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Tokens</strong></td>
+              <td class="t-note">
+                <span class="mono">SinemaColors</span> (dark + light role sets) ·
+                <span class="mono">SinemaTypography</span> (display → caption) ·
+                <span class="mono">SinemaSpacing</span> (4–24dp, the only dp values features may use) ·
+                <span class="mono">SinemaShapes</span> (card / container / pill) ·
+                <span class="mono">SinemaIcons</span>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Components</strong></td>
+              <td class="t-note">
+                MovieCard &amp; ShimmerCard · SectionHeader · CastCard · ListItem · SearchBar · Chip &amp; ChipRow ·
+                Primary/Tonal buttons · FavoriteToggle · SegmentedControl · SettingRow · OfflineBanner · Snackbar ·
+                LoadingIndicator · EmptyState · AttributionFooter · AppScaffold
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        <strong>Previews are part of the component contract.</strong> Every component, token file and icon carries its
+        own <code>@Preview</code> functions in the same file, so opening a component in the IDE shows its states
+        immediately — roughly 92 preview functions expanding to ~160 rendered variants. Four multipreview annotations
+        do the multiplying: <code>@SinemaThemePreview</code> (light + dark), <code>@SinemaFontScalePreview</code>
+        (85%→200%), <code>@SinemaDevicePreview</code> (phone / foldable / tablet) and <code>@SinemaRtlPreview</code>.
+        <code>SinemaComponentGallery</code> renders every token and component on one canvas for reviewing a theme change.
+      </p>
+      <p>
+        Two rules keep it scalable: images are passed as <strong>slots</strong>, so the design system never depends on
+        an image loader; and <code>AppScaffold</code> adapts its own navigation — bottom bar under 600dp, rail above —
+        so screens never branch on device type.
+      </p>
+      <p>
+        The app also ships a real <strong>adaptive launcher icon</strong> — separate background, foreground and
+        monochrome layers as vector drawables, so it masks correctly to whatever shape the launcher asks for and
+        supports themed icons on Android 13+. The monochrome layer is the part teams usually skip; without it a
+        themed-icon launcher falls back to a shrunken full-colour badge.
+      </p>
+    </div>
+  </section>
+
+
+  <section>
+    <div class="shead"><span class="no">§6</span><h2>TMDB integration</h2></div>
+    <div class="stack-lg">
+      <p>
+        The product is a client for <a href="https://developer.themoviedb.org/">TMDB</a>: free for non-commercial use,
+        protections around 40 requests/second (HTTP <code>429</code> when exceeded), and a documented v4 bearer-token
+        scheme. Authentication is <strong>implemented and verified against the live API</strong>; the remaining work
+        is entirely in the data model.
+      </p>
+
+      <h3>Authentication — done</h3>
+      <p>
+        TMDB issues two credentials and they are strict inverses: the v3 API key authenticates
+        <em>only</em> as an <code>api_key</code> query parameter (401 as a bearer header), while the v4 read access
+        token authenticates <em>only</em> as <code>Authorization: Bearer</code> (401 as a query parameter). Both were
+        confirmed against the live API.
+      </p>
+      <p>
+        <code>TmdbCredentials</code> therefore models both, exposes the <code>scheme</code> that will actually be used,
+        and prefers the token when both are present — so swapping credentials is configuration, not code.
+        <code>AuthInterceptor</code> applies the matching scheme and
+        <code>OkHttpClientFactory</code> redacts <em>both</em> leak paths:
+        <code>redactHeader("Authorization")</code> and <code>redactQueryParams("api_key")</code>. The type's
+        <code>toString()</code> prints only the scheme name, so a credential cannot slip into a log or crash report
+        through string interpolation.
+      </p>
+
+      <h3>Endpoint map</h3>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>Screen / element</th><th>Endpoint</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Home — "Trending today"</td><td class="mono">/trending/movie/day</td><td class="t-note">—</td></tr>
+            <tr><td>Home category chips</td><td class="mono">/movie/{popular,now_playing,top_rated,upcoming}</td><td class="t-note">Four lists must not overwrite each other in one table</td></tr>
+            <tr><td>Search</td><td class="mono">/search/movie?query=</td><td class="t-note">Debounce with the existing <code>Flags.SearchDebounceMs</code> (300ms)</td></tr>
+            <tr><td>Detail + cast + trailer</td><td class="mono">/movie/{id}?append_to_response=credits,videos</td><td class="t-note">One call, not three; <code>credits</code> feeds <code>SinemaCastCard</code>, <code>videos</code> feeds the trailer button</td></tr>
+            <tr><td>Genre names</td><td class="mono">/genre/movie/list</td><td class="t-note">Fetch once, cache — list endpoints return ids only</td></tr>
+            <tr><td>Favorites</td><td class="t-note">local only</td><td class="t-note">Room; no endpoint</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Model gaps — closed by the Home slice</h3>
+      <p>
+        Each row below was a real defect waiting to happen; all five are now handled in
+        <code>MovieMapper</code>, the Room schema, or the image layer, and covered by unit tests.
+      </p>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>TMDB reality</th><th>Consequence today</th><th>Fix</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>List items carry <code>genre_ids: [int]</code>, never genre names</td>
+              <td><code>SinemaMovieCard</code> meta renders "2026 · " and the genre chips cannot filter — <code>Movie</code> has no genre field at all</td>
+              <td>Cache <code>/genre/movie/list</code>; map ids→names in <code>:data</code>; add <code>genres</code> to the model</td>
+            </tr>
+            <tr>
+              <td><code>release_date</code> is <code>""</code> for unknown dates, not null</td>
+              <td><code>LocalDate.parse("")</code> throws inside the mapper, surfacing as <code>AppError.Unknown</code></td>
+              <td>Lenient parse → <code>null</code></td>
+            </tr>
+            <tr>
+              <td><code>vote_average</code> is <code>0.0</code> for unrated titles</td>
+              <td>Every unrated movie shows a "★ 0.0" badge</td>
+              <td>Map <code>vote_count == 0</code> → null rating; the card already hides a null badge</td>
+            </tr>
+            <tr>
+              <td>Responses are paginated (<code>page</code>, <code>total_pages</code>)</td>
+              <td>Every list was capped at TMDB's 20-item page 1; <code>total_pages</code> was parsed and then ignored</td>
+              <td><code>listKey</code> + <code>page</code> columns, an append path, and infinite scroll — see below</td>
+            </tr>
+            <tr>
+              <td><code>poster_path</code> is a fragment — full URL is <code class="mono">https://image.tmdb.org/t/p/{size}{path}</code></td>
+              <td>No image loader is wired: Coil sits in the version catalog but in zero modules</td>
+              <td>Add <code>coil-compose</code> + <code>coil-network-okhttp</code> sharing the existing <code>OkHttpClient</code>; <code>w342</code> for cards, <code>w780</code> for backdrops</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Pagination</h3>
+      <p>
+        Home categories and search results page continuously. <code>refresh</code> replaces a list with page 1;
+        <code>loadMore</code> reads <code>MAX(page)</code> for that <code>listKey</code>, fetches the next one and
+        appends it, returning <code>EndReached</code> once <code>total_pages</code> is exhausted so the UI stops
+        asking. A shared <code>LoadMoreEffect</code> on the grid state fires within six items of the end, guarded by
+        an <code>isAppending</code> flag so a fast scroll cannot double-fire.
+      </p>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>Edge case</th><th>Handling</th></tr></thead>
+          <tbody>
+            <tr><td>TMDB repeats a title across adjacent pages</td><td>Room inserts with <code>OnConflictStrategy.IGNORE</code> — first sighting keeps its position. REPLACE would silently reorder the list.</td></tr>
+            <tr><td>Ordering across appends</td><td>New rows continue from <code>MAX(position)</code>, so order survives duplicates being dropped.</td></tr>
+            <tr><td>Search paging (uncached)</td><td>Pages accumulate in the ViewModel with <code>distinctBy { id }</code>; a query or genre change resets to page 1, and a response that lands after the query changed is discarded rather than mixed in.</td></tr>
+            <tr><td>Append failure</td><td>Fails quietly and leaves existing content — scrolling again retries. Only a <em>refresh</em> failure surfaces a banner.</td></tr>
+            <tr><td>Cold <code>loadMore</code> with nothing cached</td><td>Falls back to a refresh rather than requesting page 2 of an empty list.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="t-note">
+        Verified on device: scrolling Home issued <code>page=2</code> through <code>page=8</code>, exactly one request
+        each; search paged through five pages of <code>/discover</code>.
+      </p>
+
+      <div class="panel flag">
+        <div class="eyebrow">Attribution — currently non-compliant</div>
+        <p>
+          TMDB's Terms of Use §3 require the TMDB logo plus this exact notice: <em>"This [application] uses TMDB and
+          the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB."</em>
+          <code>SinemaAttributionFooter</code> ships different wording ("uses the TMDB API … not endorsed or certified"),
+          displays no logo, and appears only on the Settings screen although the terms ask for prominence. Fixing the
+          string and adding the logo asset is small work that should not wait for launch.
+        </p>
+      </div>
+
+      <div class="panel">
+        <h3>Key handling</h3>
+        <p class="t-note">
+          Both credentials live in <code>local.properties</code> (gitignored) and reach the app through
+          <code>BuildConfig</code>; they appear in no source file, build script or committed config, and the build
+          warns at configure time if neither is set. They are nevertheless <strong>compiled into the APK and
+          recoverable</strong> by unpacking the dex — obscurity, not security. Acceptable for a portfolio app with a
+          free, read-only, rotatable token; a commercial product would proxy TMDB behind its own backend so the app
+          never holds a credential. Note the v4 token embeds the v3 key in its <code>aud</code> claim, so rotating one
+          invalidates both.
+        </p>
+      </div>
+
+      <h3>Attribution — done</h3>
+      <p>
+        TMDB requires two things together: their mark, and the notice
+        <em>"This product uses the TMDB API but is not endorsed or certified by TMDB."</em> Both now ship, emitted by a
+        single <code>SinemaAttributionFooter</code> so no screen can paraphrase the wording — the same
+        define-it-once rule the design system applies to colour and spacing, for the same reason.
+      </p>
+      <p>
+        The interesting part was verifying it rather than writing it. The bundled mark is a monochrome silhouette:
+        every opaque pixel is pure black. Drawn as-is it looked perfect in light theme and was
+        <strong>invisible in dark</strong> — measured at <strong>1.14:1</strong> against the dark background, where
+        WCAG asks 3:1 for a graphical object. The notice was technically present and practically unreadable, which is
+        not compliance. Tinting the mark to the caption colour makes it theme-aware in one line and puts it at
+        <strong>7.45:1 dark / 6.52:1 light</strong>:
+      </p>
+      <pre><code>Image(
+    painter = painterResource(R.drawable.ic_tmdb_logo),
+    contentDescription = <span class="c">"The Movie Database (TMDB)"</span>,
+    colorFilter = ColorFilter.tint(SinemaTheme.colors.textSecondary),   <span class="c">// compliance, not styling</span>
+    modifier = Modifier.width(72.dp),
+)</code></pre>
+      <p class="t-note">
+        Worth generalising: a monochrome asset dropped into a themed app is a latent defect in whichever theme matches
+        its ink. Screenshot review in one theme cannot catch it — the contrast has to be measured in both.
+      </p>
+      <div class="panel flag">
+        <div class="eyebrow">Placement — a judgement call, not an oversight</div>
+        <p>
+          The notice appears once, in Settings, which is the conventional home for it and satisfies the requirement to
+          display attribution. TMDB does not mandate per-screen placement. Recording it here so the choice is visibly
+          deliberate: if the app is ever submitted for TMDB review and they ask for prominence, the component is
+          already shared and can be dropped onto detail or an About screen without touching its wording.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§7</span><h2>Build, tooling &amp; enforcement</h2></div>
+    <div class="stack-lg">
+      <p>
+        Module configuration is centralized in <strong>convention plugins</strong> under <code>build-logic</code>, so
+        no module build file repeats SDK levels or dependency boilerplate, and cross-cutting build changes are made
+        once per archetype.
+      </p>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>Archetype</th><th>Configures</th><th>Applied by</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">convention.jvm-library</td><td>Kotlin/JVM, JVM 11, coroutines, test deps</td><td class="mono t-note">7 modules</td></tr>
+            <tr><td class="mono">convention.android-library</td><td>AGP library, SDK levels, Java/Kotlin target</td><td class="mono t-note">5 modules</td></tr>
+            <tr><td class="mono">convention.android-hilt</td><td>KSP + Hilt plugin and compiler</td><td class="mono t-note">4 modules</td></tr>
+            <tr><td class="mono">convention.compose</td><td>Compose compiler, BOM, tooling</td><td class="mono t-note">2 modules</td></tr>
+            <tr><td class="mono">convention.feature</td><td>Compose + Hilt + standard feature deps</td><td class="mono t-note">ready</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Automated guardrails</h3>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>Check</th><th>Scope</th><th class="num">Tests</th></tr></thead>
+          <tbody>
+            <tr><td>Konsist architecture rules</td><td class="t-note">Layer imports, Context containment, domain whitelist, banned stacks (Koin/Moshi/Gson/RxJava)</td><td class="num">4</td></tr>
+            <tr><td>Feature-flag resolution</td><td class="t-note">Override → backend → default precedence and reactive re-emission</td><td class="num">4</td></tr>
+            <tr><td>Network stack</td><td class="t-note">Real Retrofit/OkHttp against MockWebServer: typed conversion, HTTP status, malformed payload, plus both credential schemes, precedence, the unauthenticated path and credential redaction</td><td class="num">8</td></tr>
+            <tr><td>Analytics pipeline</td><td class="t-note">Multi-sink fan-out, per-sink filtering, consent gating</td><td class="num">3</td></tr>
+            <tr><td>Hilt object graph</td><td class="t-note">Validated at compile time — a missing binding breaks the build</td><td class="num">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Dependency versions live in a single Gradle version catalog. Nothing else in the build declares a version, so
+        upgrades and audits are one file.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§8</span><h2>State of implementation</h2></div>
+    <div class="stack-lg">
+      <div class="callout">
+        <div class="eyebrow">Honest assessment</div>
+        <p>
+          <strong>The architecture is now proven end to end.</strong> Home fetches five TMDB categories through the
+          full stack — service → DTO → mapper → Room → repository → use case → ViewModel → Compose — and renders real
+          posters. Offline-first was verified on a device: with the network disabled, a cold start still showed the
+          cached list, with a retry notice above it rather than an empty screen.
+        </p>
+        <p>
+          Exercising the abstractions keeps finding defects that review does not. <code>SinemaShimmerCard</code> crashed
+          when a grid sized it (it ignored <code>Dp.Unspecified</code>, unlike <code>SinemaMovieCard</code>); the Konsist
+          <code>Context</code> rule had a stale package prefix left over from the rename, so it was silently guarding
+          nothing in the app shell; scroll position was lost returning from detail because the scaffold moved content
+          between two parents (§4); and the TMDB mark was invisible in dark theme at 1.14:1 (§6). All are fixed. The
+          pattern is consistent enough to state plainly: <strong>each of these was invisible in code review and
+          obvious within seconds of real use</strong> — which is the argument for the device-verification step, not
+          the test suite, being the gate that catches them.
+        </p>
+        <p>
+          Breadth is now largely covered: every screen is real and every mock is gone. What remains is structural
+          (feature-module extraction), a backend behind the analytics and remote-config ports, and the production
+          hardening in §9·05.
+        </p>
+      </div>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>Area</th><th>Status</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td>Build, modules, conventions</td><td><span class="pill ok">Done</span></td><td class="t-note">13 modules, 5 archetypes, catalog, clean build</td></tr>
+            <tr><td>Design system</td><td><span class="pill ok">Done</span></td><td class="t-note">Tokens + 16 components + ~92 in-file previews; both themes verified on device</td></tr>
+            <tr><td>DI composition root</td><td><span class="pill ok">Done</span></td><td class="t-note">Hilt graph compiles; adapters bound in <code>:sinema</code> only</td></tr>
+            <tr><td>Guardrails &amp; tests</td><td><span class="pill ok">Done</span></td><td class="t-note">65 unit tests green; five Konsist rules enforcing layering, including one that keeps <code>androidx.navigation</code> inside the app shell</td></tr>
+            <tr><td>Domain layer</td><td><span class="pill ok">Done</span></td><td class="t-note"><code>MovieRepository</code> contract plus observe/refresh use cases</td></tr>
+            <tr><td>Movie data pipeline</td><td><span class="pill ok">Done</span></td><td class="t-note">DTOs, <code>MovieApi</code>, mapper and offline-first repository; Room is the single source of truth, per-category</td></tr>
+            <tr><td>Feature modules &amp; ViewModels</td><td><span class="pill warn">Partial</span></td><td class="t-note">Every screen is real — UDF contracts, ViewModels, zero mocks — but they live in <code>:sinema</code> rather than <code>feature/*</code> modules; extraction is the remaining structural step (§9·03)</td></tr>
+            <tr><td>Favorites</td><td><span class="pill ok">Done</span></td><td class="t-note">Local-only snapshots in their own Room table (survive cache clearing and offline); heart on detail; grid opens detail with the shared-element transition</td></tr>
+            <tr><td>Settings</td><td><span class="pill ok">Done</span></td><td class="t-note">Theme persisted via DataStore (survives process death, verified on device); real clear-cache with computed size — catalogue + images, favourites kept; app version row</td></tr>
+            <tr><td>Pagination</td><td><span class="pill ok">Done</span></td><td class="t-note">Infinite scroll on Home and Search; append with dedupe, end-of-list detection, quiet append failures. Room gained a <code>page</code> column (DB v4)</td></tr>
+            <tr><td>Search</td><td><span class="pill ok">Done</span></td><td class="t-note">Hybrid: blank query browses <code>/discover</code> (genre server-side), typed query hits <code>/search</code> (genre client-side); debounced via <code>Flags.SearchDebounceMs</code> — the flag system's first real consumer — with <code>mapLatest</code> cancellation; real genre chips from the cached table; results open detail with the shared-element transition</td></tr>
+            <tr><td>Movie detail</td><td><span class="pill ok">Done</span></td><td class="t-note">One <code>append_to_response=credits,videos</code> call; backdrop, cast and trailer flag, with a shared-element poster transition from the grid. Not yet cached for offline reads.</td></tr>
+            <tr><td>Navigation</td><td><span class="pill ok">Done</span></td><td class="t-note">Real <code>NavHost</code> with type-safe <code>@Serializable</code> routes in <code>:core:navigation</code>; the speculative <code>Navigator</code> contract was deleted, not completed. Tab selection derives from the back stack rather than an enum, and <code>androidx.navigation</code> is confined to three shell files by a Konsist rule (§4)</td></tr>
+            <tr><td>Remote config &amp; analytics backends</td><td><span class="pill warn">Speculative</span></td><td class="t-note">Full port machinery with one debug sink, no backend, and no flag read by any screen</td></tr>
+            <tr><td>Images</td><td><span class="pill ok">Done</span></td><td class="t-note">Coil 3 sharing the app's OkHttp client; auth is host-scoped so image requests carry no credential</td></tr>
+            <tr><td>TMDB attribution</td><td><span class="pill ok">Done</span></td><td class="t-note">TMDB's mark plus their required wording verbatim, rendered by a single <code>SinemaAttributionFooter</code>. The bundled mark is a monochrome silhouette, so it is tinted to the caption colour — untinted it scored 1.14:1 against the dark background, i.e. invisible; now 7.45:1 dark / 6.52:1 light, measured on device (§6)</td></tr>
+            <tr><td>TMDB authentication</td><td><span class="pill ok">Done</span></td><td class="t-note">Both credentials configured and verified live; dual-scheme interceptor with log redaction</td></tr>
+            <tr><td>Secrets &amp; services</td><td><span class="pill warn">Partial</span></td><td class="t-note">TMDB credentials in place; no Firebase project yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§9</span><h2>Delivery sequence</h2></div>
+    <div class="stack-lg">
+      <p>
+        Deliberately ordered: the first slice validates the architecture end to end, and everything after it builds on
+        proven ground rather than assumptions.
+      </p>
+      <ol class="spine">
+        <li>
+          <span class="step">01</span>
+          <div class="body">
+            <h3>Home vertical slice — the validation step <span class="pill ok">Done</span></h3>
+            <p>
+              TMDB popular list through the full stack: <code>MovieApi</code> + DTO → Room as single source of truth →
+              <code>MovieRepository</code> → use case → <code>HomeViewModel</code> with the UDF contracts → existing
+              Sinema components. Credentials are already in place; this needs the five model fixes in §6 — genres, lenient dates, the
+              unrated-rating rule, a <code>listKey</code> column and a wired image loader. This one slice exercises
+              every cross-cutting contract in §4 and will confirm or correct them.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="step">02</span>
+          <div class="body">
+            <h3>Simplify what the slice disproves <span class="pill ok">First cut done</span></h3>
+            <p>
+              With a real consumer in place, collapse abstractions that earned nothing — likely candidates are the
+              separate <code>tracker:api</code> and <code>config:api</code> modules (packages would do until a second
+              backend exists) and the unused parts of the flag lifecycle.
+            </p>
+            <p>
+              The <code>Navigator</code> port was the first to go, and it is the template for the rest: a sealed
+              <code>NavigationCommand</code> type, a <code>DefaultNavigator</code> and a Hilt binding, all written to
+              keep navigation swappable and none of it ever called. Building the real graph showed why the abstraction
+              could not earn its keep — Navigation Compose already expresses destinations as plain
+              <code>@Serializable</code> values, so the part worth keeping portable was the <em>data</em>, not a command
+              bus wrapped around it. The data stayed; the machinery went; a Konsist rule now guards the seam the port
+              was supposed to protect. Three production types replaced by one test is the shape to look for in the
+              remaining candidates.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="step">03</span>
+          <div class="body">
+            <h3>Navigation <span class="pill ok">Done</span> · feature extraction</h3>
+            <p>
+              Navigation is settled: one committed approach, a real <code>NavHost</code> with typed routes, and the
+              <code>Navigator</code> contract deleted rather than finished — see §4. What remains of this step is the
+              extraction: moving the screens out of <code>:sinema</code> into <code>feature/*</code> modules using the
+              ready feature archetype. The destination types already sit in a shared framework-free module, so features
+              will be able to reference each other's routes without depending on each other.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="step">04</span>
+          <div class="body">
+            <h3>Detail · Search · Favorites · Settings <span class="pill ok">All done</span></h3>
+            <p>
+              All four shipped: detail with the shared-element transition and two-pass paint, search with hybrid
+              semantics and debounce, favourites as offline-proof snapshots, settings with persisted theme and real
+              cache management. What remains of this step is structural — feature-module extraction — plus the
+              adaptive list–detail layout, including the adaptive list–detail layout for tablets and
+              foldables that <code>AppScaffold</code> already anticipates.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="step">05</span>
+          <div class="body">
+            <h3>Production hardening</h3>
+            <p>
+              Firebase analytics and Remote Config adapters behind the existing ports, crash reporting, R8 configuration,
+              baseline profiles, screenshot tests per window size class, and CI wiring.
+            </p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+
+  <section>
+    <div class="shead"><span class="no">§10</span><h2>API backlog</h2></div>
+    <div class="stack-lg">
+      <p>
+        Everything below was probed against the live API with this project's own credentials, so the endpoints,
+        response shapes and counts are verified rather than assumed. The tiers are ordered by cost, not by appeal:
+        tier 1 costs no extra network call at all.
+      </p>
+
+      <h3>Tier 1 — free: appended to the detail request we already make</h3>
+      <p>
+        Detail already sends <code>append_to_response=credits,videos</code>. Additional blocks ride the same request,
+        so each of these is a comma and a DTO — no extra round trip, no extra latency. Fourteen blocks were verified
+        returning together in a single call.
+      </p>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>Block</th><th>Returns</th><th>Unlocks</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">recommendations</td><td class="t-note">20 movies</td><td>"More like this" row — reuses <code>SinemaMovieCard</code>; turns detail into a browsing loop</td></tr>
+            <tr><td class="mono">similar</td><td class="t-note">20 movies</td><td>Second discovery row, or a fallback when recommendations are thin</td></tr>
+            <tr><td class="mono">release_dates</td><td class="t-note">51 country entries</td><td>Age certification (PG-13/R) as a <code>SinemaChip</code> beside the genres</td></tr>
+            <tr><td class="mono">images</td><td class="t-note">posters, backdrops, logos</td><td>Higher-resolution artwork; title logo in place of text on the hero</td></tr>
+            <tr><td class="mono">keywords</td><td class="t-note">tag list</td><td>Tag chips, and the seed for "because you liked…"</td></tr>
+            <tr><td class="mono">external_ids</td><td class="t-note">IMDb, Wikidata, socials</td><td>"View on IMDb" affordance</td></tr>
+            <tr><td class="mono">reviews</td><td class="t-note">user reviews</td><td>A reviews section on detail</td></tr>
+            <tr><td class="mono">watch/providers</td><td class="t-note">129 regions</td><td>Streaming availability — note the JSON key contains a slash and needs an explicit <code>@SerialName</code></td></tr>
+            <tr><td class="mono">translations · alternative_titles</td><td class="t-note">localised titles</td><td>Localisation, when the app ships beyond English</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Tier 2 — new capability on patterns that already exist</h3>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>Capability</th><th>Endpoint</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Search</strong> <span class="pill ok">Done</span></td>
+              <td class="mono">/search/movie<br>+ /discover/movie</td>
+              <td>Shipped with hybrid semantics and the debounce flag in real use. <code>/search/multi</code> (movies + TV + people in one box) remains open for when those content types exist.</td>
+            </tr>
+            <tr>
+              <td><strong>Streaming availability</strong></td>
+              <td class="mono">/watch/providers/movie<br>?watch_region=…</td>
+              <td>290 providers in the catalogue. Provider logos on detail; "available on" as a filter later. TMDB's headline feature and currently untouched.</td>
+            </tr>
+            <tr>
+              <td><strong>Regional lists</strong></td>
+              <td class="mono">?region=ID</td>
+              <td>The existing list endpoints accept a region: <code>now_playing</code> returns local cinema listings rather than US ones. One query parameter, materially better relevance.</td>
+            </tr>
+            <tr>
+              <td><strong>Trending across types</strong></td>
+              <td class="mono">/trending/all/week</td>
+              <td>Mixed movies/TV/people; a weekly window alongside the daily one Home already uses.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Tier 3 — larger moves</h3>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>Capability</th><th>Endpoint</th><th>Why it is bigger</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Discover</strong></td>
+              <td class="mono">/discover/movie</td>
+              <td>30+ filters and sorts — genre, year, rating floor, runtime, language, cast, keyword, provider. Replaces five fixed categories with real browsing, so it reshapes Home's state model, the cache key scheme and the chip row rather than adding to them.</td>
+            </tr>
+            <tr>
+              <td><strong>People</strong></td>
+              <td class="mono">/person/{id}<br>+ movie_credits</td>
+              <td>Makes <code>SinemaCastCard</code> tappable and adds a filmography screen. A new content domain: its own model, repository, cache table and screen.</td>
+            </tr>
+            <tr>
+              <td><strong>TV</strong></td>
+              <td class="mono">/tv/*, /discover/tv</td>
+              <td>A full parallel API — series, seasons, episodes. Effectively doubles the domain model. Needs a product decision before any code.</td>
+            </tr>
+            <tr>
+              <td><strong>Collections</strong></td>
+              <td class="mono">/collection/{id}</td>
+              <td>Franchises as a single grouped entity (the Alien collection returns 8 parts). Small on its own, but wants a dedicated screen.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <h3>Reference data</h3>
+          <ul class="tight">
+            <li><code>/configuration</code> — the image base URL and size list we currently hardcode (§6).</li>
+            <li><code>/configuration/countries</code> — 251 entries, for region pickers.</li>
+            <li><code>/certification/movie/list</code> — 52 country rating systems.</li>
+            <li><code>/genre/movie/list</code> — already used and cached.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Account features — needs a different auth model</h3>
+          <p class="t-note">
+            TMDB can host favourites, watchlists and ratings server-side, but those endpoints need a
+            <strong>user session</strong>, not the app-level read token this project uses. Local favourites in Room
+            stay the simpler choice unless cross-device sync becomes a requirement.
+          </p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <div class="eyebrow">Suggested order</div>
+        <p>
+          <strong>1.</strong> <code>recommendations</code> on detail — one word, immediate value, reuses existing
+          components. <strong>2.</strong> Search via <code>/search/multi</code> — a mocked screen with its component
+          already built. <strong>3.</strong> <code>watch/providers</code> — genuinely useful and visually distinctive.
+          <strong>4.</strong> Discover — only once real browsing is the goal, since it reshapes Home.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§11</span><h2>Environment &amp; open items</h2></div>
+    <div class="stack-lg">
+      <div class="grid-2">
+        <div class="panel">
+          <h3>Toolchain notes</h3>
+          <ul class="tight">
+            <li><strong>AGP.</strong> The catalog pins 9.3.1 and the CLI builds cleanly. Android Studio Quail has
+              rejected anything above 9.2.1 at <em>sync</em>; if that recurs, drop <code>agp</code> to 9.2.1 — a
+              one-line change.</li>
+            <li><strong>Renaming the project breaks the build</strong> until the stale state is cleared, because the
+              configuration cache is keyed to absolute paths. The symptom is a misleading "dependency cache may be
+              corrupt" plus <code>NoImplementationFoundException: KotlinToolchains</code>. Remedy:
+              <code>./gradlew --stop &amp;&amp; rm -rf .gradle/configuration-cache</code>.</li>
+            <li><strong>JDK 25</strong> is required by the daemon config and supplied from the IDE's bundled runtime.</li>
+            <li><strong>Restricted network.</strong> Gradle distributions must be fetched manually and pre-installed into the wrapper cache.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Needed to proceed</h3>
+          <ul class="tight">
+            <li><strong>Firebase project</strong> for the analytics and Remote Config adapters — optional until step 05.</li>
+            <li><strong>Product decision</strong> on the first feature scope beyond Home.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="panel flag">
+        <div class="eyebrow">Documentation debt</div>
+        <p>
+          Source KDoc still cites the superseded KMP planning document (references such as “§3.3”, “portable module”).
+          These should be rewritten to describe the native rationale so the code stops advertising a strategy the
+          project no longer follows.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Sinema · technical solution</span>
+    <span>Revision 13 — native Android · supersedes revision 12</span>
+    <span>Supersedes the KMP/CMP planning document</span>
+  </footer>
+
+</div>

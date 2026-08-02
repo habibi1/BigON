@@ -1,0 +1,35 @@
+<!--
+  Play Store icon, 512x512. Generated from the shipped adaptive launcher icon
+  so the store listing and the device home screen cannot drift apart.
+
+  viewBox is the central 72x72 of the 108x108 adaptive canvas — the region a
+  launcher mask actually shows — so the artwork fills the square in the same
+  proportion users see on their device.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="18 18 72 72">
+  <defs>
+    <linearGradient id="field" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="108" y2="108">
+      <stop offset="0"    stop-color="#1E252C"/>
+      <stop offset="0.55" stop-color="#151B21"/>
+      <stop offset="1"    stop-color="#0D1115"/>
+    </linearGradient>
+    <radialGradient id="glow" gradientUnits="userSpaceOnUse" cx="54" cy="50" r="46">
+      <stop offset="0"   stop-color="#FFB648" stop-opacity="0.149"/>
+      <stop offset="0.6" stop-color="#FFB648" stop-opacity="0.059"/>
+      <stop offset="1"   stop-color="#FFB648" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background: night-blue field with a soft amber glow behind the frame. -->
+  <rect x="0" y="0" width="108" height="108" fill="url(#field)"/>
+  <rect x="0" y="0" width="108" height="108" fill="url(#glow)"/>
+
+  <!-- Film strip: outer frame with viewing window and sprocket holes cut out. -->
+  <path fill="#FFB648" fill-rule="evenodd"
+        d="M35,36H73A7,7 0 0 1 80,43V65A7,7 0 0 1 73,72H35A7,7 0 0 1 28,65V43A7,7 0 0 1 35,36ZM43,42A3,3 0 0 0 40,45V63A3,3 0 0 0 43,66H65A3,3 0 0 0 68,63V45A3,3 0 0 0 65,42ZM33.05,40A1.3,1.3 0 0 0 31.75,41.3V42.7A1.3,1.3 0 0 0 33.05,44H34.95A1.3,1.3 0 0 0 36.25,42.7V41.3A1.3,1.3 0 0 0 34.95,40ZM33.05,52A1.3,1.3 0 0 0 31.75,53.3V54.7A1.3,1.3 0 0 0 33.05,56H34.95A1.3,1.3 0 0 0 36.25,54.7V53.3A1.3,1.3 0 0 0 34.95,52ZM33.05,64A1.3,1.3 0 0 0 31.75,65.3V66.7A1.3,1.3 0 0 0 33.05,68H34.95A1.3,1.3 0 0 0 36.25,66.7V65.3A1.3,1.3 0 0 0 34.95,64ZM73.05,40A1.3,1.3 0 0 0 71.75,41.3V42.7A1.3,1.3 0 0 0 73.05,44H74.95A1.3,1.3 0 0 0 76.25,42.7V41.3A1.3,1.3 0 0 0 74.95,40ZM73.05,52A1.3,1.3 0 0 0 71.75,53.3V54.7A1.3,1.3 0 0 0 73.05,56H74.95A1.3,1.3 0 0 0 76.25,54.7V53.3A1.3,1.3 0 0 0 74.95,52ZM73.05,64A1.3,1.3 0 0 0 71.75,65.3V66.7A1.3,1.3 0 0 0 73.05,68H74.95A1.3,1.3 0 0 0 76.25,66.7V65.3A1.3,1.3 0 0 0 74.95,64Z"/>
+
+  <!-- Play triangle, stroked in the fill colour so the corners round off. -->
+  <path fill="#FFB648" stroke="#FFB648" stroke-width="3.5"
+        stroke-linejoin="round" stroke-linecap="round"
+        d="M49,46.5L49,61.5L62,54Z"/>
+</svg>
