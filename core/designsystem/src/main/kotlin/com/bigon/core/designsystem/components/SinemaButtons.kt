@@ -28,50 +28,50 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bigon.core.designsystem.icons.CineIcons
-import com.bigon.core.designsystem.preview.CineFontScalePreview
-import com.bigon.core.designsystem.preview.CinePreview
-import com.bigon.core.designsystem.preview.CinePreviewSurface
-import com.bigon.core.designsystem.preview.CineThemePreview
-import com.bigon.core.designsystem.theme.CineTheme
+import com.bigon.core.designsystem.icons.SinemaIcons
+import com.bigon.core.designsystem.preview.SinemaFontScalePreview
+import com.bigon.core.designsystem.preview.SinemaPreview
+import com.bigon.core.designsystem.preview.SinemaPreviewSurface
+import com.bigon.core.designsystem.preview.SinemaThemePreview
+import com.bigon.core.designsystem.theme.SinemaTheme
 
 /**
- * CinePrimaryButton — high-emphasis pill action, min height 48dp (N3.4)
+ * SinemaPrimaryButton — high-emphasis pill action, min height 48dp (N3.4)
  * (component gallery §Input).
  */
 @Composable
-fun CinePrimaryButton(
+fun SinemaPrimaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     leadingIcon: ImageVector? = null,
 ) {
-    CineButtonImpl(
+    SinemaButtonImpl(
         text = text,
         onClick = onClick,
-        container = CineTheme.colors.primary,
-        contentColor = CineTheme.colors.onPrimary,
+        container = SinemaTheme.colors.primary,
+        contentColor = SinemaTheme.colors.onPrimary,
         modifier = modifier,
         enabled = enabled,
         leadingIcon = leadingIcon,
     )
 }
 
-/** CineTonalButton — medium-emphasis pill action (component gallery §Input). */
+/** SinemaTonalButton — medium-emphasis pill action (component gallery §Input). */
 @Composable
-fun CineTonalButton(
+fun SinemaTonalButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     leadingIcon: ImageVector? = null,
 ) {
-    CineButtonImpl(
+    SinemaButtonImpl(
         text = text,
         onClick = onClick,
-        container = CineTheme.colors.surfaceHigh,
-        contentColor = CineTheme.colors.textPrimary,
+        container = SinemaTheme.colors.surfaceHigh,
+        contentColor = SinemaTheme.colors.textPrimary,
         modifier = modifier,
         enabled = enabled,
         leadingIcon = leadingIcon,
@@ -79,7 +79,7 @@ fun CineTonalButton(
 }
 
 @Composable
-private fun CineButtonImpl(
+private fun SinemaButtonImpl(
     text: String,
     onClick: () -> Unit,
     container: Color,
@@ -90,11 +90,11 @@ private fun CineButtonImpl(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(CineTheme.spacing.s),
+        horizontalArrangement = Arrangement.spacedBy(SinemaTheme.spacing.s),
         modifier = modifier
             .height(48.dp)
             .alpha(if (enabled) 1f else 0.4f)
-            .clip(CineTheme.shapes.pill)
+            .clip(SinemaTheme.shapes.pill)
             .background(container)
             .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = 26.dp),
@@ -109,30 +109,30 @@ private fun CineButtonImpl(
         }
         Text(
             text = text,
-            style = CineTheme.typography.label.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
+            style = SinemaTheme.typography.label.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
             color = contentColor,
         )
     }
 }
 
-/** CineFavoriteToggle — 48dp heart toggle, off / on (component gallery §Input). */
+/** SinemaFavoriteToggle — 48dp heart toggle, off / on (component gallery §Input). */
 @Composable
-fun CineFavoriteToggle(
+fun SinemaFavoriteToggle(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = CineTheme.colors
+    val colors = SinemaTheme.colors
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .size(48.dp)
-            .clip(CineTheme.shapes.pill)
+            .clip(SinemaTheme.shapes.pill)
             .background(if (checked) colors.primaryContainer else colors.surfaceHigh)
             .clickable { onCheckedChange(!checked) },
     ) {
         Icon(
-            imageVector = if (checked) CineIcons.Heart else CineIcons.HeartOutline,
+            imageVector = if (checked) SinemaIcons.Heart else SinemaIcons.HeartOutline,
             contentDescription = if (checked) "Remove from favorites" else "Add to favorites",
             tint = if (checked) colors.favoriteActive else colors.textPrimary,
             modifier = Modifier.size(20.dp),
@@ -141,22 +141,22 @@ fun CineFavoriteToggle(
 }
 
 /**
- * CineSegmentedControl — single-choice segments, e.g. the Settings theme picker
+ * SinemaSegmentedControl — single-choice segments, e.g. the Settings theme picker
  * (F5.1) (component gallery §Input).
  */
 @Composable
-fun CineSegmentedControl(
+fun SinemaSegmentedControl(
     options: List<String>,
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = CineTheme.colors
+    val colors = SinemaTheme.colors
     Row(
         modifier = modifier
-            .clip(CineTheme.shapes.pill)
+            .clip(SinemaTheme.shapes.pill)
             .background(colors.surfaceVariant)
-            .padding(CineTheme.spacing.xs),
+            .padding(SinemaTheme.spacing.xs),
     ) {
         options.forEachIndexed { index, option ->
             val selected = index == selectedIndex
@@ -164,14 +164,14 @@ fun CineSegmentedControl(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .weight(1f)
-                    .clip(CineTheme.shapes.pill)
+                    .clip(SinemaTheme.shapes.pill)
                     .background(if (selected) colors.primaryContainer else Color.Transparent)
                     .clickable { onSelect(index) }
                     .padding(vertical = 9.dp),
             ) {
                 Text(
                     text = option,
-                    style = CineTheme.typography.label.copy(
+                    style = SinemaTheme.typography.label.copy(
                         fontSize = 12.5.sp,
                         fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                     ),
@@ -184,119 +184,119 @@ fun CineSegmentedControl(
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CinePrimaryButtonPreview() {
-    CinePreviewSurface {
-        CinePrimaryButton(text = "Watch trailer", leadingIcon = CineIcons.Play, onClick = {})
+private fun SinemaPrimaryButtonPreview() {
+    SinemaPreviewSurface {
+        SinemaPrimaryButton(text = "Watch trailer", leadingIcon = SinemaIcons.Play, onClick = {})
     }
 }
 
 /** Without the icon slot. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CinePrimaryButtonNoIconPreview() {
-    CinePreviewSurface {
-        CinePrimaryButton(text = "Retry", onClick = {})
+private fun SinemaPrimaryButtonNoIconPreview() {
+    SinemaPreviewSurface {
+        SinemaPrimaryButton(text = "Retry", onClick = {})
     }
 }
 
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CinePrimaryButtonDisabledPreview() {
-    CinePreviewSurface {
-        CinePrimaryButton(
+private fun SinemaPrimaryButtonDisabledPreview() {
+    SinemaPreviewSurface {
+        SinemaPrimaryButton(
             text = "Watch trailer",
-            leadingIcon = CineIcons.Play,
+            leadingIcon = SinemaIcons.Play,
             enabled = false,
             onClick = {},
         )
     }
 }
 
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CinePrimaryButtonFullWidthPreview() {
-    CinePreviewSurface(modifier = Modifier.width(300.dp)) {
-        CinePrimaryButton(text = "Continue", onClick = {}, modifier = Modifier.fillMaxWidth())
+private fun SinemaPrimaryButtonFullWidthPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(300.dp)) {
+        SinemaPrimaryButton(text = "Continue", onClick = {}, modifier = Modifier.fillMaxWidth())
     }
 }
 
-@CineFontScalePreview
+@SinemaFontScalePreview
 @Composable
-private fun CinePrimaryButtonFontScalePreview() {
-    CinePreviewSurface {
-        CinePrimaryButton(text = "Watch trailer", leadingIcon = CineIcons.Play, onClick = {})
+private fun SinemaPrimaryButtonFontScalePreview() {
+    SinemaPreviewSurface {
+        SinemaPrimaryButton(text = "Watch trailer", leadingIcon = SinemaIcons.Play, onClick = {})
     }
 }
 
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineTonalButtonPreview() {
-    CinePreviewSurface {
-        CineTonalButton(text = "Browse trending", onClick = {})
+private fun SinemaTonalButtonPreview() {
+    SinemaPreviewSurface {
+        SinemaTonalButton(text = "Browse trending", onClick = {})
     }
 }
 
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineTonalButtonWithIconPreview() {
-    CinePreviewSurface {
-        CineTonalButton(text = "Add to list", leadingIcon = CineIcons.HeartOutline, onClick = {})
+private fun SinemaTonalButtonWithIconPreview() {
+    SinemaPreviewSurface {
+        SinemaTonalButton(text = "Add to list", leadingIcon = SinemaIcons.HeartOutline, onClick = {})
     }
 }
 
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineTonalButtonDisabledPreview() {
-    CinePreviewSurface {
-        CineTonalButton(text = "Browse trending", enabled = false, onClick = {})
+private fun SinemaTonalButtonDisabledPreview() {
+    SinemaPreviewSurface {
+        SinemaTonalButton(text = "Browse trending", enabled = false, onClick = {})
     }
 }
 
 /** Emphasis pair as a detail screen uses them. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineButtonEmphasisPreview() {
-    CinePreviewSurface {
+private fun SinemaButtonEmphasisPreview() {
+    SinemaPreviewSurface {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            CinePrimaryButton(text = "Watch trailer", leadingIcon = CineIcons.Play, onClick = {})
-            CineTonalButton(text = "Retry", onClick = {})
+            SinemaPrimaryButton(text = "Watch trailer", leadingIcon = SinemaIcons.Play, onClick = {})
+            SinemaTonalButton(text = "Retry", onClick = {})
         }
     }
 }
 
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineFavoriteTogglePreview() {
-    CinePreviewSurface {
-        CineFavoriteToggle(checked = false, onCheckedChange = {})
+private fun SinemaFavoriteTogglePreview() {
+    SinemaPreviewSurface {
+        SinemaFavoriteToggle(checked = false, onCheckedChange = {})
     }
 }
 
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineFavoriteToggleCheckedPreview() {
-    CinePreviewSurface {
-        CineFavoriteToggle(checked = true, onCheckedChange = {})
+private fun SinemaFavoriteToggleCheckedPreview() {
+    SinemaPreviewSurface {
+        SinemaFavoriteToggle(checked = true, onCheckedChange = {})
     }
 }
 
 /** Interactive: tap to toggle the heart. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineFavoriteToggleInteractivePreview() {
+private fun SinemaFavoriteToggleInteractivePreview() {
     var favorite by remember { mutableStateOf(false) }
-    CinePreviewSurface {
-        CineFavoriteToggle(checked = favorite, onCheckedChange = { favorite = it })
+    SinemaPreviewSurface {
+        SinemaFavoriteToggle(checked = favorite, onCheckedChange = { favorite = it })
     }
 }
 
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineSegmentedControlPreview() {
-    CinePreviewSurface(modifier = Modifier.width(300.dp)) {
-        CineSegmentedControl(
+private fun SinemaSegmentedControlPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(300.dp)) {
+        SinemaSegmentedControl(
             options = listOf("System", "Dark", "Light"),
             selectedIndex = 1,
             onSelect = {},
@@ -305,11 +305,11 @@ private fun CineSegmentedControlPreview() {
     }
 }
 
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineSegmentedControlTwoOptionsPreview() {
-    CinePreviewSurface(modifier = Modifier.width(300.dp)) {
-        CineSegmentedControl(
+private fun SinemaSegmentedControlTwoOptionsPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(300.dp)) {
+        SinemaSegmentedControl(
             options = listOf("Movies", "TV"),
             selectedIndex = 0,
             onSelect = {},
@@ -319,12 +319,12 @@ private fun CineSegmentedControlTwoOptionsPreview() {
 }
 
 /** Four segments — the point where labels start to crowd. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineSegmentedControlFourOptionsPreview() {
+private fun SinemaSegmentedControlFourOptionsPreview() {
     var selected by remember { mutableIntStateOf(2) }
-    CinePreviewSurface(modifier = Modifier.width(300.dp)) {
-        CineSegmentedControl(
+    SinemaPreviewSurface(modifier = Modifier.width(300.dp)) {
+        SinemaSegmentedControl(
             options = listOf("Day", "Week", "Month", "Year"),
             selectedIndex = selected,
             onSelect = { selected = it },

@@ -22,25 +22,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.bigon.core.designsystem.components.CineAttributionFooter
-import com.bigon.core.designsystem.components.CineCastCard
-import com.bigon.core.designsystem.components.CineChip
-import com.bigon.core.designsystem.components.CineEmptyState
-import com.bigon.core.designsystem.components.CineFavoriteToggle
-import com.bigon.core.designsystem.components.CineListItem
-import com.bigon.core.designsystem.components.CineLoadingIndicator
-import com.bigon.core.designsystem.components.CineMovieCard
-import com.bigon.core.designsystem.components.CineOfflineBanner
-import com.bigon.core.designsystem.components.CinePrimaryButton
-import com.bigon.core.designsystem.components.CineSearchBar
-import com.bigon.core.designsystem.components.CineSectionHeader
-import com.bigon.core.designsystem.components.CineSegmentedControl
-import com.bigon.core.designsystem.components.CineSettingRow
-import com.bigon.core.designsystem.components.CineShimmerCard
-import com.bigon.core.designsystem.components.CineSnackbar
-import com.bigon.core.designsystem.components.CineTonalButton
-import com.bigon.core.designsystem.icons.CineIcons
-import com.bigon.core.designsystem.theme.CineTheme
+import com.bigon.core.designsystem.components.SinemaAttributionFooter
+import com.bigon.core.designsystem.components.SinemaCastCard
+import com.bigon.core.designsystem.components.SinemaChip
+import com.bigon.core.designsystem.components.SinemaEmptyState
+import com.bigon.core.designsystem.components.SinemaFavoriteToggle
+import com.bigon.core.designsystem.components.SinemaListItem
+import com.bigon.core.designsystem.components.SinemaLoadingIndicator
+import com.bigon.core.designsystem.components.SinemaMovieCard
+import com.bigon.core.designsystem.components.SinemaOfflineBanner
+import com.bigon.core.designsystem.components.SinemaPrimaryButton
+import com.bigon.core.designsystem.components.SinemaSearchBar
+import com.bigon.core.designsystem.components.SinemaSectionHeader
+import com.bigon.core.designsystem.components.SinemaSegmentedControl
+import com.bigon.core.designsystem.components.SinemaSettingRow
+import com.bigon.core.designsystem.components.SinemaShimmerCard
+import com.bigon.core.designsystem.components.SinemaSnackbar
+import com.bigon.core.designsystem.components.SinemaTonalButton
+import com.bigon.core.designsystem.icons.SinemaIcons
 import com.bigon.core.designsystem.theme.SinemaTheme
 
 /**
@@ -50,13 +49,13 @@ import com.bigon.core.designsystem.theme.SinemaTheme
  *
  * Rendered tall on purpose — scroll the preview, or open it in Interactive mode.
  */
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineComponentGalleryPreview() {
+private fun SinemaComponentGalleryPreview() {
     SinemaTheme {
         Column(
             modifier = Modifier
-                .background(CineTheme.colors.background)
+                .background(SinemaTheme.colors.background)
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(28.dp),
@@ -68,23 +67,23 @@ private fun CineComponentGalleryPreview() {
 
             GalleryHeading("Level 2 · Content")
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                CineMovieCard(title = "Midnight Reel", meta = "2026 · Thriller", rating = 8.4, onClick = {})
-                CineMovieCard(title = "No rating variant", meta = "2023 · Documentary", rating = null, onClick = {})
-                CineShimmerCard()
+                SinemaMovieCard(title = "Midnight Reel", meta = "2026 · Thriller", rating = 8.4, onClick = {})
+                SinemaMovieCard(title = "No rating variant", meta = "2023 · Documentary", rating = null, onClick = {})
+                SinemaShimmerCard()
             }
-            CineSectionHeader(title = "Trending today", onSeeAll = {})
+            SinemaSectionHeader(title = "Trending today", onSeeAll = {})
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                CineSampleData.cast.take(2).forEach { (name, role) ->
-                    CineCastCard(name = name, role = role)
+                SinemaSampleData.cast.take(2).forEach { (name, role) ->
+                    SinemaCastCard(name = name, role = role)
                 }
             }
-            CineListItem(
+            SinemaListItem(
                 title = "The Batman II",
                 subtitle = "2026 · ★ 7.9 · Crime",
                 selected = false,
                 onClick = {},
             )
-            CineListItem(
+            SinemaListItem(
                 title = "Dune: Part Three",
                 subtitle = "2026 · ★ 8.4 · Sci-Fi",
                 selected = true,
@@ -92,51 +91,51 @@ private fun CineComponentGalleryPreview() {
             )
 
             GalleryHeading("Level 2 · Input & control")
-            CineSearchBar(query = "", onQueryChange = {})
+            SinemaSearchBar(query = "", onQueryChange = {})
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                CineChip(label = "All", selected = true, onClick = {})
-                CineChip(label = "Sci-Fi", selected = false, onClick = {})
-                CineChip(label = "Drama", selected = false, onClick = {})
+                SinemaChip(label = "All", selected = true, onClick = {})
+                SinemaChip(label = "Sci-Fi", selected = false, onClick = {})
+                SinemaChip(label = "Drama", selected = false, onClick = {})
             }
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                CinePrimaryButton(text = "Watch trailer", leadingIcon = CineIcons.Play, onClick = {})
-                CineTonalButton(text = "Retry", onClick = {})
-                CineFavoriteToggle(checked = true, onCheckedChange = {})
+                SinemaPrimaryButton(text = "Watch trailer", leadingIcon = SinemaIcons.Play, onClick = {})
+                SinemaTonalButton(text = "Retry", onClick = {})
+                SinemaFavoriteToggle(checked = true, onCheckedChange = {})
             }
-            CineSegmentedControl(
+            SinemaSegmentedControl(
                 options = listOf("System", "Dark", "Light"),
                 selectedIndex = 1,
                 onSelect = {},
                 modifier = Modifier.fillMaxWidth(),
             )
-            CineSettingRow(
+            SinemaSettingRow(
                 title = "Content language",
                 subtitle = "Titles & overviews",
                 value = "EN",
-                icon = CineIcons.Movie,
+                icon = SinemaIcons.Movie,
                 onClick = {},
                 showDivider = false,
             )
 
             GalleryHeading("Level 2 · Feedback")
-            CineOfflineBanner(message = "✈ You're offline — showing saved content")
-            CineSnackbar(
+            SinemaOfflineBanner(message = "✈ You're offline — showing saved content")
+            SinemaSnackbar(
                 message = "Couldn't refresh — showing saved data",
                 actionLabel = "RETRY",
                 onAction = {},
             )
-            CineLoadingIndicator(modifier = Modifier.padding(start = 8.dp))
-            CineEmptyState(
-                icon = CineIcons.HeartOutline,
+            SinemaLoadingIndicator(modifier = Modifier.padding(start = 8.dp))
+            SinemaEmptyState(
+                icon = SinemaIcons.HeartOutline,
                 title = "No favorites yet",
                 subtitle = "Movies you favorite appear here and work offline.",
-                action = { CineTonalButton(text = "Browse trending", onClick = {}) },
+                action = { SinemaTonalButton(text = "Browse trending", onClick = {}) },
                 modifier = Modifier.fillMaxWidth(),
             )
-            CineAttributionFooter(versionLabel = "Cinelog v1.0")
+            SinemaAttributionFooter(versionLabel = "Sinema v0.0.1")
         }
     }
 }
@@ -148,21 +147,21 @@ private fun GalleryHeading(text: String) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
             text = text.uppercase(),
-            style = CineTheme.typography.label,
-            color = CineTheme.colors.textSecondary,
+            style = SinemaTheme.typography.label,
+            color = SinemaTheme.colors.textSecondary,
         )
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(CineTheme.colors.outline),
+                .background(SinemaTheme.colors.outline),
         )
     }
 }
 
 @Composable
 private fun ColorTokens() {
-    val colors = CineTheme.colors
+    val colors = SinemaTheme.colors
     val swatches = listOf(
         "background" to colors.background,
         "surface" to colors.surface,
@@ -194,21 +193,21 @@ private fun Swatch(name: String, color: Color) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(44.dp)
-                .clip(CineTheme.shapes.card)
+                .clip(SinemaTheme.shapes.card)
                 .background(color)
-                .border(1.dp, CineTheme.colors.outline, CineTheme.shapes.card),
+                .border(1.dp, SinemaTheme.colors.outline, SinemaTheme.shapes.card),
         )
         Text(
             text = name,
-            style = CineTheme.typography.caption,
-            color = CineTheme.colors.textSecondary,
+            style = SinemaTheme.typography.caption,
+            color = SinemaTheme.colors.textSecondary,
         )
     }
 }
 
 @Composable
 private fun TypographyTokens() {
-    val type = CineTheme.typography
+    val type = SinemaTheme.typography
     val rows = listOf(
         "display" to type.display,
         "title" to type.title,
@@ -230,21 +229,21 @@ private fun TypeRow(name: String, style: TextStyle) {
     ) {
         Text(
             text = name,
-            style = CineTheme.typography.caption,
-            color = CineTheme.colors.textSecondary,
+            style = SinemaTheme.typography.caption,
+            color = SinemaTheme.colors.textSecondary,
             modifier = Modifier.width(80.dp),
         )
         Text(
             text = "Dune: Part Three",
             style = style,
-            color = CineTheme.colors.textPrimary,
+            color = SinemaTheme.colors.textPrimary,
         )
     }
 }
 
 @Composable
 private fun SpacingAndShapeTokens() {
-    val spacing = CineTheme.spacing
+    val spacing = SinemaTheme.spacing
     val steps = listOf(
         "xs" to spacing.xs,
         "s" to spacing.s,
@@ -261,10 +260,10 @@ private fun SpacingAndShapeTokens() {
             steps.forEach { (name, value) -> SpacingStep(name, value) }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            ShapeSample("card", CineTheme.shapes.card)
-            ShapeSample("container", CineTheme.shapes.container)
-            ShapeSample("pill", CineTheme.shapes.pill)
-            ShapeSample("badge", CineTheme.shapes.badge)
+            ShapeSample("card", SinemaTheme.shapes.card)
+            ShapeSample("container", SinemaTheme.shapes.container)
+            ShapeSample("pill", SinemaTheme.shapes.pill)
+            ShapeSample("badge", SinemaTheme.shapes.badge)
         }
     }
 }
@@ -278,12 +277,12 @@ private fun SpacingStep(name: String, value: Dp) {
         Box(
             modifier = Modifier
                 .size(value)
-                .background(CineTheme.colors.primaryContainer),
+                .background(SinemaTheme.colors.primaryContainer),
         )
         Text(
             text = "$name ${value.value.toInt()}",
-            style = CineTheme.typography.caption,
-            color = CineTheme.colors.textSecondary,
+            style = SinemaTheme.typography.caption,
+            color = SinemaTheme.colors.textSecondary,
         )
     }
 }
@@ -294,13 +293,13 @@ private fun ShapeSample(name: String, shape: androidx.compose.ui.graphics.Shape)
         modifier = Modifier
             .size(58.dp)
             .clip(shape)
-            .background(CineTheme.colors.surfaceHigh),
+            .background(SinemaTheme.colors.surfaceHigh),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = name,
-            style = CineTheme.typography.caption,
-            color = CineTheme.colors.textSecondary,
+            style = SinemaTheme.typography.caption,
+            color = SinemaTheme.colors.textSecondary,
         )
     }
 }

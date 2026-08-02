@@ -30,19 +30,19 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bigon.core.designsystem.R
-import com.bigon.core.designsystem.icons.CineIcons
-import com.bigon.core.designsystem.preview.CineFontScalePreview
-import com.bigon.core.designsystem.preview.CinePreview
-import com.bigon.core.designsystem.preview.CinePreviewSurface
-import com.bigon.core.designsystem.preview.CineThemePreview
-import com.bigon.core.designsystem.theme.CineTheme
+import com.bigon.core.designsystem.icons.SinemaIcons
+import com.bigon.core.designsystem.preview.SinemaFontScalePreview
+import com.bigon.core.designsystem.preview.SinemaPreview
+import com.bigon.core.designsystem.preview.SinemaPreviewSurface
+import com.bigon.core.designsystem.preview.SinemaThemePreview
+import com.bigon.core.designsystem.theme.SinemaTheme
 
 /**
- * CineOfflineBanner — N2.1 global connectivity banner
+ * SinemaOfflineBanner — N2.1 global connectivity banner
  * (component gallery §Scaffolding & feedback).
  */
 @Composable
-fun CineOfflineBanner(
+fun SinemaOfflineBanner(
     message: String,
     modifier: Modifier = Modifier,
 ) {
@@ -50,33 +50,33 @@ fun CineOfflineBanner(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .fillMaxWidth()
-            .clip(CineTheme.shapes.badge)
-            .background(CineTheme.colors.errorContainer)
-            .padding(CineTheme.spacing.s),
+            .clip(SinemaTheme.shapes.badge)
+            .background(SinemaTheme.colors.errorContainer)
+            .padding(SinemaTheme.spacing.s),
     ) {
         Text(
             text = message,
-            style = CineTheme.typography.label,
-            color = CineTheme.colors.onErrorContainer,
+            style = SinemaTheme.typography.label,
+            color = SinemaTheme.colors.onErrorContainer,
             textAlign = TextAlign.Center,
         )
     }
 }
 
 /**
- * CineSnackbar — transient notice with optional action, e.g. the F3.7
+ * SinemaSnackbar — transient notice with optional action, e.g. the F3.7
  * stale-cache "RETRY" (component gallery §Scaffolding & feedback).
  */
 @Composable
-fun CineSnackbar(
+fun SinemaSnackbar(
     message: String,
     modifier: Modifier = Modifier,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
 ) {
     Surface(
-        shape = CineTheme.shapes.card,
-        color = CineTheme.colors.surfaceHigh,
+        shape = SinemaTheme.shapes.card,
+        color = SinemaTheme.colors.surfaceHigh,
         shadowElevation = 6.dp,
         modifier = modifier.fillMaxWidth(),
     ) {
@@ -87,46 +87,46 @@ fun CineSnackbar(
         ) {
             Text(
                 text = message,
-                style = CineTheme.typography.body.copy(fontSize = 13.sp),
-                color = CineTheme.colors.textPrimary,
+                style = SinemaTheme.typography.body.copy(fontSize = 13.sp),
+                color = SinemaTheme.colors.textPrimary,
                 modifier = Modifier.weight(1f),
             )
             if (actionLabel != null && onAction != null) {
                 Text(
                     text = actionLabel,
-                    style = CineTheme.typography.label.copy(fontWeight = FontWeight.Bold),
-                    color = CineTheme.colors.primary,
+                    style = SinemaTheme.typography.label.copy(fontWeight = FontWeight.Bold),
+                    color = SinemaTheme.colors.primary,
                     modifier = Modifier
-                        .clip(CineTheme.shapes.badge)
+                        .clip(SinemaTheme.shapes.badge)
                         .clickable(onClick = onAction)
-                        .padding(CineTheme.spacing.xs),
+                        .padding(SinemaTheme.spacing.xs),
                 )
             }
         }
     }
 }
 
-/** CineLoadingIndicator — the single spinner used across the app. */
+/** SinemaLoadingIndicator — the single spinner used across the app. */
 @Composable
-fun CineLoadingIndicator(
+fun SinemaLoadingIndicator(
     modifier: Modifier = Modifier,
     size: Dp = 28.dp,
 ) {
     CircularProgressIndicator(
-        color = CineTheme.colors.primary,
-        trackColor = CineTheme.colors.surfaceHigh,
+        color = SinemaTheme.colors.primary,
+        trackColor = SinemaTheme.colors.surfaceHigh,
         strokeWidth = 3.dp,
         modifier = modifier.size(size),
     )
 }
 
 /**
- * CineEmptyState — slot-based icon + title + subtitle + optional CTA.
+ * SinemaEmptyState — slot-based icon + title + subtitle + optional CTA.
  * Also covers the error variant (404 / F3.7): same anatomy, different content
  * (component gallery §Scaffolding & feedback — "exists exactly once in code").
  */
 @Composable
-fun CineEmptyState(
+fun SinemaEmptyState(
     icon: ImageVector,
     title: String,
     subtitle: String,
@@ -136,34 +136,34 @@ fun CineEmptyState(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.padding(
-            horizontal = CineTheme.spacing.xl,
-            vertical = CineTheme.spacing.xl,
+            horizontal = SinemaTheme.spacing.xl,
+            vertical = SinemaTheme.spacing.xl,
         ),
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = CineTheme.colors.textSecondary,
+            tint = SinemaTheme.colors.textSecondary,
             modifier = Modifier
                 .size(40.dp)
                 .alpha(0.5f),
         )
         Text(
             text = title,
-            style = CineTheme.typography.title.copy(fontSize = 15.sp),
-            color = CineTheme.colors.textPrimary,
+            style = SinemaTheme.typography.title.copy(fontSize = 15.sp),
+            color = SinemaTheme.colors.textPrimary,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = CineTheme.spacing.m),
+            modifier = Modifier.padding(top = SinemaTheme.spacing.m),
         )
         Text(
             text = subtitle,
-            style = CineTheme.typography.body.copy(fontSize = 12.5.sp, lineHeight = 19.sp),
-            color = CineTheme.colors.textSecondary,
+            style = SinemaTheme.typography.body.copy(fontSize = 12.5.sp, lineHeight = 19.sp),
+            color = SinemaTheme.colors.textSecondary,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = CineTheme.spacing.s),
+            modifier = Modifier.padding(top = SinemaTheme.spacing.s),
         )
         if (action != null) {
-            Box(modifier = Modifier.padding(top = CineTheme.spacing.m)) {
+            Box(modifier = Modifier.padding(top = SinemaTheme.spacing.m)) {
                 action()
             }
         }
@@ -171,7 +171,7 @@ fun CineEmptyState(
 }
 
 /**
- * CineAttributionFooter — TMDB's required notice: their mark plus the exact
+ * SinemaAttributionFooter — TMDB's required notice: their mark plus the exact
  * wording they mandate, defined exactly once (N4.3) so no screen can paraphrase
  * it (component gallery §Scaffolding & feedback).
  *
@@ -181,25 +181,25 @@ fun CineEmptyState(
  * attribution, so the tint is a compliance requirement, not styling.
  */
 @Composable
-fun CineAttributionFooter(
+fun SinemaAttributionFooter(
     versionLabel: String,
     modifier: Modifier = Modifier,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(CineTheme.spacing.m),
+        verticalArrangement = Arrangement.spacedBy(SinemaTheme.spacing.m),
         modifier = modifier.fillMaxWidth(),
     ) {
         Image(
             painter = painterResource(id = R.drawable.ic_tmdb_logo),
             contentDescription = "The Movie Database (TMDB)",
-            colorFilter = ColorFilter.tint(CineTheme.colors.textSecondary),
+            colorFilter = ColorFilter.tint(SinemaTheme.colors.textSecondary),
             modifier = Modifier.width(72.dp),
         )
         Text(
             text = "$versionLabel · This product uses the TMDB API but is not endorsed or certified by TMDB.",
-            style = CineTheme.typography.caption.copy(fontSize = 10.5.sp, lineHeight = 16.sp),
-            color = CineTheme.colors.textSecondary,
+            style = SinemaTheme.typography.caption.copy(fontSize = 10.5.sp, lineHeight = 16.sp),
+            color = SinemaTheme.colors.textSecondary,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -208,30 +208,30 @@ fun CineAttributionFooter(
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineOfflineBannerPreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineOfflineBanner(message = "✈ You're offline — showing saved content")
+private fun SinemaOfflineBannerPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaOfflineBanner(message = "✈ You're offline — showing saved content")
     }
 }
 
 /** A message long enough to wrap to a second line. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineOfflineBannerLongMessagePreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineOfflineBanner(
+private fun SinemaOfflineBannerLongMessagePreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaOfflineBanner(
             message = "You're offline — showing content saved on this device, which may be out of date",
         )
     }
 }
 
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineSnackbarPreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineSnackbar(
+private fun SinemaSnackbarPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaSnackbar(
             message = "Couldn't refresh — showing saved data",
             actionLabel = "RETRY",
             onAction = {},
@@ -240,19 +240,19 @@ private fun CineSnackbarPreview() {
 }
 
 /** No action slot — the message fills the width. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineSnackbarNoActionPreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineSnackbar(message = "Added to favorites")
+private fun SinemaSnackbarNoActionPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaSnackbar(message = "Added to favorites")
     }
 }
 
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineSnackbarLongMessagePreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineSnackbar(
+private fun SinemaSnackbarLongMessagePreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaSnackbar(
             message = "We couldn't reach TMDB, so you're seeing the copy saved on this device",
             actionLabel = "RETRY",
             onAction = {},
@@ -260,50 +260,50 @@ private fun CineSnackbarLongMessagePreview() {
     }
 }
 
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineLoadingIndicatorPreview() {
-    CinePreviewSurface {
-        CineLoadingIndicator()
+private fun SinemaLoadingIndicatorPreview() {
+    SinemaPreviewSurface {
+        SinemaLoadingIndicator()
     }
 }
 
 /** The three sizes in use: inline, default, full-screen. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineLoadingIndicatorSizesPreview() {
-    CinePreviewSurface {
+private fun SinemaLoadingIndicatorSizesPreview() {
+    SinemaPreviewSurface {
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            CineLoadingIndicator(size = 16.dp)
-            CineLoadingIndicator()
-            CineLoadingIndicator(size = 48.dp)
+            SinemaLoadingIndicator(size = 16.dp)
+            SinemaLoadingIndicator()
+            SinemaLoadingIndicator(size = 48.dp)
         }
     }
 }
 
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineEmptyStatePreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineEmptyState(
-            icon = CineIcons.HeartOutline,
+private fun SinemaEmptyStatePreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaEmptyState(
+            icon = SinemaIcons.HeartOutline,
             title = "No favorites yet",
             subtitle = "Movies you favorite appear here and work offline.",
-            action = { CineTonalButton(text = "Browse trending", onClick = {}) },
+            action = { SinemaTonalButton(text = "Browse trending", onClick = {}) },
         )
     }
 }
 
 /** Error variant — same component, no call to action. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineEmptyStateErrorPreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineEmptyState(
-            icon = CineIcons.Movie,
+private fun SinemaEmptyStateErrorPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaEmptyState(
+            icon = SinemaIcons.Movie,
             title = "Movie unavailable",
             subtitle = "This title was removed from TMDB.",
         )
@@ -311,35 +311,35 @@ private fun CineEmptyStateErrorPreview() {
 }
 
 /** No-results variant. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineEmptyStateNoResultsPreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineEmptyState(
-            icon = CineIcons.Search,
+private fun SinemaEmptyStateNoResultsPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaEmptyState(
+            icon = SinemaIcons.Search,
             title = "No results",
             subtitle = "Try a different title or genre.",
         )
     }
 }
 
-@CineFontScalePreview
+@SinemaFontScalePreview
 @Composable
-private fun CineEmptyStateFontScalePreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineEmptyState(
-            icon = CineIcons.HeartOutline,
+private fun SinemaEmptyStateFontScalePreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaEmptyState(
+            icon = SinemaIcons.HeartOutline,
             title = "No favorites yet",
             subtitle = "Movies you favorite appear here and work offline.",
-            action = { CineTonalButton(text = "Browse trending", onClick = {}) },
+            action = { SinemaTonalButton(text = "Browse trending", onClick = {}) },
         )
     }
 }
 
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineAttributionFooterPreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineAttributionFooter(versionLabel = "Cinelog v1.0")
+private fun SinemaAttributionFooterPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaAttributionFooter(versionLabel = "Sinema v0.0.1")
     }
 }

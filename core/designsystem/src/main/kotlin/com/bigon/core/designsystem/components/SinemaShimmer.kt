@@ -26,37 +26,37 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
-import com.bigon.core.designsystem.preview.CinePreview
-import com.bigon.core.designsystem.preview.CinePreviewSurface
-import com.bigon.core.designsystem.preview.CineThemePreview
-import com.bigon.core.designsystem.theme.CineTheme
+import com.bigon.core.designsystem.preview.SinemaPreview
+import com.bigon.core.designsystem.preview.SinemaPreviewSurface
+import com.bigon.core.designsystem.preview.SinemaThemePreview
+import com.bigon.core.designsystem.theme.SinemaTheme
 
 /**
- * CineShimmerCard — the loading variant of [CineMovieCard]
+ * SinemaShimmerCard — the loading variant of [SinemaMovieCard]
  * (component gallery §Content). Same footprint, animated sheen.
  */
 @Composable
-fun CineShimmerCard(
+fun SinemaShimmerCard(
     modifier: Modifier = Modifier,
-    width: Dp = CineMovieCardDefaults.Width,
+    width: Dp = SinemaMovieCardDefaults.Width,
 ) {
     // Dp.Unspecified lets a parent (e.g. a grid cell) size the skeleton, exactly
-    // as CineMovieCard allows — the two must stay interchangeable.
+    // as SinemaMovieCard allows — the two must stay interchangeable.
     Column(modifier = modifier.then(if (width.isSpecified) Modifier.width(width) else Modifier)) {
-        CineShimmerBox(
-            shape = CineTheme.shapes.card,
+        SinemaShimmerBox(
+            shape = SinemaTheme.shapes.card,
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(CineMovieCardDefaults.PosterAspectRatio),
+                .aspectRatio(SinemaMovieCardDefaults.PosterAspectRatio),
         )
-        CineShimmerBox(
+        SinemaShimmerBox(
             shape = RoundedCornerShape(6.dp),
             modifier = Modifier
-                .padding(top = CineTheme.spacing.s)
+                .padding(top = SinemaTheme.spacing.s)
                 .width(100.dp)
                 .height(12.dp),
         )
-        CineShimmerBox(
+        SinemaShimmerBox(
             shape = RoundedCornerShape(5.dp),
             modifier = Modifier
                 .padding(top = 5.dp)
@@ -68,12 +68,12 @@ fun CineShimmerCard(
 
 /** Building block for any skeleton layout: an animated shimmering surface. */
 @Composable
-fun CineShimmerBox(
+fun SinemaShimmerBox(
     modifier: Modifier = Modifier,
-    shape: Shape = CineTheme.shapes.card,
+    shape: Shape = SinemaTheme.shapes.card,
 ) {
-    val base = CineTheme.colors.surfaceVariant
-    val highlight = CineTheme.colors.surfaceHigh
+    val base = SinemaTheme.colors.surfaceVariant
+    val highlight = SinemaTheme.colors.surfaceHigh
 
     val transition = rememberInfiniteTransition(label = "cineShimmer")
     val progress by transition.animateFloat(
@@ -103,53 +103,53 @@ fun CineShimmerBox(
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineShimmerCardPreview() {
-    CinePreviewSurface {
-        CineShimmerCard()
+private fun SinemaShimmerCardPreview() {
+    SinemaPreviewSurface {
+        SinemaShimmerCard()
     }
 }
 
 /** A loading row, as Home renders it before the feed arrives. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineShimmerCardRowPreview() {
-    CinePreviewSurface {
+private fun SinemaShimmerCardRowPreview() {
+    SinemaPreviewSurface {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            repeat(3) { CineShimmerCard() }
+            repeat(3) { SinemaShimmerCard() }
         }
     }
 }
 
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineShimmerCardWidePreview() {
-    CinePreviewSurface {
-        CineShimmerCard(width = 180.dp)
+private fun SinemaShimmerCardWidePreview() {
+    SinemaPreviewSurface {
+        SinemaShimmerCard(width = 180.dp)
     }
 }
 
 /** The primitive on its own: thumbnail block and text lines. */
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineShimmerBoxPreview() {
-    CinePreviewSurface {
+private fun SinemaShimmerBoxPreview() {
+    SinemaPreviewSurface {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            CineShimmerBox(modifier = Modifier.width(52.dp).height(78.dp))
+            SinemaShimmerBox(modifier = Modifier.width(52.dp).height(78.dp))
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                CineShimmerBox(modifier = Modifier.width(160.dp).height(14.dp))
-                CineShimmerBox(modifier = Modifier.width(96.dp).height(12.dp))
+                SinemaShimmerBox(modifier = Modifier.width(160.dp).height(14.dp))
+                SinemaShimmerBox(modifier = Modifier.width(96.dp).height(12.dp))
             }
         }
     }
 }
 
-/** Parent-sized skeleton — must stay layout-compatible with CineMovieCard. */
-@CinePreview
+/** Parent-sized skeleton — must stay layout-compatible with SinemaMovieCard. */
+@SinemaPreview
 @Composable
-private fun CineShimmerCardParentSizedPreview() {
-    CinePreviewSurface {
-        CineShimmerCard(width = Dp.Unspecified, modifier = Modifier.width(200.dp))
+private fun SinemaShimmerCardParentSizedPreview() {
+    SinemaPreviewSurface {
+        SinemaShimmerCard(width = Dp.Unspecified, modifier = Modifier.width(200.dp))
     }
 }

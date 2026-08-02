@@ -27,74 +27,74 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.isSpecified
-import com.bigon.core.designsystem.icons.CineIcons
-import com.bigon.core.designsystem.preview.CineFontScalePreview
-import com.bigon.core.designsystem.preview.CinePreview
-import com.bigon.core.designsystem.preview.CinePreviewSurface
-import com.bigon.core.designsystem.preview.CineThemePreview
+import com.bigon.core.designsystem.icons.SinemaIcons
+import com.bigon.core.designsystem.preview.SinemaFontScalePreview
+import com.bigon.core.designsystem.preview.SinemaPreview
+import com.bigon.core.designsystem.preview.SinemaPreviewSurface
+import com.bigon.core.designsystem.preview.SinemaThemePreview
 import com.bigon.core.designsystem.preview.MoviePreviewParameterProvider
 import com.bigon.core.designsystem.preview.PreviewMovie
-import com.bigon.core.designsystem.theme.CineTheme
+import com.bigon.core.designsystem.theme.SinemaTheme
 import kotlin.math.round
 
-object CineMovieCardDefaults {
+object SinemaMovieCardDefaults {
     val Width: Dp = 120.dp
     const val PosterAspectRatio: Float = 2f / 3f
 }
 
 /**
- * CineMovieCard — Home rows · Search grid · Favorites · Recommendations
+ * SinemaMovieCard — Home rows · Search grid · Favorites · Recommendations
  * (component gallery §Content). The poster is a slot so features can inject an
  * async image (Coil on Android, or any CMP image loader) without this module
  * depending on one. Pass [Dp.Unspecified] as [width] to let the parent (e.g. a
  * grid cell) size the card instead.
  */
 @Composable
-fun CineMovieCard(
+fun SinemaMovieCard(
     title: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     meta: String? = null,
     rating: Double? = null,
-    width: Dp = CineMovieCardDefaults.Width,
-    poster: @Composable BoxScope.() -> Unit = { CinePosterPlaceholder() },
+    width: Dp = SinemaMovieCardDefaults.Width,
+    poster: @Composable BoxScope.() -> Unit = { SinemaPosterPlaceholder() },
 ) {
     Column(
         modifier = modifier
             .then(if (width.isSpecified) Modifier.width(width) else Modifier)
-            .clip(CineTheme.shapes.card)
+            .clip(SinemaTheme.shapes.card)
             .clickable(onClick = onClick),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(CineMovieCardDefaults.PosterAspectRatio)
-                .clip(CineTheme.shapes.card),
+                .aspectRatio(SinemaMovieCardDefaults.PosterAspectRatio)
+                .clip(SinemaTheme.shapes.card),
         ) {
             poster()
             if (rating != null) {
-                CineRatingBadge(
+                SinemaRatingBadge(
                     rating = rating,
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .padding(CineTheme.spacing.s),
+                        .padding(SinemaTheme.spacing.s),
                 )
             }
         }
         Text(
             text = title,
-            style = CineTheme.typography.cardTitle,
-            color = CineTheme.colors.textPrimary,
+            style = SinemaTheme.typography.cardTitle,
+            color = SinemaTheme.colors.textPrimary,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = CineTheme.spacing.s),
+            modifier = Modifier.padding(top = SinemaTheme.spacing.s),
         )
         if (meta != null) {
             Text(
                 text = meta,
-                style = CineTheme.typography.caption,
-                color = CineTheme.colors.textSecondary,
-                modifier = Modifier.padding(top = CineTheme.spacing.xs / 2),
+                style = SinemaTheme.typography.caption,
+                color = SinemaTheme.colors.textSecondary,
+                modifier = Modifier.padding(top = SinemaTheme.spacing.xs / 2),
             )
         }
     }
@@ -102,8 +102,8 @@ fun CineMovieCard(
 
 /** Decorative gradient stand-in shown until a real poster image loads. */
 @Composable
-fun CinePosterPlaceholder(modifier: Modifier = Modifier) {
-    val stops = if (CineTheme.colors.isDark) {
+fun SinemaPosterPlaceholder(modifier: Modifier = Modifier) {
+    val stops = if (SinemaTheme.colors.isDark) {
         listOf(Color(0xFF31404E), Color(0xFF22303C), Color(0xFF1B2733))
     } else {
         listOf(Color(0xFFC9D4DD), Color(0xFFAEBBC6), Color(0xFF93A3B1))
@@ -115,9 +115,9 @@ fun CinePosterPlaceholder(modifier: Modifier = Modifier) {
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            imageVector = CineIcons.Movie,
+            imageVector = SinemaIcons.Movie,
             contentDescription = null,
-            tint = CineTheme.colors.textPrimary,
+            tint = SinemaTheme.colors.textPrimary,
             modifier = Modifier
                 .size(30.dp)
                 .alpha(0.35f),
@@ -127,23 +127,23 @@ fun CinePosterPlaceholder(modifier: Modifier = Modifier) {
 
 /** Rating overlay on posters — always amber on a dark scrim, in both themes. */
 @Composable
-fun CineRatingBadge(rating: Double, modifier: Modifier = Modifier) {
+fun SinemaRatingBadge(rating: Double, modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .clip(CineTheme.shapes.badge)
+            .clip(SinemaTheme.shapes.badge)
             .background(BadgeScrim)
             .padding(horizontal = 7.dp, vertical = 2.dp),
     ) {
         Icon(
-            imageVector = CineIcons.Star,
+            imageVector = SinemaIcons.Star,
             contentDescription = null,
             tint = BadgeAmber,
             modifier = Modifier.size(11.dp),
         )
         Text(
             text = " " + formatRating(rating),
-            style = CineTheme.typography.caption,
+            style = SinemaTheme.typography.caption,
             color = BadgeAmber,
         )
     }
@@ -159,11 +159,11 @@ private fun formatRating(rating: Double): String {
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineMovieCardPreview() {
-    CinePreviewSurface {
-        CineMovieCard(
+private fun SinemaMovieCardPreview() {
+    SinemaPreviewSurface {
+        SinemaMovieCard(
             title = "Midnight Reel",
             meta = "2026 · Thriller",
             rating = 8.4,
@@ -172,11 +172,11 @@ private fun CineMovieCardPreview() {
     }
 }
 
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineMovieCardNoRatingPreview() {
-    CinePreviewSurface {
-        CineMovieCard(
+private fun SinemaMovieCardNoRatingPreview() {
+    SinemaPreviewSurface {
+        SinemaMovieCard(
             title = "Frame by Frame",
             meta = "2023 · Documentary",
             rating = null,
@@ -185,19 +185,19 @@ private fun CineMovieCardNoRatingPreview() {
     }
 }
 
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineMovieCardTitleOnlyPreview() {
-    CinePreviewSurface {
-        CineMovieCard(title = "Silver Screen", onClick = {})
+private fun SinemaMovieCardTitleOnlyPreview() {
+    SinemaPreviewSurface {
+        SinemaMovieCard(title = "Silver Screen", onClick = {})
     }
 }
 
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineMovieCardLongTitlePreview() {
-    CinePreviewSurface {
-        CineMovieCard(
+private fun SinemaMovieCardLongTitlePreview() {
+    SinemaPreviewSurface {
+        SinemaMovieCard(
             title = "A Very Long Movie Title That Wraps Onto Several Lines",
             meta = "2026 · Epic",
             rating = 9.7,
@@ -207,11 +207,11 @@ private fun CineMovieCardLongTitlePreview() {
 }
 
 /** Sized by its parent instead of the 120dp default — the search-grid case. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineMovieCardParentSizedPreview() {
-    CinePreviewSurface {
-        CineMovieCard(
+private fun SinemaMovieCardParentSizedPreview() {
+    SinemaPreviewSurface {
+        SinemaMovieCard(
             title = "Final Cut",
             meta = "2026 · Horror",
             rating = 8.9,
@@ -223,13 +223,13 @@ private fun CineMovieCardParentSizedPreview() {
 }
 
 /** Every awkward title/rating combination, one render each. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineMovieCardEdgeCasePreview(
+private fun SinemaMovieCardEdgeCasePreview(
     @PreviewParameter(MoviePreviewParameterProvider::class) movie: PreviewMovie,
 ) {
-    CinePreviewSurface {
-        CineMovieCard(
+    SinemaPreviewSurface {
+        SinemaMovieCard(
             title = movie.title,
             meta = movie.meta,
             rating = movie.rating,
@@ -238,11 +238,11 @@ private fun CineMovieCardEdgeCasePreview(
     }
 }
 
-@CineFontScalePreview
+@SinemaFontScalePreview
 @Composable
-private fun CineMovieCardFontScalePreview() {
-    CinePreviewSurface {
-        CineMovieCard(
+private fun SinemaMovieCardFontScalePreview() {
+    SinemaPreviewSurface {
+        SinemaMovieCard(
             title = "The Long Take",
             meta = "2025 · Drama",
             rating = 7.9,
@@ -251,38 +251,38 @@ private fun CineMovieCardFontScalePreview() {
     }
 }
 
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CinePosterPlaceholderPreview() {
-    CinePreviewSurface {
+private fun SinemaPosterPlaceholderPreview() {
+    SinemaPreviewSurface {
         Box(
             modifier = Modifier
                 .width(120.dp)
-                .aspectRatio(CineMovieCardDefaults.PosterAspectRatio)
-                .clip(CineTheme.shapes.card),
+                .aspectRatio(SinemaMovieCardDefaults.PosterAspectRatio)
+                .clip(SinemaTheme.shapes.card),
         ) {
-            CinePosterPlaceholder()
+            SinemaPosterPlaceholder()
         }
     }
 }
 
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineRatingBadgePreview() {
-    CinePreviewSurface {
-        CineRatingBadge(rating = 8.4)
+private fun SinemaRatingBadgePreview() {
+    SinemaPreviewSurface {
+        SinemaRatingBadge(rating = 8.4)
     }
 }
 
 /** Rounding behaviour: whole numbers, halves, and a perfect score. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineRatingBadgeRoundingPreview() {
-    CinePreviewSurface {
+private fun SinemaRatingBadgeRoundingPreview() {
+    SinemaPreviewSurface {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            CineRatingBadge(rating = 10.0)
-            CineRatingBadge(rating = 8.0)
-            CineRatingBadge(rating = 7.25)
+            SinemaRatingBadge(rating = 10.0)
+            SinemaRatingBadge(rating = 8.0)
+            SinemaRatingBadge(rating = 7.25)
         }
     }
 }

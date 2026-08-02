@@ -25,20 +25,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.bigon.core.designsystem.icons.CineIcons
-import com.bigon.core.designsystem.preview.CineFontScalePreview
-import com.bigon.core.designsystem.preview.CinePreview
-import com.bigon.core.designsystem.preview.CinePreviewSurface
-import com.bigon.core.designsystem.preview.CineRtlPreview
-import com.bigon.core.designsystem.preview.CineThemePreview
-import com.bigon.core.designsystem.theme.CineTheme
+import com.bigon.core.designsystem.icons.SinemaIcons
+import com.bigon.core.designsystem.preview.SinemaFontScalePreview
+import com.bigon.core.designsystem.preview.SinemaPreview
+import com.bigon.core.designsystem.preview.SinemaPreviewSurface
+import com.bigon.core.designsystem.preview.SinemaRtlPreview
+import com.bigon.core.designsystem.preview.SinemaThemePreview
+import com.bigon.core.designsystem.theme.SinemaTheme
 
 /**
- * CineSectionHeader — with / without the "see all" affordance
+ * SinemaSectionHeader — with / without the "see all" affordance
  * (component gallery §Content).
  */
 @Composable
-fun CineSectionHeader(
+fun SinemaSectionHeader(
     title: String,
     modifier: Modifier = Modifier,
     onSeeAll: (() -> Unit)? = null,
@@ -51,30 +51,30 @@ fun CineSectionHeader(
     ) {
         Text(
             text = title,
-            style = CineTheme.typography.title,
-            color = CineTheme.colors.textPrimary,
+            style = SinemaTheme.typography.title,
+            color = SinemaTheme.colors.textPrimary,
         )
         if (onSeeAll != null) {
             Text(
                 text = seeAllLabel,
-                style = CineTheme.typography.label,
-                color = CineTheme.colors.primary,
+                style = SinemaTheme.typography.label,
+                color = SinemaTheme.colors.primary,
                 modifier = Modifier
-                    .clip(CineTheme.shapes.badge)
+                    .clip(SinemaTheme.shapes.badge)
                     .clickable(onClick = onSeeAll)
-                    .padding(horizontal = CineTheme.spacing.xs, vertical = CineTheme.spacing.xs),
+                    .padding(horizontal = SinemaTheme.spacing.xs, vertical = SinemaTheme.spacing.xs),
             )
         }
     }
 }
 
-/** CineCastCard — avatar + actor + role (component gallery §Content). */
+/** SinemaCastCard — avatar + actor + role (component gallery §Content). */
 @Composable
-fun CineCastCard(
+fun SinemaCastCard(
     name: String,
     role: String,
     modifier: Modifier = Modifier,
-    avatar: @Composable BoxScope.() -> Unit = { CineAvatarPlaceholder() },
+    avatar: @Composable BoxScope.() -> Unit = { SinemaAvatarPlaceholder() },
 ) {
     Column(
         modifier = modifier.width(72.dp),
@@ -83,24 +83,24 @@ fun CineCastCard(
         Box(
             modifier = Modifier
                 .size(64.dp)
-                .clip(CineTheme.shapes.pill)
-                .background(CineTheme.colors.surfaceHigh),
+                .clip(SinemaTheme.shapes.pill)
+                .background(SinemaTheme.colors.surfaceHigh),
         ) {
             avatar()
         }
         Text(
             text = name,
-            style = CineTheme.typography.caption.copy(fontWeight = FontWeight.SemiBold),
-            color = CineTheme.colors.textPrimary,
+            style = SinemaTheme.typography.caption.copy(fontWeight = FontWeight.SemiBold),
+            color = SinemaTheme.colors.textPrimary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = CineTheme.spacing.xs),
+            modifier = Modifier.padding(top = SinemaTheme.spacing.xs),
         )
         Text(
             text = role,
-            style = CineTheme.typography.caption,
-            color = CineTheme.colors.textSecondary,
+            style = SinemaTheme.typography.caption,
+            color = SinemaTheme.colors.textSecondary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
@@ -109,11 +109,11 @@ fun CineCastCard(
 }
 
 @Composable
-private fun BoxScope.CineAvatarPlaceholder() {
+private fun BoxScope.SinemaAvatarPlaceholder() {
     Icon(
-        imageVector = CineIcons.Person,
+        imageVector = SinemaIcons.Person,
         contentDescription = null,
-        tint = CineTheme.colors.textSecondary,
+        tint = SinemaTheme.colors.textSecondary,
         modifier = Modifier
             .size(28.dp)
             .align(Alignment.Center),
@@ -121,27 +121,27 @@ private fun BoxScope.CineAvatarPlaceholder() {
 }
 
 /**
- * CineListItem — tablet list pane row, default / selected
+ * SinemaListItem — tablet list pane row, default / selected
  * (component gallery §Content).
  */
 @Composable
-fun CineListItem(
+fun SinemaListItem(
     title: String,
     subtitle: String,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    thumbnail: @Composable BoxScope.() -> Unit = { CinePosterPlaceholder() },
+    thumbnail: @Composable BoxScope.() -> Unit = { SinemaPosterPlaceholder() },
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(CineTheme.spacing.m),
+        horizontalArrangement = Arrangement.spacedBy(SinemaTheme.spacing.m),
         modifier = modifier
             .fillMaxWidth()
-            .clip(CineTheme.shapes.card)
-            .background(if (selected) CineTheme.colors.surfaceVariant else Color.Transparent)
+            .clip(SinemaTheme.shapes.card)
+            .background(if (selected) SinemaTheme.colors.surfaceVariant else Color.Transparent)
             .clickable(onClick = onClick)
-            .padding(horizontal = CineTheme.spacing.m, vertical = 10.dp),
+            .padding(horizontal = SinemaTheme.spacing.m, vertical = 10.dp),
     ) {
         Box(
             modifier = Modifier
@@ -153,18 +153,18 @@ fun CineListItem(
         Column {
             Text(
                 text = title,
-                style = CineTheme.typography.body.copy(fontWeight = FontWeight.SemiBold),
-                color = CineTheme.colors.textPrimary,
+                style = SinemaTheme.typography.body.copy(fontWeight = FontWeight.SemiBold),
+                color = SinemaTheme.colors.textPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = subtitle,
-                style = CineTheme.typography.caption,
-                color = CineTheme.colors.textSecondary,
+                style = SinemaTheme.typography.caption,
+                color = SinemaTheme.colors.textSecondary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = CineTheme.spacing.xs / 2),
+                modifier = Modifier.padding(top = SinemaTheme.spacing.xs / 2),
             )
         }
     }
@@ -172,65 +172,65 @@ fun CineListItem(
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineSectionHeaderPreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineSectionHeader(title = "🔥 Trending today", onSeeAll = {})
+private fun SinemaSectionHeaderPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaSectionHeader(title = "🔥 Trending today", onSeeAll = {})
     }
 }
 
 /** No action slot — the header collapses to a plain title. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineSectionHeaderTitleOnlyPreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineSectionHeader(title = "Cast")
+private fun SinemaSectionHeaderTitleOnlyPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaSectionHeader(title = "Cast")
     }
 }
 
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineSectionHeaderCustomActionPreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineSectionHeader(title = "Recommendations", onSeeAll = {}, seeAllLabel = "More")
+private fun SinemaSectionHeaderCustomActionPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaSectionHeader(title = "Recommendations", onSeeAll = {}, seeAllLabel = "More")
     }
 }
 
 /** RTL: the action must mirror to the left edge. */
-@CineRtlPreview
+@SinemaRtlPreview
 @Composable
-private fun CineSectionHeaderRtlPreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineSectionHeader(title = "Trending today", onSeeAll = {})
+private fun SinemaSectionHeaderRtlPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaSectionHeader(title = "Trending today", onSeeAll = {})
     }
 }
 
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineCastCardPreview() {
-    CinePreviewSurface {
-        CineCastCard(name = "Zendaya", role = "Chani")
+private fun SinemaCastCardPreview() {
+    SinemaPreviewSurface {
+        SinemaCastCard(name = "Zendaya", role = "Chani")
     }
 }
 
 /** Names and roles longer than the 72dp column must ellipsize, not wrap. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineCastCardLongNamePreview() {
-    CinePreviewSurface {
+private fun SinemaCastCardLongNamePreview() {
+    SinemaPreviewSurface {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            CineCastCard(name = "T. Chalamet", role = "Paul Atreides")
-            CineCastCard(name = "Rebecca Ferguson", role = "Lady Jessica Atreides")
+            SinemaCastCard(name = "T. Chalamet", role = "Paul Atreides")
+            SinemaCastCard(name = "Rebecca Ferguson", role = "Lady Jessica Atreides")
         }
     }
 }
 
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineListItemPreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineListItem(
+private fun SinemaListItemPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaListItem(
             title = "The Batman II",
             subtitle = "2026 · ★ 7.9 · Crime",
             selected = false,
@@ -240,11 +240,11 @@ private fun CineListItemPreview() {
 }
 
 /** Selected state — the tablet list pane's current row. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineListItemSelectedPreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineListItem(
+private fun SinemaListItemSelectedPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaListItem(
             title = "Dune: Part Three",
             subtitle = "2026 · ★ 8.4 · Sci-Fi",
             selected = true,
@@ -253,11 +253,11 @@ private fun CineListItemSelectedPreview() {
     }
 }
 
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineListItemLongTextPreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineListItem(
+private fun SinemaListItemLongTextPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaListItem(
             title = "A Title Long Enough To Need Ellipsis Treatment",
             subtitle = "2026 · ★ 8.4 · Science Fiction · Adventure · Drama",
             selected = false,
@@ -266,11 +266,11 @@ private fun CineListItemLongTextPreview() {
     }
 }
 
-@CineFontScalePreview
+@SinemaFontScalePreview
 @Composable
-private fun CineListItemFontScalePreview() {
-    CinePreviewSurface(modifier = Modifier.width(320.dp)) {
-        CineListItem(
+private fun SinemaListItemFontScalePreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
+        SinemaListItem(
             title = "Dune: Part Three",
             subtitle = "2026 · ★ 8.4 · Sci-Fi",
             selected = true,

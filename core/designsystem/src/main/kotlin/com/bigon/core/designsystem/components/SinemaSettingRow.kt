@@ -21,20 +21,20 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bigon.core.designsystem.icons.CineIcons
-import com.bigon.core.designsystem.preview.CineFontScalePreview
-import com.bigon.core.designsystem.preview.CinePreview
-import com.bigon.core.designsystem.preview.CinePreviewSurface
-import com.bigon.core.designsystem.preview.CineThemePreview
-import com.bigon.core.designsystem.theme.CineTheme
+import com.bigon.core.designsystem.icons.SinemaIcons
+import com.bigon.core.designsystem.preview.SinemaFontScalePreview
+import com.bigon.core.designsystem.preview.SinemaPreview
+import com.bigon.core.designsystem.preview.SinemaPreviewSurface
+import com.bigon.core.designsystem.preview.SinemaThemePreview
+import com.bigon.core.designsystem.theme.SinemaTheme
 
 /**
- * CineSettingRow — leading icon bubble, title/subtitle, trailing value
+ * SinemaSettingRow — leading icon bubble, title/subtitle, trailing value
  * (component gallery §Input). The trailing chevron appears when the row is
  * clickable.
  */
 @Composable
-fun CineSettingRow(
+fun SinemaSettingRow(
     title: String,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
@@ -43,14 +43,14 @@ fun CineSettingRow(
     onClick: (() -> Unit)? = null,
     showDivider: Boolean = true,
 ) {
-    val colors = CineTheme.colors
+    val colors = SinemaTheme.colors
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(CineTheme.shapes.card)
+                .clip(SinemaTheme.shapes.card)
                 .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
                 .padding(vertical = 14.dp),
         ) {
@@ -59,7 +59,7 @@ fun CineSettingRow(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .size(40.dp)
-                        .clip(CineTheme.shapes.pill)
+                        .clip(SinemaTheme.shapes.pill)
                         .background(colors.surfaceVariant),
                 ) {
                     Icon(
@@ -73,7 +73,7 @@ fun CineSettingRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    style = CineTheme.typography.body.copy(
+                    style = SinemaTheme.typography.body.copy(
                         fontSize = 14.5.sp,
                         fontWeight = FontWeight.SemiBold,
                     ),
@@ -82,22 +82,22 @@ fun CineSettingRow(
                 if (subtitle != null) {
                     Text(
                         text = subtitle,
-                        style = CineTheme.typography.label.copy(fontWeight = FontWeight.Normal),
+                        style = SinemaTheme.typography.label.copy(fontWeight = FontWeight.Normal),
                         color = colors.textSecondary,
-                        modifier = Modifier.padding(top = CineTheme.spacing.xs / 2),
+                        modifier = Modifier.padding(top = SinemaTheme.spacing.xs / 2),
                     )
                 }
             }
             if (value != null) {
                 Text(
                     text = value,
-                    style = CineTheme.typography.label,
+                    style = SinemaTheme.typography.label,
                     color = colors.primary,
                 )
             }
             if (onClick != null) {
                 Icon(
-                    imageVector = CineIcons.ChevronRight,
+                    imageVector = SinemaIcons.ChevronRight,
                     contentDescription = null,
                     tint = colors.primary,
                     modifier = Modifier.size(16.dp),
@@ -117,57 +117,57 @@ fun CineSettingRow(
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineSettingRowPreview() {
-    CinePreviewSurface(modifier = Modifier.width(340.dp)) {
-        CineSettingRow(
+private fun SinemaSettingRowPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(340.dp)) {
+        SinemaSettingRow(
             title = "Content language",
             subtitle = "Titles & overviews",
             value = "EN",
-            icon = CineIcons.Movie,
+            icon = SinemaIcons.Movie,
             onClick = {},
         )
     }
 }
 
 /** No icon slot. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineSettingRowNoIconPreview() {
-    CinePreviewSurface(modifier = Modifier.width(340.dp)) {
-        CineSettingRow(title = "Clear cache", subtitle = "favorites kept", value = "128 MB", onClick = {})
+private fun SinemaSettingRowNoIconPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(340.dp)) {
+        SinemaSettingRow(title = "Clear cache", subtitle = "favorites kept", value = "128 MB", onClick = {})
     }
 }
 
 /** Title only — no subtitle, no value. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineSettingRowTitleOnlyPreview() {
-    CinePreviewSurface(modifier = Modifier.width(340.dp)) {
-        CineSettingRow(title = "About Cinelog", icon = CineIcons.Movie, onClick = {})
+private fun SinemaSettingRowTitleOnlyPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(340.dp)) {
+        SinemaSettingRow(title = "About Sinema", icon = SinemaIcons.Movie, onClick = {})
     }
 }
 
 /** Not clickable: no chevron, no ripple. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineSettingRowStaticPreview() {
-    CinePreviewSurface(modifier = Modifier.width(340.dp)) {
-        CineSettingRow(title = "App version", subtitle = "1.0 (1)", icon = CineIcons.Settings)
+private fun SinemaSettingRowStaticPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(340.dp)) {
+        SinemaSettingRow(title = "App version", subtitle = "1.0 (1)", icon = SinemaIcons.Settings)
     }
 }
 
 /** Last row in a group — divider suppressed. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineSettingRowNoDividerPreview() {
-    CinePreviewSurface(modifier = Modifier.width(340.dp)) {
-        CineSettingRow(
+private fun SinemaSettingRowNoDividerPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(340.dp)) {
+        SinemaSettingRow(
             title = "Clear cache",
             subtitle = "favorites kept",
             value = "128 MB",
-            icon = CineIcons.Clear,
+            icon = SinemaIcons.Clear,
             onClick = {},
             showDivider = false,
         )
@@ -175,25 +175,25 @@ private fun CineSettingRowNoDividerPreview() {
 }
 
 /** A settings group, which is how the rows are actually seen. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineSettingRowGroupPreview() {
-    CinePreviewSurface(modifier = Modifier.width(340.dp)) {
-        CineSettingRow(title = "Content language", subtitle = "Titles & overviews", value = "EN", icon = CineIcons.Movie, onClick = {})
-        CineSettingRow(title = "Clear cache", subtitle = "favorites kept", value = "128 MB", icon = CineIcons.Clear, onClick = {})
-        CineSettingRow(title = "About", icon = CineIcons.Settings, onClick = {}, showDivider = false)
+private fun SinemaSettingRowGroupPreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(340.dp)) {
+        SinemaSettingRow(title = "Content language", subtitle = "Titles & overviews", value = "EN", icon = SinemaIcons.Movie, onClick = {})
+        SinemaSettingRow(title = "Clear cache", subtitle = "favorites kept", value = "128 MB", icon = SinemaIcons.Clear, onClick = {})
+        SinemaSettingRow(title = "About", icon = SinemaIcons.Settings, onClick = {}, showDivider = false)
     }
 }
 
-@CineFontScalePreview
+@SinemaFontScalePreview
 @Composable
-private fun CineSettingRowFontScalePreview() {
-    CinePreviewSurface(modifier = Modifier.width(340.dp)) {
-        CineSettingRow(
+private fun SinemaSettingRowFontScalePreview() {
+    SinemaPreviewSurface(modifier = Modifier.width(340.dp)) {
+        SinemaSettingRow(
             title = "Content language",
             subtitle = "Titles & overviews",
             value = "EN",
-            icon = CineIcons.Movie,
+            icon = SinemaIcons.Movie,
             onClick = {},
             showDivider = false,
         )

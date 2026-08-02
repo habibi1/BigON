@@ -20,13 +20,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bigon.core.designsystem.preview.CinePreviewSurface
-import com.bigon.core.designsystem.preview.CineThemePreview
+import com.bigon.core.designsystem.preview.SinemaPreviewSurface
+import com.bigon.core.designsystem.preview.SinemaThemePreview
 
-/** Level 0 token — CineTypography (component gallery §Tokens). */
+/** Level 0 token — SinemaTypography (component gallery §Tokens). */
 @Immutable
-data class CineTypography(
-    /** Screen-level wordmark/headers — "Cinelog". */
+data class SinemaTypography(
+    /** Screen-level wordmark/headers — "Sinema". */
     val display: TextStyle = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
     /** Section titles — "Trending today". */
     val title: TextStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
@@ -48,15 +48,15 @@ data class CineTypography(
     val caption: TextStyle = TextStyle(fontSize = 11.sp),
 )
 
-internal val LocalCineTypography = staticCompositionLocalOf { CineTypography() }
+internal val LocalSinemaTypography = staticCompositionLocalOf { SinemaTypography() }
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
 /** The type scale, each style labelled with its token name. */
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineTypographyPreview() {
-    val t = CineTheme.typography
+private fun SinemaTypographyPreview() {
+    val t = SinemaTheme.typography
     val scale = listOf(
         "display" to t.display,
         "title" to t.title,
@@ -65,7 +65,7 @@ private fun CineTypographyPreview() {
         "label" to t.label,
         "caption" to t.caption,
     )
-    CinePreviewSurface {
+    SinemaPreviewSurface {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             scale.forEach { (name, style) ->
                 Row(
@@ -74,14 +74,14 @@ private fun CineTypographyPreview() {
                 ) {
                     Text(
                         text = name,
-                        style = CineTheme.typography.caption,
-                        color = CineTheme.colors.textSecondary,
+                        style = SinemaTheme.typography.caption,
+                        color = SinemaTheme.colors.textSecondary,
                         modifier = Modifier.width(76.dp),
                     )
                     Text(
                         text = "Dune: Part Three",
                         style = style,
-                        color = CineTheme.colors.textPrimary,
+                        color = SinemaTheme.colors.textPrimary,
                     )
                 }
             }

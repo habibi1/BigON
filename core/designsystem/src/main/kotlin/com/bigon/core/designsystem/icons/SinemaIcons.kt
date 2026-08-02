@@ -26,17 +26,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.bigon.core.designsystem.preview.CinePreview
-import com.bigon.core.designsystem.preview.CinePreviewSurface
-import com.bigon.core.designsystem.preview.CineThemePreview
-import com.bigon.core.designsystem.theme.CineTheme
+import com.bigon.core.designsystem.preview.SinemaPreview
+import com.bigon.core.designsystem.preview.SinemaPreviewSurface
+import com.bigon.core.designsystem.preview.SinemaThemePreview
+import com.bigon.core.designsystem.theme.SinemaTheme
 
 /**
  * The design system's icon vocabulary, backed by Material icons. Components and
  * features reference these named roles — never `Icons.*` directly — so swapping
  * the icon set (or adding brand icons) stays a one-file change.
  */
-object CineIcons {
+object SinemaIcons {
     val Back: ImageVector = Icons.AutoMirrored.Filled.ArrowBack
     val Home: ImageVector = Icons.Outlined.Home
     val Search: ImageVector = Icons.Outlined.Search
@@ -54,25 +54,25 @@ object CineIcons {
 // ── Previews ────────────────────────────────────────────────────────────────
 
 private val iconSheet = listOf(
-    "Back" to CineIcons.Back,
-    "Home" to CineIcons.Home,
-    "Search" to CineIcons.Search,
-    "Settings" to CineIcons.Settings,
-    "Heart" to CineIcons.Heart,
-    "HeartOutline" to CineIcons.HeartOutline,
-    "Star" to CineIcons.Star,
-    "Clear" to CineIcons.Clear,
-    "Play" to CineIcons.Play,
-    "Person" to CineIcons.Person,
-    "ChevronRight" to CineIcons.ChevronRight,
-    "Movie" to CineIcons.Movie,
+    "Back" to SinemaIcons.Back,
+    "Home" to SinemaIcons.Home,
+    "Search" to SinemaIcons.Search,
+    "Settings" to SinemaIcons.Settings,
+    "Heart" to SinemaIcons.Heart,
+    "HeartOutline" to SinemaIcons.HeartOutline,
+    "Star" to SinemaIcons.Star,
+    "Clear" to SinemaIcons.Clear,
+    "Play" to SinemaIcons.Play,
+    "Person" to SinemaIcons.Person,
+    "ChevronRight" to SinemaIcons.ChevronRight,
+    "Movie" to SinemaIcons.Movie,
 )
 
 /** The full icon vocabulary — the sheet to check before adding a new glyph. */
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineIconsPreview() {
-    CinePreviewSurface {
+private fun SinemaIconsPreview() {
+    SinemaPreviewSurface {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             iconSheet.chunked(4).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -85,13 +85,13 @@ private fun CineIconsPreview() {
                             Icon(
                                 imageVector = icon,
                                 contentDescription = null,
-                                tint = CineTheme.colors.textPrimary,
+                                tint = SinemaTheme.colors.textPrimary,
                                 modifier = Modifier.size(24.dp),
                             )
                             Text(
                                 text = name,
-                                style = CineTheme.typography.caption,
-                                color = CineTheme.colors.textSecondary,
+                                style = SinemaTheme.typography.caption,
+                                color = SinemaTheme.colors.textSecondary,
                                 textAlign = TextAlign.Center,
                             )
                         }
@@ -103,19 +103,19 @@ private fun CineIconsPreview() {
 }
 
 /** Rendering sizes actually used by components: 11dp badge → 30dp placeholder. */
-@CinePreview
+@SinemaPreview
 @Composable
-private fun CineIconSizesPreview() {
-    CinePreviewSurface {
+private fun SinemaIconSizesPreview() {
+    SinemaPreviewSurface {
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             listOf(11.dp, 16.dp, 18.dp, 20.dp, 24.dp, 30.dp).forEach { size ->
                 Icon(
-                    imageVector = CineIcons.Star,
+                    imageVector = SinemaIcons.Star,
                     contentDescription = null,
-                    tint = CineTheme.colors.primary,
+                    tint = SinemaTheme.colors.primary,
                     modifier = Modifier.size(size),
                 )
             }

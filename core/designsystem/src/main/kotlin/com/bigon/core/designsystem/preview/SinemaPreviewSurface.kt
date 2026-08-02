@@ -9,7 +9,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.bigon.core.designsystem.theme.CineTheme
 import com.bigon.core.designsystem.theme.SinemaTheme
 
 /**
@@ -19,7 +18,7 @@ import com.bigon.core.designsystem.theme.SinemaTheme
  * `isSystemInDarkTheme()`.
  */
 @Composable
-fun CinePreviewSurface(
+fun SinemaPreviewSurface(
     modifier: Modifier = Modifier,
     padding: Dp = 16.dp,
     content: @Composable () -> Unit,
@@ -27,7 +26,7 @@ fun CinePreviewSurface(
     SinemaTheme {
         Column(
             modifier = modifier
-                .background(CineTheme.colors.background)
+                .background(SinemaTheme.colors.background)
                 .padding(padding),
         ) {
             content()
@@ -45,7 +44,7 @@ data class PreviewMovie(
     val rating: Double?,
 )
 
-object CineSampleData {
+object SinemaSampleData {
     val movies = listOf(
         PreviewMovie("Midnight Reel", "2026 · Thriller", 8.4),
         PreviewMovie("The Long Take", "2025 · Drama", 7.9),
@@ -63,7 +62,7 @@ object CineSampleData {
 }
 
 /**
- * Feeds [CineMovieCardStatesPreview] the edge cases a movie card must survive:
+ * Feeds [SinemaMovieCardStatesPreview] the edge cases a movie card must survive:
  * a normal entry, no rating, a title that wraps past two lines, and a
  * non-Latin title.
  */

@@ -10,22 +10,29 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 
 /**
- * Accessor for the Cine token system. Components and features read every design
+ * Accessor for the Sinema token system. Components and features read every design
  * value through this object — never raw colors, sizes, or styles.
+ *
+ * This shares its name with the [SinemaTheme] composable below, deliberately and
+ * legally: Kotlin resolves a classifier and a function in separate namespaces, so
+ * `SinemaTheme { }` wraps a subtree while `SinemaTheme.colors` reads a token.
+ * `MaterialTheme` is defined exactly this way, which is the point — the design
+ * system should read like the framework it sits on rather than inventing its own
+ * shape.
  */
-object CineTheme {
-    val colors: CineColors
-        @Composable @ReadOnlyComposable get() = LocalCineColors.current
-    val typography: CineTypography
-        @Composable @ReadOnlyComposable get() = LocalCineTypography.current
-    val spacing: CineSpacing
-        @Composable @ReadOnlyComposable get() = LocalCineSpacing.current
-    val shapes: CineShapes
-        @Composable @ReadOnlyComposable get() = LocalCineShapes.current
+object SinemaTheme {
+    val colors: SinemaColors
+        @Composable @ReadOnlyComposable get() = LocalSinemaColors.current
+    val typography: SinemaTypography
+        @Composable @ReadOnlyComposable get() = LocalSinemaTypography.current
+    val spacing: SinemaSpacing
+        @Composable @ReadOnlyComposable get() = LocalSinemaSpacing.current
+    val shapes: SinemaShapes
+        @Composable @ReadOnlyComposable get() = LocalSinemaShapes.current
 }
 
 /**
- * App theme. Provides the Cine tokens and mirrors them into [MaterialTheme] so
+ * App theme. Provides the Sinema tokens and mirrors them into [MaterialTheme] so
  * any Material 3 component used inside features inherits the same palette.
  * Pure commonMain — compiles unchanged for Android and iOS.
  */
@@ -34,12 +41,12 @@ fun SinemaTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
-    val colors = if (darkTheme) CineDarkColors else CineLightColors
+    val colors = if (darkTheme) SinemaDarkColors else SinemaLightColors
     CompositionLocalProvider(
-        LocalCineColors provides colors,
-        LocalCineTypography provides CineTypography(),
-        LocalCineSpacing provides CineSpacing(),
-        LocalCineShapes provides CineShapes(),
+        LocalSinemaColors provides colors,
+        LocalSinemaTypography provides SinemaTypography(),
+        LocalSinemaSpacing provides SinemaSpacing(),
+        LocalSinemaShapes provides SinemaShapes(),
     ) {
         MaterialTheme(
             colorScheme = colors.toMaterialColorScheme(),
@@ -48,7 +55,7 @@ fun SinemaTheme(
     }
 }
 
-private fun CineColors.toMaterialColorScheme(): ColorScheme {
+private fun SinemaColors.toMaterialColorScheme(): ColorScheme {
     val base = if (isDark) darkColorScheme() else lightColorScheme()
     return base.copy(
         primary = primary,

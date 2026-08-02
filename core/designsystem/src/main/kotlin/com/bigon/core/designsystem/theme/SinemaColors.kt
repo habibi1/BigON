@@ -19,17 +19,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.bigon.core.designsystem.preview.CinePreviewSurface
-import com.bigon.core.designsystem.preview.CineThemePreview
+import com.bigon.core.designsystem.preview.SinemaPreviewSurface
+import com.bigon.core.designsystem.preview.SinemaThemePreview
 
 /**
- * Level 0 token — CineColors (component gallery §Tokens).
+ * Level 0 token — SinemaColors (component gallery §Tokens).
  *
- * Features never reference raw colors; they read roles from [CineTheme.colors].
+ * Features never reference raw colors; they read roles from [SinemaTheme.colors].
  * The dark/light sets below recolor every component with zero component changes.
  */
 @Immutable
-data class CineColors(
+data class SinemaColors(
     val background: Color,        // Night900 — window background
     val surface: Color,           // Night800 — cards, bars
     val surfaceVariant: Color,    // Night700 — search bar, shimmer base
@@ -44,12 +44,12 @@ data class CineColors(
     val errorContainer: Color,
     val onErrorContainer: Color,
     val rating: Color,            // rating badge stars/text
-    val favoriteActive: Color,    // active heart in CineFavoriteToggle
+    val favoriteActive: Color,    // active heart in SinemaFavoriteToggle
     val cardBorder: Color,
     val isDark: Boolean,
 )
 
-val CineDarkColors = CineColors(
+val SinemaDarkColors = SinemaColors(
     background = Color(0xFF101418),
     surface = Color(0xFF1A2026),
     surfaceVariant = Color(0xFF232B33),
@@ -69,7 +69,7 @@ val CineDarkColors = CineColors(
     isDark = true,
 )
 
-val CineLightColors = CineColors(
+val SinemaLightColors = SinemaColors(
     background = Color(0xFFFAF9F7),
     surface = Color(0xFFFFFFFF),
     surfaceVariant = Color(0xFFF1EEE9),
@@ -89,15 +89,15 @@ val CineLightColors = CineColors(
     isDark = false,
 )
 
-internal val LocalCineColors = staticCompositionLocalOf { CineDarkColors }
+internal val LocalSinemaColors = staticCompositionLocalOf { SinemaDarkColors }
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
 /** Every colour role, in both themes — the check after any palette edit. */
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineColorsPreview() {
-    val c = CineTheme.colors
+private fun SinemaColorsPreview() {
+    val c = SinemaTheme.colors
     val roles = listOf(
         "background" to c.background,
         "surface" to c.surface,
@@ -116,7 +116,7 @@ private fun CineColorsPreview() {
         "favoriteActive" to c.favoriteActive,
         "cardBorder" to c.cardBorder,
     )
-    CinePreviewSurface {
+    SinemaPreviewSurface {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             roles.chunked(4).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -129,14 +129,14 @@ private fun CineColorsPreview() {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(42.dp)
-                                    .clip(CineTheme.shapes.card)
+                                    .clip(SinemaTheme.shapes.card)
                                     .background(color)
-                                    .border(1.dp, CineTheme.colors.outline, CineTheme.shapes.card),
+                                    .border(1.dp, SinemaTheme.colors.outline, SinemaTheme.shapes.card),
                             )
                             Text(
                                 text = name,
-                                style = CineTheme.typography.caption,
-                                color = CineTheme.colors.textSecondary,
+                                style = SinemaTheme.typography.caption,
+                                color = SinemaTheme.colors.textSecondary,
                             )
                         }
                     }

@@ -18,15 +18,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.bigon.core.designsystem.preview.CinePreviewSurface
-import com.bigon.core.designsystem.preview.CineThemePreview
+import com.bigon.core.designsystem.preview.SinemaPreviewSurface
+import com.bigon.core.designsystem.preview.SinemaThemePreview
 
 /**
- * Level 0 token — CineSpacing: "the only dp values features may use"
+ * Level 0 token — SinemaSpacing: "the only dp values features may use"
  * (component gallery §Tokens).
  */
 @Immutable
-data class CineSpacing(
+data class SinemaSpacing(
     val xs: Dp = 4.dp,
     val s: Dp = 8.dp,
     val m: Dp = 12.dp,
@@ -35,17 +35,17 @@ data class CineSpacing(
     val xxl: Dp = 24.dp,
 )
 
-internal val LocalCineSpacing = staticCompositionLocalOf { CineSpacing() }
+internal val LocalSinemaSpacing = staticCompositionLocalOf { SinemaSpacing() }
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
 /** The spacing scale — the only dp values features may use. */
-@CineThemePreview
+@SinemaThemePreview
 @Composable
-private fun CineSpacingPreview() {
-    val s = CineTheme.spacing
+private fun SinemaSpacingPreview() {
+    val s = SinemaTheme.spacing
     val steps = listOf("xs" to s.xs, "s" to s.s, "m" to s.m, "l" to s.l, "xl" to s.xl, "xxl" to s.xxl)
-    CinePreviewSurface {
+    SinemaPreviewSurface {
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.Bottom,
@@ -58,12 +58,12 @@ private fun CineSpacingPreview() {
                     Box(
                         modifier = Modifier
                             .size(value)
-                            .background(CineTheme.colors.primaryContainer),
+                            .background(SinemaTheme.colors.primaryContainer),
                     )
                     Text(
                         text = "$name ${value.value.toInt()}",
-                        style = CineTheme.typography.caption,
-                        color = CineTheme.colors.textSecondary,
+                        style = SinemaTheme.typography.caption,
+                        color = SinemaTheme.colors.textSecondary,
                     )
                 }
             }
