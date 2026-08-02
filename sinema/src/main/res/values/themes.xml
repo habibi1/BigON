@@ -1,0 +1,5 @@
+<resources>
+    <!-- Framework theme only bridges to Compose; all real theming lives in
+         :core:designsystem SinemaTheme. -->
+    <style name="Theme.Sinema" parent="android:Theme.Material.NoActionBar" />
+</resources>
