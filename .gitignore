@@ -1,0 +1,41 @@
+# Built application files / Binaries
+*.apk
+*.aar
+*.aab
+
+# Gradle & Build files
+.gradle/
+build/
+**/build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Local configuration & Secrets
+local.properties
+local.properties.*
+!local.properties.example
+secrets.properties
+signing.properties
+google-services.json
+
+# Keystores and Certificates
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+
+# IDE & Editor files
+*.iml
+.idea/
+.kotlin/
+.vscode/
+
+# OS & System files
+.DS_Store
+*.DS_Store
+Thumbs.db
+
+# Tooling & Agent settings
+.claude/
