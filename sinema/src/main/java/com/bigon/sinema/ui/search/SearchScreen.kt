@@ -39,6 +39,17 @@ import com.bigon.core.ui.ObserveEffects
 import com.bigon.core.ui.asString
 import com.bigon.sinema.ui.PosterTransition
 import com.bigon.sinema.ui.posterModifier
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.graphics.Color
+import com.bigon.core.model.WatchProvider
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.Text
+import androidx.compose.ui.draw.clip
 
 private const val ALL_CHIP = "All"
 
@@ -96,6 +107,33 @@ fun SearchScreen(
                 },
                 modifier = Modifier.padding(top = spacing.m),
             )
+        }
+
+        // Streaming services, shown only while browsing — a typed search cannot
+        // honour this filter, and a control that silently does nothing is worse
+        // than one that is absent.
+        if (state.showServiceFilter) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(spacing.s),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .horizontalScroll(rememberScrollState())
+                    .padding(top = spacing.s),
+            ) {
+                state.services.forEach { service ->
+                    val selected = service.id == state.selectedServiceId
+                    ServiceChip(
+                        service = service,
+                        selected = selected,
+                        // Tapping the active service clears it, so the row needs
+                        // no separate "All" affordance competing with the genre
+                        // row's own.
+                        onClick = {
+                            onIntent(SearchIntent.ServiceSelected(service.id.takeIf { !selected }))
+                        },
+                    )
+                }
+            }
         }
 
         state.error?.let { error ->
@@ -205,4 +243,46 @@ private fun ResultCard(movie: Movie, transition: PosterTransition?, onClick: () 
             }
         },
     )
+}
+
+/**
+ * A streaming service as a logo pill. The logo alone identifies the service
+ * better than its name would at this size — these are among the most
+ * recognisable marks on a phone — so the name is carried as the content
+ * description rather than rendered.
+ */
+@Composable
+private fun ServiceChip(
+    service: WatchProvider,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val colors = SinemaTheme.colors
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .clip(SinemaTheme.shapes.container)
+            .background(if (selected) colors.primaryContainer else colors.surfaceVariant)
+            .border(
+                width = if (selected) 2.dp else 0.dp,
+                color = if (selected) colors.primary else Color.Transparent,
+                shape = SinemaTheme.shapes.container,
+            )
+            .clickable(onClick = onClick)
+            .padding(4.dp),
+    ) {
+        service.logoUrl?.let { url ->
+            AsyncImage(
+                model = url,
+                contentDescription = service.name,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize().clip(SinemaTheme.shapes.container),
+            )
+        } ?: Text(
+            text = service.name.take(2),
+            style = SinemaTheme.typography.caption,
+            color = colors.textPrimary,
+            modifier = Modifier.align(Alignment.Center),
+        )
+    }
 }

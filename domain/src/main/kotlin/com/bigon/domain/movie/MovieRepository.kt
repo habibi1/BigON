@@ -6,6 +6,10 @@ import com.bigon.core.model.Movie
 import com.bigon.core.model.MovieCategory
 import com.bigon.core.model.MovieDetail
 import com.bigon.core.model.MoviePage
+import com.bigon.core.model.Region
+import com.bigon.core.model.ReviewPage
+import com.bigon.core.model.TrendingItem
+import com.bigon.core.model.WatchProvider
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -47,10 +51,59 @@ interface MovieRepository {
     /** Free-text search. Network-only; results are never cached. */
     suspend fun search(query: String, page: Int = 1): AppResult<MoviePage>
 
-    /** Genre-filtered browsing ([genreId] null = most popular overall). */
-    suspend fun discover(genreId: Int?, page: Int = 1): AppResult<MoviePage>
+    /**
+     * Genre- and provider-filtered browsing; null on either means unfiltered.
+     *
+     * [streamingProviderId] is resolved against the caller's region inside the
+     * data layer, because TMDB ignores a provider filter with no region and
+     * does so silently — the filter appears to work and simply does nothing.
+     */
+    suspend fun discover(
+        genreId: Int?,
+        page: Int = 1,
+        streamingProviderId: Int? = null,
+    ): AppResult<MoviePage>
+
+    /**
+     * Services carrying films in the user's region, ordered by TMDB's display
+     * priority. Region-dependent by nature: 289 in the US, 46 in Indonesia.
+     */
+    suspend fun streamingServices(): AppResult<List<WatchProvider>>
 
     /** Wipes cached catalogue lists and genres. Favourites are untouched. */
+    /**
+     * Paginated separately from detail. Never cached: reviews are read once and
+     * churn, so staleness would cost more than the storage saves.
+     */
+    suspend fun reviews(movieId: Long, page: Int = 1): AppResult<ReviewPage>
+
+    /**
+     * The mixed trending feed — films, series and people in one ranking.
+     * Cached like every other list, so it survives going offline.
+     */
+    fun observeTrendingAll(): Flow<List<TrendingItem>>
+
+    suspend fun refreshTrendingAll(): AppResult<Unit>
+
+    /** Regions the user may choose between, alphabetical by name. */
+    suspend fun availableRegions(): AppResult<List<Region>>
+
+    /**
+     * The region actually in use, whether chosen or inherited from the device.
+     * Needed so Settings can show what is in effect rather than a blank row.
+     */
+    suspend fun activeRegion(): String
+
+    /**
+     * Persists a region, or null to follow the device, and drops the caches
+     * that were built for the old one.
+     *
+     * Certification, streaming availability and the curated lists are all
+     * region-scoped, so keeping them would leave the app showing one region's
+     * answers under another region's label.
+     */
+    suspend fun setRegion(code: String?)
+
     suspend fun clearCatalogCache()
 }
 

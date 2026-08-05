@@ -7,6 +7,11 @@ import com.bigon.core.common.DispatcherProvider
 import com.bigon.core.database.GenreDao
 import com.bigon.core.database.GenreEntity
 import com.bigon.core.database.MovieDao
+import com.bigon.core.database.MovieDetailDao
+import com.bigon.core.database.MovieDetailEntity
+import com.bigon.core.database.TrendingItemDao
+import com.bigon.core.database.TrendingItemEntity
+import com.bigon.core.datastore.PreferenceStorage
 import com.bigon.core.database.MovieEntity
 import com.bigon.core.model.MovieCategory
 import com.bigon.core.network.ApiCaller
@@ -71,24 +76,42 @@ class DefaultMovieRepositoryTest {
     private class FakeApi(
         private val onList: () -> MovieListResponse,
         private val onGenres: () -> GenreListResponse = { GenreListResponse() },
+        private val onDetail: (Long) -> MovieDetailResponse = { MovieDetailResponse(id = it) },
     ) : MovieApi {
         val requestedPages = mutableListOf<Int>()
         override suspend fun trending(page: Int) = onList().also { requestedPages += page }
-        override suspend fun popular(page: Int) = onList().also { requestedPages += page }
-        override suspend fun nowPlaying(page: Int) = onList().also { requestedPages += page }
-        override suspend fun topRated(page: Int) = onList().also { requestedPages += page }
-        override suspend fun upcoming(page: Int) = onList().also { requestedPages += page }
+        override suspend fun trendingWeek(page: Int) = onList().also { requestedPages += page }
+        override suspend fun popular(page: Int, region: String?) = onList().also { requestedPages += page }
+        override suspend fun nowPlaying(page: Int, region: String?) = onList().also { requestedPages += page }
+        override suspend fun topRated(page: Int, region: String?) = onList().also { requestedPages += page }
+        override suspend fun upcoming(page: Int, region: String?) = onList().also { requestedPages += page }
         override suspend fun genres() = onGenres()
-        override suspend fun detail(id: Long, append: String) = MovieDetailResponse(id = id)
+        var detailCalls = 0
+        override suspend fun detail(id: Long, append: String, imageLanguage: String) =
+            onDetail(id).also { detailCalls++ }
+        override suspend fun reviews(id: Long, page: Int) = ReviewListResponse()
         var lastSearchQuery: String? = null
         var lastDiscoverGenres: String? = null
         var lastRequestedPage: Int? = null
         override suspend fun search(query: String, page: Int, includeAdult: Boolean): MovieListResponse {
             lastSearchQuery = query; lastRequestedPage = page; return onList()
         }
-        override suspend fun discover(withGenres: String?, sortBy: String, page: Int): MovieListResponse {
-            lastDiscoverGenres = withGenres; lastRequestedPage = page; return onList()
+        var lastWatchProviders: String? = null
+        var lastWatchRegion: String? = null
+        override suspend fun discover(
+            withGenres: String?,
+            sortBy: String,
+            page: Int,
+            withWatchProviders: String?,
+            watchRegion: String?,
+        ): MovieListResponse {
+            lastDiscoverGenres = withGenres; lastRequestedPage = page
+            lastWatchProviders = withWatchProviders; lastWatchRegion = watchRegion
+            return onList()
         }
+        override suspend fun watchProviders(watchRegion: String) = WatchProviderListResponse()
+        override suspend fun trendingAll(page: Int) = TrendingListResponse()
+        override suspend fun regions() = RegionListResponse()
     }
 
     private fun dispatchers() = object : DispatcherProvider {
@@ -97,11 +120,75 @@ class DefaultMovieRepositoryTest {
         override val main: CoroutineDispatcher = StandardTestDispatcher()
     }
 
+
+
+    /** In-memory PreferenceStorage; only the region key matters to these tests. */
+    class FakePreferences(initialRegion: String? = null) : PreferenceStorage {
+        val regionFlow = MutableStateFlow(initialRegion)
+        override val region: Flow<String?> = regionFlow
+        override suspend fun setRegion(value: String?) { regionFlow.value = value }
+        override val onboardingCompleted: Flow<Boolean> = MutableStateFlow(false)
+        override suspend fun setOnboardingCompleted(value: Boolean) = Unit
+        override val themeMode: Flow<String?> = MutableStateFlow(null)
+        override suspend fun setThemeMode(value: String) = Unit
+    }
+
+    /** In-memory stand-in for the mixed trending cache. */
+    class FakeTrendingItemDao : TrendingItemDao {
+        val rows = MutableStateFlow<List<TrendingItemEntity>>(emptyList())
+        override fun observeAll(): Flow<List<TrendingItemEntity>> = rows
+        override suspend fun insertAll(items: List<TrendingItemEntity>) {
+            rows.value = rows.value + items
+        }
+        override suspend fun clear() {
+            rows.value = emptyList()
+        }
+    }
+
+    /** In-memory stand-in for the detail cache; the real DAO is Room-generated. */
+    class FakeMovieDetailDao : MovieDetailDao {
+        val rows = mutableMapOf<Long, MovieDetailEntity>()
+        var failWrites = false
+
+        override suspend fun byId(movieId: Long): MovieDetailEntity? = rows[movieId]
+
+        override suspend fun upsert(entity: MovieDetailEntity) {
+            if (failWrites) error("disk full")
+            rows[entity.id] = entity
+        }
+
+        override suspend fun clear() = rows.clear()
+        override suspend fun count(): Int = rows.size
+
+        override suspend fun trimTo(keep: Int) {
+            rows.entries.sortedByDescending { it.value.fetchedAt }
+                .drop(keep)
+                .forEach { rows.remove(it.key) }
+        }
+    }
+
     private fun repository(
         movieDao: MovieDao,
         genreDao: GenreDao,
         api: MovieApi,
-    ) = DefaultMovieRepository(movieDao, genreDao, api, ApiCaller(NetworkErrorMapper()), dispatchers())
+        detailDao: MovieDetailDao = FakeMovieDetailDao(),
+        trendingDao: TrendingItemDao = FakeTrendingItemDao(),
+        region: String = "US",
+        preferences: PreferenceStorage = FakePreferences(),
+    ) = DefaultMovieRepository(
+        movieDao,
+        genreDao,
+        detailDao,
+        trendingDao,
+        api,
+        ApiCaller(NetworkErrorMapper()),
+        dispatchers(),
+        object : RegionProvider {
+            override suspend fun region() = region
+            override fun language() = "en"
+        },
+        preferences,
+    )
 
     private fun movieDto(id: Long, title: String) =
         MovieDto(id = id, title = title, voteAverage = 8.0, voteCount = 10, genreIds = listOf(28))
@@ -353,5 +440,99 @@ class DefaultMovieRepositoryTest {
         assertEquals(2, api.lastRequestedPage)
         assertEquals(9, (result as AppResult.Success).value.totalPages)
         assertTrue(result.value.hasMore)
+    }
+
+    // ── Tier 2: regional lists and the streaming filter ─────────────────────
+
+    @Test
+    fun `curated lists carry the region, trending deliberately does not`() = runTest(dispatcher) {
+        val api = object : MovieApi {
+            var nowPlayingRegion: String? = "unset"
+            var trendingCalled = false
+            override suspend fun nowPlaying(page: Int, region: String?): MovieListResponse {
+                nowPlayingRegion = region
+                return MovieListResponse()
+            }
+            override suspend fun trending(page: Int): MovieListResponse {
+                trendingCalled = true
+                return MovieListResponse()
+            }
+            override suspend fun trendingWeek(page: Int) = MovieListResponse()
+            override suspend fun popular(page: Int, region: String?) = MovieListResponse()
+            override suspend fun topRated(page: Int, region: String?) = MovieListResponse()
+            override suspend fun upcoming(page: Int, region: String?) = MovieListResponse()
+            override suspend fun genres() = GenreListResponse()
+            override suspend fun detail(id: Long, append: String, imageLanguage: String) =
+                MovieDetailResponse(id = id)
+            override suspend fun reviews(id: Long, page: Int) = ReviewListResponse()
+            override suspend fun search(query: String, page: Int, includeAdult: Boolean) = MovieListResponse()
+            override suspend fun discover(
+                withGenres: String?,
+                sortBy: String,
+                page: Int,
+                withWatchProviders: String?,
+                watchRegion: String?,
+            ) = MovieListResponse()
+            override suspend fun watchProviders(watchRegion: String) = WatchProviderListResponse()
+        override suspend fun trendingAll(page: Int) = TrendingListResponse()
+        override suspend fun regions() = RegionListResponse()
+        }
+        val repo = repository(FakeMovieDao(), FakeGenreDao(), api, region = "ID")
+
+        repo.refresh(MovieCategory.NowPlaying)
+        assertEquals("ID", api.nowPlayingRegion)
+
+        // Trending is a global signal and TMDB rejects a region there.
+        repo.refresh(MovieCategory.Trending)
+        assertTrue(api.trendingCalled)
+    }
+
+    @Test
+    fun `a streaming filter always travels with a region`() = runTest(dispatcher) {
+        val api = FakeApi(onList = { MovieListResponse() })
+        val repo = repository(FakeMovieDao(), FakeGenreDao(), api, region = "ID")
+
+        repo.discover(genreId = null, page = 1, streamingProviderId = 8)
+
+        assertEquals("8", api.lastWatchProviders)
+        // Without this TMDB ignores the filter silently rather than erroring.
+        assertEquals("ID", api.lastWatchRegion)
+    }
+
+    @Test
+    fun `no streaming filter means no region narrowing the results`() = runTest(dispatcher) {
+        val api = FakeApi(onList = { MovieListResponse() })
+        val repo = repository(FakeMovieDao(), FakeGenreDao(), api, region = "ID")
+
+        repo.discover(genreId = 28, page = 1, streamingProviderId = null)
+
+        assertEquals(null, api.lastWatchProviders)
+        assertEquals(null, api.lastWatchRegion)
+    }
+
+    @Test
+    fun `streaming services come back ordered by display priority`() = runTest(dispatcher) {
+        val api = object : MovieApi by FakeApi(onList = { MovieListResponse() }) {
+            override suspend fun watchProviders(watchRegion: String) = WatchProviderListResponse(
+                results = listOf(
+                    ProviderDto(providerId = 2, providerName = "Later", displayPriority = 9, logoPath = "/b.jpg"),
+                    ProviderDto(providerId = 1, providerName = "First", displayPriority = 1, logoPath = "/a.jpg"),
+                ),
+            )
+        }
+        val repo = repository(FakeMovieDao(), FakeGenreDao(), api)
+
+        val result = repo.streamingServices()
+
+        val services = assertIs<AppResult.Success<List<com.bigon.core.model.WatchProvider>>>(result).value
+        assertEquals(listOf("First", "Later"), services.map { it.name })
+        assertEquals("https://image.tmdb.org/t/p/w92/a.jpg", services.first().logoUrl)
+    }
+
+    @Test
+    fun `weekly and daily trending are cached under different keys`() = runTest(dispatcher) {
+        // Sharing a key would make each refresh evict the other, which is the
+        // whole reason categories are keyed rather than sharing a table.
+        assertTrue(MovieCategory.Trending.listKey != MovieCategory.TrendingWeek.listKey)
     }
 }

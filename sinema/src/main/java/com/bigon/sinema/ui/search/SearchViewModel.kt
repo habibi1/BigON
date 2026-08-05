@@ -9,6 +9,7 @@ import com.bigon.core.tracker.AnalyticsEvent
 import com.bigon.core.tracker.AnalyticsTracker
 import com.bigon.core.ui.toUiText
 import com.bigon.domain.movie.DiscoverMoviesUseCase
+import com.bigon.domain.movie.GetStreamingServicesUseCase
 import com.bigon.domain.movie.ObserveGenresUseCase
 import com.bigon.domain.movie.SearchMoviesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,6 +41,7 @@ class SearchViewModel @Inject constructor(
     observeGenres: ObserveGenresUseCase,
     private val searchMovies: SearchMoviesUseCase,
     private val discoverMovies: DiscoverMoviesUseCase,
+    private val getStreamingServices: GetStreamingServicesUseCase,
     flags: FeatureFlagRepository,
     tracker: AnalyticsTracker,
 ) : ViewModel() {
@@ -52,6 +54,7 @@ class SearchViewModel @Inject constructor(
 
     private val queryInput = MutableStateFlow("")
     private val genreInput = MutableStateFlow<Int?>(null)
+    private val serviceInput = MutableStateFlow<Int?>(null)
     private val retries = MutableStateFlow(0)
 
     private val debounceMillis = flags.get(Flags.SearchDebounceMs).toLong()
@@ -63,15 +66,32 @@ class SearchViewModel @Inject constructor(
             .onEach { genres -> _state.update { it.copy(genres = genres) } }
             .launchIn(viewModelScope)
 
+        // The service catalogue is region-dependent and slow-changing, so it is
+        // fetched once. A failure is silent by design: no filter row is a
+        // smaller loss than an error banner over working search results.
+        viewModelScope.launch {
+            (getStreamingServices() as? AppResult.Success)?.let { result ->
+                _state.update { it.copy(services = result.value.take(MAX_SERVICES)) }
+            }
+        }
+
         queryInput
             // Clearing the field should react instantly; only typing is debounced.
             .debounce { input -> if (input.isBlank()) 0L else debounceMillis }
             .combine(genreInput) { query, genre -> query.trim() to genre }
+            .combine(serviceInput) { (query, genre), service -> Triple(query, genre, service) }
             // Retries re-emit the same request; StateFlow inputs dedupe themselves.
             .combine(retries) { request, _ -> request }
-            .mapLatest { (query, genreId) ->
+            .mapLatest { (query, genreId, serviceId) ->
                 _state.update { it.copy(isSearching = true, error = null) }
-                if (query.isBlank()) discoverMovies(genreId) else searchMovies(query)
+                if (query.isBlank()) {
+                    discoverMovies(genreId, streamingProviderId = serviceId)
+                } else {
+                    // `/search/movie` takes no provider filter and its results
+                    // carry no provider data, so the service selection simply
+                    // does not apply here — see SearchUiState.
+                    searchMovies(query)
+                }
             }
             .onEach { result ->
                 when (result) {
@@ -100,7 +120,7 @@ class SearchViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isAppending = true) }
             val result = if (snapshot.query.isBlank()) {
-                discoverMovies(snapshot.selectedGenreId, nextPage)
+                discoverMovies(snapshot.selectedGenreId, nextPage, snapshot.selectedServiceId)
             } else {
                 searchMovies(snapshot.query, nextPage)
             }
@@ -108,7 +128,8 @@ class SearchViewModel @Inject constructor(
                 // Guard against a race: if the query changed while this page was
                 // in flight, drop the response rather than mixing result sets.
                 val stale = current.query != snapshot.query ||
-                    current.selectedGenreId != snapshot.selectedGenreId
+                    current.selectedGenreId != snapshot.selectedGenreId ||
+                    current.selectedServiceId != snapshot.selectedServiceId
                 when {
                     stale -> current.copy(isAppending = false)
                     result is AppResult.Success -> current.copy(
@@ -135,10 +156,23 @@ class SearchViewModel @Inject constructor(
                 genreInput.value = intent.genreId
                 _state.update { it.copy(selectedGenreId = intent.genreId) }
             }
+            is SearchIntent.ServiceSelected -> {
+                serviceInput.value = intent.serviceId
+                _state.update { it.copy(selectedServiceId = intent.serviceId) }
+            }
             SearchIntent.LoadMore -> loadMore()
             is SearchIntent.MovieClicked ->
                 _effects.trySend(SearchEffect.NavigateToDetail(intent.movie.id))
             SearchIntent.Retry -> retries.update { it + 1 }
         }
+    }
+
+    private companion object {
+        /**
+         * The US catalogue lists 289 services. Past the first handful they are
+         * long-tail channels nobody filters by, and an endless row would bury
+         * the genre chips beneath it.
+         */
+        const val MAX_SERVICES = 12
     }
 }

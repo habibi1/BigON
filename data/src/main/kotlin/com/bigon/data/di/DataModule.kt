@@ -7,6 +7,8 @@ import com.bigon.core.network.ApiCaller
 import com.bigon.data.config.DefaultFeatureFlagRepository
 import com.bigon.data.movie.DefaultFavoritesRepository
 import com.bigon.data.movie.DefaultMovieRepository
+import com.bigon.data.movie.LocaleRegionProvider
+import com.bigon.data.movie.RegionProvider
 import com.bigon.data.movie.MovieApi
 import com.bigon.domain.movie.FavoritesRepository
 import com.bigon.domain.movie.MovieRepository
@@ -30,6 +32,10 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindMovieRepository(impl: DefaultMovieRepository): MovieRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindRegionProvider(impl: LocaleRegionProvider): RegionProvider
 
     @Binds
     @Singleton

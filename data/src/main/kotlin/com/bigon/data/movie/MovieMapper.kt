@@ -2,10 +2,16 @@ package com.bigon.data.movie
 
 import com.bigon.core.database.GenreEntity
 import com.bigon.core.database.MovieEntity
+import com.bigon.core.database.TrendingItemEntity
 import com.bigon.core.model.CastMember
 import com.bigon.core.model.Movie
 import com.bigon.core.model.MovieDetail
 import com.bigon.core.model.MoviePage
+import com.bigon.core.model.Review
+import com.bigon.core.model.ReviewPage
+import com.bigon.core.model.TrendingItem
+import com.bigon.core.model.WatchProvider
+import com.bigon.core.model.WatchProviders
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
@@ -65,7 +71,142 @@ internal object MovieMapper {
 
     private const val TRANSIENT_LIST_KEY = ""
 
-    fun toDetail(dto: MovieDetailResponse): MovieDetail = MovieDetail(
+    /**
+     * Region used for certification and streaming availability when the device
+     * locale has no entry. US is the fallback because TMDB's coverage there is
+     * the most complete — not because it is a sensible default for a user.
+     */
+    const val FALLBACK_REGION = "US"
+
+    /** TMDB's default copy is English, so that is what "not translated" means. */
+    const val FALLBACK_LANGUAGE = "en"
+
+    /** Theatrical release; the certification type users recognise. */
+    private const val TYPE_THEATRICAL = 3
+
+    fun toDetail(
+        dto: MovieDetailResponse,
+        genresById: Map<Int, String> = emptyMap(),
+        region: String = FALLBACK_REGION,
+        language: String = FALLBACK_LANGUAGE,
+    ): MovieDetail = toDetailInternal(dto, genresById, region, language)
+
+    private fun toDetailInternal(
+        dto: MovieDetailResponse,
+        genresById: Map<Int, String>,
+        region: String,
+        language: String,
+    ): MovieDetail = baseDetail(dto).localised(dto, language).copy(
+        // Recommendations are editorially better but thin for obscure titles;
+        // `similar` is genre-derived and almost always populated. Merging with
+        // recommendations first keeps the good ones on top and still fills the
+        // row when TMDB has nothing curated.
+        recommendations = (dto.recommendations?.results.orEmpty() + dto.similar?.results.orEmpty())
+            .distinctBy { it.id }
+            .filter { it.id != dto.id }
+            .take(MAX_RECOMMENDATIONS)
+            .map { toDomain(it, genresById) },
+        certification = dto.releaseDates.certificationFor(region),
+        keywords = dto.keywords.keywords.map { it.name }.filter { it.isNotBlank() }.take(MAX_KEYWORDS),
+        imdbId = dto.externalIds.imdbId?.takeIf { it.isNotBlank() },
+        watchProviders = dto.watchProviders.forRegion(region),
+        logoUrl = dto.images.bestLogo(),
+        alternativeTitles = dto.alternativeTitles.titles
+            .map { it.title.trim() }
+            .filter { it.isNotBlank() && !it.equals(dto.title, ignoreCase = true) }
+            .distinctBy { it.lowercase() }
+            .take(MAX_ALTERNATIVE_TITLES),
+    )
+
+    /**
+     * Swaps in TMDB's translation for [language] when one exists.
+     *
+     * Deliberately field-by-field rather than all-or-nothing: translations are
+     * community-contributed and frequently partial, so a record with a
+     * translated overview and an empty tagline should yield the translated
+     * overview and the English tagline, not force a choice between them.
+     *
+     * The app's own UI is not localised, so this is the one place a user in a
+     * non-English locale sees their language. [MovieDetail.isLocalised] records
+     * that it happened rather than letting it look like full localisation.
+     */
+    private fun MovieDetail.localised(dto: MovieDetailResponse, language: String): MovieDetail {
+        if (language.equals(FALLBACK_LANGUAGE, ignoreCase = true)) return this
+
+        val translation = dto.translations.translations
+            .firstOrNull { it.language.equals(language, ignoreCase = true) }
+            ?.data
+            ?: return this
+
+        val localisedOverview = translation.overview.takeIf { it.isNotBlank() }
+        val localisedTagline = translation.tagline.takeIf { it.isNotBlank() }
+        if (localisedOverview == null && localisedTagline == null) return this
+
+        return copy(
+            overview = localisedOverview ?: overview,
+            tagline = localisedTagline ?: tagline,
+            isLocalised = true,
+        )
+    }
+
+    /**
+     * The widest well-rated English logo. Width is the tiebreak because these
+     * are rendered across the backdrop, where an undersized asset is the
+     * visible failure; TMDB's vote average filters out the poor scans.
+     */
+    private fun ImagesDto.bestLogo(): String? = logos
+        .filter { it.filePath.isNotBlank() }
+        .maxWithOrNull(compareBy({ it.voteAverage }, { it.width }))
+        ?.let { TmdbImageUrl.build(it.filePath, TmdbImageUrl.LOGO_WIDE) }
+
+    private const val MAX_ALTERNATIVE_TITLES = 6
+
+    /**
+     * Certification for [region], falling back to [FALLBACK_REGION]. TMDB
+     * returns several entries per country (theatrical, digital, physical);
+     * theatrical is preferred, then whatever is present, and blanks are
+     * common enough to filter explicitly.
+     */
+    private fun ReleaseDatesDto.certificationFor(region: String): String? {
+        fun certOf(country: String): String? = results
+            .firstOrNull { it.country.equals(country, ignoreCase = true) }
+            ?.releases
+            ?.let { releases ->
+                releases.firstOrNull { it.type == TYPE_THEATRICAL && it.certification.isNotBlank() }
+                    ?: releases.firstOrNull { it.certification.isNotBlank() }
+            }
+            ?.certification
+            ?.takeIf { it.isNotBlank() }
+
+        return certOf(region) ?: certOf(FALLBACK_REGION)
+    }
+
+    private fun WatchProvidersDto.forRegion(region: String): WatchProviders? {
+        val country = results[region.uppercase()] ?: results[FALLBACK_REGION] ?: return null
+        val resolved = if (results.containsKey(region.uppercase())) region.uppercase() else FALLBACK_REGION
+        return WatchProviders(
+            region = resolved,
+            link = country.link,
+            streaming = country.flatrate.toProviders(),
+            rent = country.rent.toProviders(),
+            buy = country.buy.toProviders(),
+        ).takeIf { !it.isEmpty }
+    }
+
+    private fun List<ProviderDto>.toProviders(): List<WatchProvider> = this
+        .sortedBy { it.displayPriority }
+        .map {
+            WatchProvider(
+                id = it.providerId,
+                name = it.providerName,
+                logoUrl = TmdbImageUrl.build(it.logoPath, TmdbImageUrl.LOGO_SMALL),
+            )
+        }
+
+    private const val MAX_RECOMMENDATIONS = 20
+    private const val MAX_KEYWORDS = 8
+
+    private fun baseDetail(dto: MovieDetailResponse): MovieDetail = MovieDetail(
         id = dto.id,
         title = dto.title,
         tagline = dto.tagline?.takeIf { it.isNotBlank() },
@@ -97,6 +238,102 @@ internal object MovieMapper {
     )
 
     private const val MAX_CAST = 12
+
+    fun toReviewPage(response: ReviewListResponse): ReviewPage = ReviewPage(
+        reviews = response.results.map { dto ->
+            Review(
+                id = dto.id,
+                author = dto.author.takeIf { it.isNotBlank() } ?: dto.authorDetails.username,
+                content = dto.content.trim(),
+                // TMDB avatar paths are sometimes a full Gravatar URL smuggled
+                // in behind a leading slash; passing those through the CDN
+                // builder would produce a 404.
+                avatarUrl = dto.authorDetails.avatarPath?.let { path ->
+                    val cleaned = path.removePrefix("/")
+                    if (cleaned.startsWith("http")) cleaned
+                    else TmdbImageUrl.build(path, TmdbImageUrl.AVATAR_SMALL)
+                },
+                rating = dto.authorDetails.rating?.takeIf { it > 0.0 },
+                createdAt = dto.createdAt?.substringBefore("T").toLocalDateOrNull(),
+            )
+        }.filter { it.content.isNotBlank() },
+        page = response.page,
+        totalPages = response.totalPages,
+        totalResults = response.totalResults,
+    )
+
+    // ── mixed trending feed ─────────────────────────────────────────────────
+
+    const val MEDIA_MOVIE = "movie"
+    const val MEDIA_TV = "tv"
+    const val MEDIA_PERSON = "person"
+
+    /**
+     * Rows for the cache, keeping TMDB's ranking as [TrendingItemEntity.position].
+     *
+     * Entries whose `media_type` is none of the three known values are dropped
+     * rather than coerced. TMDB has been observed returning types its own docs
+     * do not list, and a feed that renders an unknown thing as an empty card is
+     * worse than one that is briefly shorter.
+     */
+    fun toTrendingEntities(response: TrendingListResponse): List<TrendingItemEntity> =
+        response.results
+            .filter { it.mediaType in setOf(MEDIA_MOVIE, MEDIA_TV, MEDIA_PERSON) && it.id != 0L }
+            .mapIndexed { index, dto ->
+                TrendingItemEntity(
+                    id = dto.id,
+                    mediaType = dto.mediaType,
+                    position = index,
+                    title = dto.title ?: dto.name.orEmpty(),
+                    overview = dto.overview,
+                    imagePath = dto.posterPath ?: dto.profilePath,
+                    datedOn = (dto.releaseDate ?: dto.firstAirDate)?.takeIf { it.isNotBlank() },
+                    // The unrated rule from the list mapper applies here too.
+                    voteAverage = dto.voteAverage.takeIf { dto.voteCount > 0 && it > 0.0 },
+                    genreIds = dto.genreIds,
+                    knownForDepartment = dto.knownForDepartment,
+                    knownFor = dto.knownFor.mapNotNull { it.title ?: it.name }.filter { it.isNotBlank() },
+                )
+            }
+
+    fun toTrendingItem(entity: TrendingItemEntity, genresById: Map<Int, String>): TrendingItem? =
+        when (entity.mediaType) {
+            MEDIA_MOVIE -> TrendingItem.Film(
+                Movie(
+                    id = entity.id,
+                    title = entity.title,
+                    overview = entity.overview,
+                    posterUrl = TmdbImageUrl.build(entity.imagePath, TmdbImageUrl.POSTER_CARD),
+                    backdropUrl = null,
+                    releaseDate = entity.datedOn.toLocalDateOrNull(),
+                    voteAverage = entity.voteAverage,
+                    genres = entity.genreIds.mapNotNull(genresById::get),
+                ),
+            )
+
+            MEDIA_TV -> TrendingItem.Series(
+                id = entity.id,
+                name = entity.title,
+                overview = entity.overview,
+                posterUrl = TmdbImageUrl.build(entity.imagePath, TmdbImageUrl.POSTER_CARD),
+                firstAirDate = entity.datedOn.toLocalDateOrNull(),
+                voteAverage = entity.voteAverage,
+                // TV genre ids come from a different TMDB list than the movie
+                // one this app caches, so only overlapping ids resolve. Showing
+                // the few that match beats showing a wrong name.
+                genres = entity.genreIds.mapNotNull(genresById::get),
+            )
+
+            MEDIA_PERSON -> TrendingItem.Person(
+                id = entity.id,
+                name = entity.title,
+                profileUrl = TmdbImageUrl.build(entity.imagePath, TmdbImageUrl.PROFILE_SMALL),
+                knownForDepartment = entity.knownForDepartment,
+                knownFor = entity.knownFor,
+            )
+
+            else -> null
+        }
 
     /** TMDB dates are ISO, but may be absent, blank, or occasionally malformed. */
     private fun String?.toLocalDateOrNull(): LocalDate? =

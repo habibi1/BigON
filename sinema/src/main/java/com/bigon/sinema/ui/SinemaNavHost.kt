@@ -83,6 +83,10 @@ fun SharedTransitionScope.SinemaNavHost(
             DetailRoute(
                 movieId = destination.movieId,
                 onBack = { navController.popBackStack() },
+                // Detail can open detail. Each tap pushes a new entry rather
+                // than replacing this one, so back walks the trail the user
+                // actually followed instead of jumping to the grid.
+                onMovieClick = { navController.navigateToMovie(it) },
                 transition = PosterTransition(this@SinemaNavHost, this@composable),
             )
         }

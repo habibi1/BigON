@@ -7,6 +7,7 @@ import com.bigon.core.tracker.AnalyticsEvent
 import com.bigon.core.tracker.AnalyticsTracker
 import com.bigon.core.ui.toUiText
 import com.bigon.domain.movie.GetMovieDetailUseCase
+import com.bigon.domain.movie.GetMovieReviewsUseCase
 import com.bigon.domain.movie.ObserveCachedMovieUseCase
 import com.bigon.domain.movie.ObserveIsFavoriteUseCase
 import com.bigon.domain.movie.SetFavoriteUseCase
@@ -32,6 +33,7 @@ class DetailViewModel @AssistedInject constructor(
     observeCachedMovie: ObserveCachedMovieUseCase,
     observeIsFavorite: ObserveIsFavoriteUseCase,
     private val getMovieDetail: GetMovieDetailUseCase,
+    private val getMovieReviews: GetMovieReviewsUseCase,
     private val setFavorite: SetFavoriteUseCase,
     private val tracker: AnalyticsTracker,
 ) : ViewModel() {
@@ -58,6 +60,7 @@ class DetailViewModel @AssistedInject constructor(
             .launchIn(viewModelScope)
 
         load()
+        loadReviews(page = 1)
     }
 
     fun onIntent(intent: DetailIntent) {
@@ -67,8 +70,57 @@ class DetailViewModel @AssistedInject constructor(
                 val snapshot = _state.value.asMovie() ?: return
                 viewModelScope.launch { setFavorite(snapshot, intent.favorite) }
             }
-            // Back is navigation, owned by the caller.
+
+            is DetailIntent.RecommendationClicked ->
+                tracker.track(AnalyticsEvent.MovieOpened(intent.movieId, source = "recommendation"))
+
+            DetailIntent.ImdbClicked ->
+                tracker.track(AnalyticsEvent.OutboundLink("imdb"))
+
+            DetailIntent.WatchProvidersClicked ->
+                tracker.track(AnalyticsEvent.OutboundLink("watch_providers"))
+
+            DetailIntent.ReviewsRequested -> loadReviews(page = 1)
+            DetailIntent.MoreReviewsRequested ->
+                loadReviews(page = _state.value.reviewsPage + 1)
+
+            // Back and opening a link are navigation, owned by the caller.
             DetailIntent.Back -> Unit
+        }
+    }
+
+    /**
+     * Reviews load with the screen rather than on demand. They are still a
+     * separate request — the endpoint is separate — so a failure here leaves
+     * detail intact, and the guard keeps a retry or a fast scroll from issuing
+     * a page already held.
+     */
+    private fun loadReviews(page: Int) {
+        val current = _state.value
+        if (current.isLoadingReviews) return
+        if (page == 1 && current.reviews.isNotEmpty()) return
+
+        _state.update { it.copy(isLoadingReviews = true, reviewsError = null) }
+        viewModelScope.launch {
+            when (val result = getMovieReviews(movieId, page)) {
+                is AppResult.Success -> _state.update { state ->
+                    val loaded = result.value
+                    state.copy(
+                        isLoadingReviews = false,
+                        // Appending rather than replacing, deduplicated: TMDB
+                        // occasionally repeats a review across page boundaries.
+                        reviews = (state.reviews + loaded.reviews).distinctBy { it.id },
+                        reviewsPage = loaded.page,
+                        hasMoreReviews = loaded.hasMore,
+                        totalReviews = loaded.totalResults,
+                        reviewsError = null,
+                    )
+                }
+
+                is AppResult.Failure -> _state.update {
+                    it.copy(isLoadingReviews = false, reviewsError = result.error.toUiText())
+                }
+            }
         }
     }
 

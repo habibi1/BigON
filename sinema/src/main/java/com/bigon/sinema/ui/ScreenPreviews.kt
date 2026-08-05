@@ -10,6 +10,7 @@ import com.bigon.core.model.MovieCategory
 import com.bigon.sinema.ui.favorites.FavoritesScreen
 import com.bigon.sinema.ui.favorites.FavoritesUiState
 import com.bigon.sinema.ui.home.HomeScreen
+import com.bigon.sinema.ui.home.HomeFeed
 import com.bigon.sinema.ui.home.HomeUiState
 import com.bigon.sinema.ui.search.SearchScreen
 import com.bigon.sinema.ui.search.SearchUiState
@@ -37,7 +38,7 @@ private val sampleMovies = listOf(
 private fun HomeScreenPreview() {
     SinemaTheme {
         HomeScreen(
-            state = HomeUiState(category = MovieCategory.Trending, movies = sampleMovies),
+            state = HomeUiState(feed = HomeFeed.Category(MovieCategory.Trending), movies = sampleMovies),
             onIntent = {},
         )
     }
@@ -48,7 +49,7 @@ private fun HomeScreenPreview() {
 private fun HomeScreenLoadingPreview() {
     SinemaTheme {
         HomeScreen(
-            state = HomeUiState(category = MovieCategory.Popular, isRefreshing = true),
+            state = HomeUiState(feed = HomeFeed.Category(MovieCategory.Popular), isRefreshing = true),
             onIntent = {},
         )
     }

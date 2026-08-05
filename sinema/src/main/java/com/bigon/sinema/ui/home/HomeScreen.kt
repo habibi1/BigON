@@ -39,7 +39,12 @@ import com.bigon.core.ui.LoadMoreEffect
 import com.bigon.core.ui.ObserveEffects
 import com.bigon.core.ui.asString
 import com.bigon.sinema.ui.PosterTransition
+import com.bigon.sinema.ui.metaLine
 import com.bigon.sinema.ui.posterModifier
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.ui.platform.LocalUriHandler
+import com.bigon.core.model.TrendingItem
+import com.bigon.core.model.typeLabel
 
 /**
  * Stateful entry point: owns nothing but the ViewModel, so the stateless
@@ -54,9 +59,11 @@ fun HomeRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    val uriHandler = LocalUriHandler.current
     ObserveEffects(viewModel.effects) { effect ->
         when (effect) {
             is HomeEffect.NavigateToDetail -> onMovieClick(effect.movieId)
+            is HomeEffect.OpenExternal -> uriHandler.openUri(effect.url)
         }
     }
 
@@ -90,12 +97,14 @@ fun HomeScreen(
             modifier = Modifier.padding(vertical = spacing.l),
         )
 
+        // The mixed feed sits last: it is the widest net, and the movie
+        // categories are what most sessions actually start from.
+        val feeds = MovieCategory.entries.map { HomeFeed.Category(it) } + HomeFeed.AcrossTypes
         SinemaChipRow(
-            options = MovieCategory.entries.map { it.label },
-            selectedOption = state.category.label,
+            options = feeds.map { it.label },
+            selectedOption = state.feed.label,
             onOptionSelect = { label ->
-                MovieCategory.entries.firstOrNull { it.label == label }
-                    ?.let { onIntent(HomeIntent.CategorySelected(it)) }
+                feeds.firstOrNull { it.label == label }?.let { onIntent(HomeIntent.FeedSelected(it)) }
             },
         )
 
@@ -142,12 +151,29 @@ fun HomeScreen(
                     // which let cards run up against the chips mid-scroll.
                     modifier = Modifier.fillMaxSize().padding(top = spacing.m),
                 ) {
-                    items(state.movies, key = { it.id }) { movie ->
-                        MovieCard(
-                            movie = movie,
-                            transition = transition,
-                            onClick = { onIntent(HomeIntent.MovieClicked(movie)) },
-                        )
+                    if (state.isAcrossTypes) {
+                        // Keyed by type as well as id: TMDB ids are unique only
+                        // within a media type, so film 550 and series 550 would
+                        // collide on id alone and Compose would reuse the wrong
+                        // slot.
+                        items(
+                            state.trendingItems,
+                            key = { "${it.typeLabel}-${it.id}" },
+                        ) { item ->
+                            TrendingCard(
+                                item = item,
+                                transition = transition,
+                                onClick = { onIntent(HomeIntent.TrendingItemClicked(item)) },
+                            )
+                        }
+                    } else {
+                        items(state.movies, key = { it.id }) { movie ->
+                            MovieCard(
+                                movie = movie,
+                                transition = transition,
+                                onClick = { onIntent(HomeIntent.MovieClicked(movie)) },
+                            )
+                        }
                     }
                     if (state.isAppending) {
                         item(span = { GridItemSpan(maxLineSpan) }) {
@@ -192,12 +218,6 @@ private fun MovieCard(movie: Movie, transition: PosterTransition?, onClick: () -
     )
 }
 
-/** "2026 · Sci-Fi", degrading gracefully when either half is missing. */
-private fun Movie.metaLine(): String? =
-    listOfNotNull(releaseYear?.toString(), genres.firstOrNull())
-        .joinToString(" · ")
-        .takeIf { it.isNotBlank() }
-
 @Composable
 private fun MovieGrid(
     itemCount: Int,
@@ -214,4 +234,55 @@ private fun MovieGrid(
     ) {
         items(List(itemCount) { it }) { item() }
     }
+}
+
+/**
+ * One entry of the mixed feed. A film reuses the existing card and keeps its
+ * shared-element transition into detail; a series or person uses the same shape
+ * without one, because they have no detail screen to fly into.
+ *
+ * The meta line always names the type. In a list that interleaves three kinds
+ * of thing, "2024 · Drama" and "Series · 2024" have to be told apart at a
+ * glance, and a poster alone does not do it.
+ */
+@Composable
+private fun TrendingCard(
+    item: TrendingItem,
+    transition: PosterTransition?,
+    onClick: () -> Unit,
+) {
+    when (item) {
+        is TrendingItem.Film -> MovieCard(movie = item.movie, transition = transition, onClick = onClick)
+
+        is TrendingItem.Series -> SinemaMovieCard(
+            title = item.name,
+            meta = listOfNotNull("Series", item.firstAirYear?.toString()).joinToString(" · "),
+            rating = item.voteAverage,
+            onClick = onClick,
+            width = Dp.Unspecified,
+            modifier = Modifier.fillMaxWidth(),
+            poster = { PosterOrPlaceholder(item.posterUrl) },
+        )
+
+        is TrendingItem.Person -> SinemaMovieCard(
+            title = item.name,
+            meta = listOfNotNull("Person", item.knownForDepartment).joinToString(" · "),
+            onClick = onClick,
+            width = Dp.Unspecified,
+            modifier = Modifier.fillMaxWidth(),
+            poster = { PosterOrPlaceholder(item.profileUrl) },
+        )
+    }
+}
+
+@Composable
+private fun BoxScope.PosterOrPlaceholder(url: String?) {
+    url?.let {
+        AsyncImage(
+            model = it,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+        )
+    } ?: SinemaPosterPlaceholder()
 }

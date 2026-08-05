@@ -5,7 +5,9 @@ import androidx.room.Room
 import com.bigon.core.database.FavoriteDao
 import com.bigon.core.database.GenreDao
 import com.bigon.core.database.MovieDao
+import com.bigon.core.database.MovieDetailDao
 import com.bigon.core.database.SinemaDatabase
+import com.bigon.core.database.TrendingItemDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -35,4 +37,10 @@ object DatabaseModule {
 
     @Provides
     fun provideFavoriteDao(database: SinemaDatabase): FavoriteDao = database.favoriteDao()
+
+    @Provides
+    fun provideMovieDetailDao(database: SinemaDatabase): MovieDetailDao = database.movieDetailDao()
+
+    @Provides
+    fun provideTrendingItemDao(database: SinemaDatabase): TrendingItemDao = database.trendingItemDao()
 }
