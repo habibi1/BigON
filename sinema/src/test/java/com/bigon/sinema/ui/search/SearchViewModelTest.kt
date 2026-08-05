@@ -7,9 +7,14 @@ import com.bigon.core.config.FeatureFlagRepository
 import com.bigon.core.model.Genre
 import com.bigon.core.model.Movie
 import com.bigon.core.model.MoviePage
+import com.bigon.core.model.Region
+import com.bigon.core.model.ReviewPage
+import com.bigon.core.model.TrendingItem
+import com.bigon.core.model.WatchProvider
 import com.bigon.core.tracker.AnalyticsEvent
 import com.bigon.core.tracker.AnalyticsTracker
 import com.bigon.domain.movie.DiscoverMoviesUseCase
+import com.bigon.domain.movie.GetStreamingServicesUseCase
 import com.bigon.domain.movie.LoadMoreOutcome
 import com.bigon.domain.movie.MovieRepository
 import com.bigon.domain.movie.ObserveGenresUseCase
@@ -31,6 +36,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 
 /**
@@ -53,6 +59,16 @@ class SearchViewModelTest {
             AppResult.Failure(AppError.Unknown("unused"))
         override fun observeGenres(): Flow<List<Genre>> = flowOf(listOf(Genre(878, "Science Fiction")))
         override suspend fun clearCatalogCache() = Unit
+        override fun observeTrendingAll(): Flow<List<TrendingItem>> = flowOf(emptyList())
+        override suspend fun refreshTrendingAll(): AppResult<Unit> = AppResult.Success(Unit)
+        override suspend fun availableRegions(): AppResult<List<Region>> = AppResult.Success(emptyList())
+        override suspend fun activeRegion(): String = "US"
+        override suspend fun setRegion(code: String?) = Unit
+        var services: List<WatchProvider> = emptyList()
+        override suspend fun streamingServices(): AppResult<List<WatchProvider>> =
+            AppResult.Success(services)
+        override suspend fun reviews(movieId: Long, page: Int): AppResult<ReviewPage> =
+            AppResult.Success(ReviewPage(emptyList(), 1, 1, 0))
 
         var totalPages = 1
         override suspend fun search(query: String, page: Int): AppResult<MoviePage> {
@@ -62,8 +78,14 @@ class SearchViewModelTest {
             )
         }
 
-        override suspend fun discover(genreId: Int?, page: Int): AppResult<MoviePage> {
+        var lastProviderId: Int? = null
+        override suspend fun discover(
+            genreId: Int?,
+            page: Int,
+            streamingProviderId: Int?,
+        ): AppResult<MoviePage> {
             discoverCalls += genreId
+            lastProviderId = streamingProviderId
             return AppResult.Success(
                 MoviePage(listOf(movie(page * 200L, "Discover p$page")), page, totalPages),
             )
@@ -100,6 +122,7 @@ class SearchViewModelTest {
             observeGenres = ObserveGenresUseCase(repository),
             searchMovies = SearchMoviesUseCase(repository),
             discoverMovies = DiscoverMoviesUseCase(repository),
+            getStreamingServices = GetStreamingServicesUseCase(repository),
             flags = FixedFlags(),
             tracker = NoopTracker,
         )
@@ -243,4 +266,62 @@ class SearchViewModelTest {
         assertEquals(emptyList<String>(), repository.searchCalls)
         assertEquals(listOf("Discover p1", "Discover p2"), vm.state.value.results.map { it.title })
     }
+
+    // ── Tier 2: the streaming filter ────────────────────────────────────────
+
+    @Test
+    fun `selecting a service filters discover by it`() = runTest(dispatcher) {
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.onIntent(SearchIntent.ServiceSelected(8))
+        advanceUntilIdle()
+
+        assertEquals(8, repository.lastProviderId)
+        assertEquals(8, vm.state.value.selectedServiceId)
+    }
+
+    @Test
+    fun `the service filter is dropped for a typed search, which cannot honour it`() =
+        runTest(dispatcher) {
+            val vm = viewModel()
+            advanceUntilIdle()
+            vm.onIntent(SearchIntent.ServiceSelected(8))
+            advanceUntilIdle()
+
+            vm.onIntent(SearchIntent.QueryChanged("dune"))
+            advanceUntilIdle()
+
+            // The request went to /search, which takes no provider filter.
+            assertEquals(listOf("dune"), repository.searchCalls)
+            // And the row hides rather than sitting there doing nothing.
+            assertFalse(vm.state.value.showServiceFilter)
+        }
+
+    @Test
+    fun `clearing the service returns to unfiltered browsing`() = runTest(dispatcher) {
+        val vm = viewModel()
+        advanceUntilIdle()
+        vm.onIntent(SearchIntent.ServiceSelected(8))
+        advanceUntilIdle()
+
+        vm.onIntent(SearchIntent.ServiceSelected(null))
+        advanceUntilIdle()
+
+        assertEquals(null, repository.lastProviderId)
+        assertEquals(null, vm.state.value.selectedServiceId)
+    }
+
+    @Test
+    fun `a failed service catalogue leaves search working with no filter row`() =
+        runTest(dispatcher) {
+            // The catalogue is a nicety; an error banner over working results
+            // would be a worse trade than simply not offering the filter.
+            val vm = viewModel()
+            advanceUntilIdle()
+
+            assertEquals(emptyList(), vm.state.value.services)
+            assertFalse(vm.state.value.showServiceFilter)
+            assertEquals(listOf("Discover p1"), vm.state.value.results.map { it.title })
+        }
 }

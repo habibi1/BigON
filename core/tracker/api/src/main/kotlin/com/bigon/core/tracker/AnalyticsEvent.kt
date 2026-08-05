@@ -23,4 +23,20 @@ sealed interface AnalyticsEvent {
         override val name = "experiment_exposed"
         override val params = mapOf("flag_key" to flagKey, "variant" to variant)
     }
+
+    /**
+     * Which surface sent a user into detail. The point of [source] is to tell
+     * whether the recommendation row actually creates the browsing loop it was
+     * built for, or whether people only ever arrive from a grid.
+     */
+    data class MovieOpened(val movieId: Long, val source: String) : AnalyticsEvent {
+        override val name = "movie_opened"
+        override val params = mapOf("movie_id" to movieId, "source" to source)
+    }
+
+    /** A tap that leaves the app — IMDb, or TMDB's where-to-watch page. */
+    data class OutboundLink(val destination: String) : AnalyticsEvent {
+        override val name = "outbound_link"
+        override val params = mapOf("destination" to destination)
+    }
 }

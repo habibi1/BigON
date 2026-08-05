@@ -1,10 +1,15 @@
 package com.bigon.data.movie
 
 import com.bigon.core.database.MovieEntity
+import com.bigon.core.model.TrendingItem
 import org.junit.Test
 import java.time.LocalDate
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * The three TMDB quirks this mapper exists to absorb. Each of these would be a
@@ -159,5 +164,433 @@ class MovieMapperTest {
         assertNull(movie.voteAverage)
         assertEquals(listOf("Science Fiction"), movie.genres)
         assertEquals("https://image.tmdb.org/t/p/w342/poster.jpg", movie.posterUrl)
+    }
+
+    // ── appended blocks ─────────────────────────────────────────────────────
+
+    private fun listResponse(vararg ids: Long) = MovieListResponse(
+        results = ids.map { MovieDto(id = it, title = "Movie $it") },
+    )
+
+    @Test
+    fun `recommendations fall back to similar and never repeat the movie itself`() {
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(
+                id = 1,
+                recommendations = listResponse(2, 3),
+                // 3 duplicates a recommendation, 1 is this very movie.
+                similar = listResponse(3, 4, 1),
+            ),
+        )
+
+        assertEquals(listOf(2L, 3L, 4L), detail.recommendations.map { it.id })
+    }
+
+    @Test
+    fun `similar alone fills the row when TMDB has no curated recommendations`() {
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(id = 1, recommendations = null, similar = listResponse(7, 8)),
+        )
+        assertEquals(listOf(7L, 8L), detail.recommendations.map { it.id })
+    }
+
+    @Test
+    fun `certification prefers the theatrical entry for the requested region`() {
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(
+                id = 1,
+                releaseDates = ReleaseDatesDto(
+                    listOf(
+                        ReleaseDateCountryDto(
+                            country = "GB",
+                            releases = listOf(
+                                ReleaseDateDto(certification = "15-digital", type = 4),
+                                ReleaseDateDto(certification = "15", type = 3),
+                            ),
+                        ),
+                        ReleaseDateCountryDto("US", listOf(ReleaseDateDto("PG-13", type = 3))),
+                    ),
+                ),
+            ),
+            region = "GB",
+        )
+
+        assertEquals("15", detail.certification)
+    }
+
+    @Test
+    fun `certification falls back to US when the region has no entry`() {
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(
+                id = 1,
+                releaseDates = ReleaseDatesDto(
+                    listOf(ReleaseDateCountryDto("US", listOf(ReleaseDateDto("R", type = 3)))),
+                ),
+            ),
+            region = "ID",
+        )
+
+        assertEquals("R", detail.certification)
+    }
+
+    @Test
+    fun `blank certifications are skipped rather than shown as empty chips`() {
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(
+                id = 1,
+                releaseDates = ReleaseDatesDto(
+                    listOf(
+                        ReleaseDateCountryDto(
+                            country = "US",
+                            releases = listOf(
+                                ReleaseDateDto(certification = "", type = 3),
+                                ReleaseDateDto(certification = "NC-17", type = 5),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            region = "US",
+        )
+
+        assertEquals("NC-17", detail.certification)
+    }
+
+    @Test
+    fun `watch providers resolve to the requested region and sort by display priority`() {
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(
+                id = 1,
+                watchProviders = WatchProvidersDto(
+                    mapOf(
+                        "ID" to WatchProviderCountryDto(
+                            link = "https://tmdb/watch",
+                            flatrate = listOf(
+                                ProviderDto(providerId = 2, providerName = "Second", displayPriority = 9),
+                                ProviderDto(providerId = 1, providerName = "First", displayPriority = 1),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            region = "ID",
+        )
+
+        val providers = assertNotNull(detail.watchProviders)
+        assertEquals("ID", providers.region)
+        assertEquals(listOf("First", "Second"), providers.streaming.map { it.name })
+    }
+
+    @Test
+    fun `watch providers are null when the region has no availability at all`() {
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(id = 1, watchProviders = WatchProvidersDto(emptyMap())),
+            region = "ID",
+        )
+        assertNull(detail.watchProviders)
+    }
+
+    @Test
+    fun `an empty provider country is treated as no availability, not an empty section`() {
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(
+                id = 1,
+                watchProviders = WatchProvidersDto(mapOf("US" to WatchProviderCountryDto(link = "x"))),
+            ),
+            region = "US",
+        )
+        assertNull(detail.watchProviders)
+    }
+
+    @Test
+    fun `imdb id and keywords are carried through, blanks dropped`() {
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(
+                id = 1,
+                keywords = KeywordsDto(listOf(KeywordDto(1, "heist"), KeywordDto(2, "   "))),
+                externalIds = ExternalIdsDto(imdbId = "tt0113277"),
+            ),
+        )
+
+        assertEquals(listOf("heist"), detail.keywords)
+        assertEquals("https://www.imdb.com/title/tt0113277/", detail.imdbUrl)
+    }
+
+    @Test
+    fun `a blank imdb id yields no link rather than a broken one`() {
+        val detail = MovieMapper.toDetail(MovieDetailResponse(id = 1, externalIds = ExternalIdsDto(imdbId = "")))
+        assertNull(detail.imdbId)
+        assertNull(detail.imdbUrl)
+    }
+
+    // ── images, translations, alternative titles ────────────────────────────
+
+    @Test
+    fun `the best-rated logo wins, with width breaking ties`() {
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(
+                id = 1,
+                images = ImagesDto(
+                    logos = listOf(
+                        ImageDto(filePath = "/poor.png", voteAverage = 1.0, width = 2000),
+                        ImageDto(filePath = "/narrow.png", voteAverage = 5.0, width = 500),
+                        ImageDto(filePath = "/best.png", voteAverage = 5.0, width = 1400),
+                    ),
+                ),
+            ),
+        )
+
+        assertEquals("https://image.tmdb.org/t/p/w500/best.png", detail.logoUrl)
+    }
+
+    @Test
+    fun `no logo is not an error — most titles have none`() {
+        assertNull(MovieMapper.toDetail(MovieDetailResponse(id = 1)).logoUrl)
+    }
+
+    @Test
+    fun `alternative titles drop the primary title and duplicates`() {
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(
+                id = 1,
+                title = "Heat",
+                alternativeTitles = AlternativeTitlesDto(
+                    listOf(
+                        AlternativeTitleDto(title = "Heat"),        // same as primary
+                        AlternativeTitleDto(title = "Fuego"),
+                        AlternativeTitleDto(title = "fuego"),       // case-duplicate
+                        AlternativeTitleDto(title = "   "),
+                    ),
+                ),
+            ),
+        )
+
+        assertEquals(listOf("Fuego"), detail.alternativeTitles)
+    }
+
+    private fun translated(language: String, overview: String = "", tagline: String = "") =
+        MovieDetailResponse(
+            id = 1,
+            overview = "English overview",
+            tagline = "English tagline",
+            translations = TranslationsDto(
+                listOf(TranslationDto(language = language, data = TranslationDataDto(overview = overview, tagline = tagline))),
+            ),
+        )
+
+    @Test
+    fun `a device-language translation replaces the english copy`() {
+        val detail = MovieMapper.toDetail(
+            translated("id", overview = "Ringkasan", tagline = "Slogan"),
+            language = "id",
+        )
+
+        assertEquals("Ringkasan", detail.overview)
+        assertEquals("Slogan", detail.tagline)
+        assertTrue(detail.isLocalised)
+    }
+
+    @Test
+    fun `a partial translation localises only the fields it actually has`() {
+        val detail = MovieMapper.toDetail(translated("id", overview = "Ringkasan"), language = "id")
+
+        assertEquals("Ringkasan", detail.overview)
+        // Community translations are frequently partial; the English tagline
+        // beats showing nothing.
+        assertEquals("English tagline", detail.tagline)
+        assertTrue(detail.isLocalised)
+    }
+
+    @Test
+    fun `an empty translation record leaves the english copy alone`() {
+        val detail = MovieMapper.toDetail(translated("id"), language = "id")
+
+        assertEquals("English overview", detail.overview)
+        assertFalse(detail.isLocalised)
+    }
+
+    @Test
+    fun `an english device skips translation lookup entirely`() {
+        val detail = MovieMapper.toDetail(
+            translated("en", overview = "Should not be used"),
+            language = "en",
+        )
+        assertEquals("English overview", detail.overview)
+        assertFalse(detail.isLocalised)
+    }
+
+    @Test
+    fun `a language with no translation falls back to english`() {
+        val detail = MovieMapper.toDetail(translated("fr", overview = "Resume"), language = "de")
+
+        assertEquals("English overview", detail.overview)
+        assertFalse(detail.isLocalised)
+    }
+
+    // ── reviews ─────────────────────────────────────────────────────────────
+
+    @Test
+    fun `reviews map author, rating and date, dropping empty bodies`() {
+        val page = MovieMapper.toReviewPage(
+            ReviewListResponse(
+                page = 1,
+                totalPages = 3,
+                totalResults = 42,
+                results = listOf(
+                    ReviewDto(
+                        id = "a",
+                        author = "Critic",
+                        content = "Terrific.",
+                        createdAt = "2024-03-02T10:00:00.000Z",
+                        authorDetails = AuthorDetailsDto(rating = 9.0, avatarPath = "/face.jpg"),
+                    ),
+                    ReviewDto(id = "b", author = "Silent", content = "   "),
+                ),
+            ),
+        )
+
+        val review = page.reviews.single()
+        assertEquals("Critic", review.author)
+        assertEquals(9.0, review.rating)
+        assertEquals(LocalDate.of(2024, 3, 2), review.createdAt)
+        assertEquals("https://image.tmdb.org/t/p/w185/face.jpg", review.avatarUrl)
+        assertTrue(page.hasMore)
+    }
+
+    @Test
+    fun `a gravatar avatar is passed through rather than sent to TMDB's cdn`() {
+        val page = MovieMapper.toReviewPage(
+            ReviewListResponse(
+                results = listOf(
+                    ReviewDto(
+                        id = "a", author = "X", content = "ok",
+                        authorDetails = AuthorDetailsDto(avatarPath = "/https://secure.gravatar.com/avatar/abc"),
+                    ),
+                ),
+            ),
+        )
+
+        assertEquals("https://secure.gravatar.com/avatar/abc", page.reviews.single().avatarUrl)
+    }
+
+    @Test
+    fun `a zero rating means unrated, not a score of zero`() {
+        val page = MovieMapper.toReviewPage(
+            ReviewListResponse(
+                results = listOf(
+                    ReviewDto(id = "a", author = "X", content = "ok", authorDetails = AuthorDetailsDto(rating = 0.0)),
+                ),
+            ),
+        )
+        assertNull(page.reviews.single().rating)
+    }
+
+    // ── mixed trending feed ─────────────────────────────────────────────────
+
+    private fun trending(vararg items: TrendingItemDto) = TrendingListResponse(results = items.toList())
+
+    @Test
+    fun `each media type maps to its own shape, keeping server order`() {
+        val entities = MovieMapper.toTrendingEntities(
+            trending(
+                TrendingItemDto(id = 1, mediaType = "movie", title = "Heat", releaseDate = "1995-12-15"),
+                TrendingItemDto(id = 2, mediaType = "tv", name = "Severance", firstAirDate = "2022-02-18"),
+                TrendingItemDto(id = 3, mediaType = "person", name = "Zendaya", knownForDepartment = "Acting"),
+            ),
+        )
+
+        assertEquals(listOf(0, 1, 2), entities.map { it.position })
+        assertEquals(listOf("Heat", "Severance", "Zendaya"), entities.map { it.title })
+
+        val genres = mapOf(28 to "Action")
+        val items = entities.mapNotNull { MovieMapper.toTrendingItem(it, genres) }
+        assertIs<TrendingItem.Film>(items[0])
+        assertIs<TrendingItem.Series>(items[1])
+        assertIs<TrendingItem.Person>(items[2])
+    }
+
+    @Test
+    fun `an unknown media type is dropped rather than rendered as an empty card`() {
+        val entities = MovieMapper.toTrendingEntities(
+            trending(
+                TrendingItemDto(id = 1, mediaType = "movie", title = "Heat"),
+                // TMDB has been seen returning types its docs do not list.
+                TrendingItemDto(id = 2, mediaType = "collection", name = "Alien Collection"),
+            ),
+        )
+        assertEquals(listOf("Heat"), entities.map { it.title })
+    }
+
+    @Test
+    fun `film and series sharing an id stay distinct rows`() {
+        // TMDB ids are unique only within a media type; a single-column key
+        // would let one silently overwrite the other.
+        val entities = MovieMapper.toTrendingEntities(
+            trending(
+                TrendingItemDto(id = 550, mediaType = "movie", title = "Fight Club"),
+                TrendingItemDto(id = 550, mediaType = "tv", name = "Something Else"),
+            ),
+        )
+        assertEquals(2, entities.size)
+        assertEquals(setOf("movie", "tv"), entities.map { it.mediaType }.toSet())
+    }
+
+    @Test
+    fun `a series carries its first air date, not a release date`() {
+        val entity = MovieMapper.toTrendingEntities(
+            trending(TrendingItemDto(id = 2, mediaType = "tv", name = "Severance", firstAirDate = "2022-02-18")),
+        ).single()
+
+        val series = assertIs<TrendingItem.Series>(MovieMapper.toTrendingItem(entity, emptyMap()))
+        assertEquals(2022, series.firstAirYear)
+    }
+
+    @Test
+    fun `a person keeps their department and known-for titles`() {
+        val entity = MovieMapper.toTrendingEntities(
+            trending(
+                TrendingItemDto(
+                    id = 3, mediaType = "person", name = "Zendaya", knownForDepartment = "Acting",
+                    profilePath = "/z.jpg",
+                    knownFor = listOf(
+                        TrendingItemDto(id = 9, mediaType = "movie", title = "Dune"),
+                        TrendingItemDto(id = 10, mediaType = "tv", name = "Euphoria"),
+                    ),
+                ),
+            ),
+        ).single()
+
+        val person = assertIs<TrendingItem.Person>(MovieMapper.toTrendingItem(entity, emptyMap()))
+        assertEquals("Acting", person.knownForDepartment)
+        assertEquals(listOf("Dune", "Euphoria"), person.knownFor)
+        assertEquals("https://image.tmdb.org/t/p/w185/z.jpg", person.profileUrl)
+    }
+
+    @Test
+    fun `the unrated rule applies to the mixed feed too`() {
+        val entity = MovieMapper.toTrendingEntities(
+            trending(TrendingItemDto(id = 1, mediaType = "movie", title = "New", voteAverage = 0.0, voteCount = 0)),
+        ).single()
+        assertNull(entity.voteAverage)
+    }
+
+    @Test
+    fun `every type exposes a tmdb url so nothing is a dead tap`() {
+        val entities = MovieMapper.toTrendingEntities(
+            trending(
+                TrendingItemDto(id = 1, mediaType = "movie", title = "Heat"),
+                TrendingItemDto(id = 2, mediaType = "tv", name = "Severance"),
+                TrendingItemDto(id = 3, mediaType = "person", name = "Zendaya"),
+            ),
+        )
+        val urls = entities.mapNotNull { MovieMapper.toTrendingItem(it, emptyMap()) }.map { it.tmdbUrl }
+        assertEquals(
+            listOf(
+                "https://www.themoviedb.org/movie/1",
+                "https://www.themoviedb.org/tv/2",
+                "https://www.themoviedb.org/person/3",
+            ),
+            urls,
+        )
     }
 }

@@ -15,6 +15,7 @@ class DataStorePreferenceStorage(
     private object Keys {
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val REGION = stringPreferencesKey("content_region")
     }
 
     override val onboardingCompleted: Flow<Boolean> =
@@ -29,5 +30,16 @@ class DataStorePreferenceStorage(
 
     override suspend fun setThemeMode(value: String) {
         dataStore.edit { preferences -> preferences[Keys.THEME_MODE] = value }
+    }
+
+    override val region: Flow<String?> =
+        dataStore.data.map { preferences -> preferences[Keys.REGION] }
+
+    override suspend fun setRegion(value: String?) {
+        dataStore.edit { preferences ->
+            // Removing rather than storing a sentinel: absence is what "follow
+            // the device" means, and it is what a fresh install already has.
+            if (value == null) preferences.remove(Keys.REGION) else preferences[Keys.REGION] = value
+        }
     }
 }

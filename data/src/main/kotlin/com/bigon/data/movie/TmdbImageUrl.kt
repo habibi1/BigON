@@ -17,6 +17,15 @@ object TmdbImageUrl {
     const val BACKDROP_WIDE = "w780"
     const val PROFILE_SMALL = "w185"
 
+    /** Provider logos are small squares; w92 is the smallest TMDB publishes. */
+    const val LOGO_SMALL = "w92"
+
+    /** Title treatments span the backdrop, so they need real width. */
+    const val LOGO_WIDE = "w500"
+
+    /** Review author avatars, rendered at the same size as cast faces. */
+    const val AVATAR_SMALL = "w185"
+
     fun build(path: String?, size: String): String? =
         path?.takeIf { it.isNotBlank() }?.let { "$BASE$size${it.ensureLeadingSlash()}" }
 

@@ -2,6 +2,8 @@ package com.bigon.sinema.ui.detail
 
 import com.bigon.core.model.Movie
 import com.bigon.core.model.MovieDetail
+import com.bigon.core.model.Review
+import com.bigon.core.model.WatchProviders
 import com.bigon.core.ui.UiText
 
 /**
@@ -16,6 +18,17 @@ data class DetailUiState(
     val isFavorite: Boolean = false,
     val isLoading: Boolean = true,
     val error: UiText? = null,
+    /**
+     * Reviews arrive from their own request, so they carry their own loading
+     * state instead of riding [isLoading]: a review failure must not blank
+     * detail content that loaded fine.
+     */
+    val reviews: List<Review> = emptyList(),
+    val isLoadingReviews: Boolean = false,
+    val reviewsError: UiText? = null,
+    val reviewsPage: Int = 0,
+    val hasMoreReviews: Boolean = false,
+    val totalReviews: Int = 0,
 ) {
     val title: String? get() = detail?.title ?: cached?.title
     val posterUrl: String? get() = detail?.posterUrl ?: cached?.posterUrl
@@ -24,6 +37,29 @@ data class DetailUiState(
     val rating: Double? get() = detail?.voteAverage ?: cached?.voteAverage
     val year: Int? get() = detail?.releaseYear ?: cached?.releaseYear
     val genres: List<String> get() = detail?.genres ?: cached?.genres.orEmpty()
+
+    /** Detail-only fields: absent on the first paint, and often absent entirely. */
+    val certification: String? get() = detail?.certification?.takeIf { it.isNotBlank() }
+    val keywords: List<String> get() = detail?.keywords.orEmpty()
+    val imdbUrl: String? get() = detail?.imdbUrl
+    val recommendations: List<Movie> get() = detail?.recommendations.orEmpty()
+
+    /** Null when TMDB has no availability for the resolved region, which is common. */
+    val watchProviders: WatchProviders? get() = detail?.watchProviders
+
+    val logoUrl: String? get() = detail?.logoUrl
+    val alternativeTitles: List<String> get() = detail?.alternativeTitles.orEmpty()
+
+    /** The overview is in the device language, though the app's UI is not. */
+    val isLocalised: Boolean get() = detail?.isLocalised == true
+
+    /**
+     * The section appears once there is something to say — reviews, a spinner,
+     * or an error. A title with no reviews shows nothing rather than an empty
+     * heading, which is the common case for unreleased films.
+     */
+    val showReviews: Boolean
+        get() = reviews.isNotEmpty() || isLoadingReviews || reviewsError != null
 
     /** Only block the screen when there is genuinely nothing to show yet. */
     val showLoader: Boolean get() = isLoading && cached == null && detail == null
@@ -50,4 +86,11 @@ sealed interface DetailIntent {
     data object Retry : DetailIntent
     data object Back : DetailIntent
     data class FavoriteToggled(val favorite: Boolean) : DetailIntent
+    /** A recommendation was tapped; the shell decides what opening it means. */
+    data class RecommendationClicked(val movieId: Long) : DetailIntent
+    data object ImdbClicked : DetailIntent
+    data object WatchProvidersClicked : DetailIntent
+    /** Retrying a failed review load. */
+    data object ReviewsRequested : DetailIntent
+    data object MoreReviewsRequested : DetailIntent
 }
