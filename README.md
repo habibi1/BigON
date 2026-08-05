@@ -93,7 +93,7 @@ The landing section above the rule comes from [`docs/readme-preamble.md`](docs/r
 
 ---
 
-**Technical solution · Revision 13 · Native Android**
+**Technical solution · Revision 18 · Native Android**
 
 # Sinema — architecture & delivery plan
 
@@ -276,6 +276,14 @@ The `Navigator` contract that revision 10 reported was **deleted rather than fin
 
 Chrome is **derived from the back stack**, never tracked beside it. The selected tab is computed from the current back-stack entry, so it survives process death and cannot disagree with what is displayed. Tab switches use `saveState`/`restoreState` with `launchSingleTop`, so each tab keeps its own scroll position and repeated taps do not grow the stack. The host sits inside the app's single `SharedTransitionLayout` — that placement is what lets a poster animate from any grid into the detail header across a real back stack, rather than only within one screen.
 
+### Caching a payload the domain model cannot describe
+
+Detail was the last read with no offline story, and adding eight appended blocks made that worse: every open re-paid ~224 KB. It is now cached, but the shape resisted the pattern used everywhere else — the CSV type converters behind the favourites snapshot cannot carry nested cast, recommendations and per-region providers, and normalising into five tables would be machinery for data only ever read whole.
+
+So the row stores one JSON document, and the interesting decision is *which* JSON. Not the API response: that is ~224 KB of regions and crew the app discards. Not the domain model either — annotating `MovieDetail` for serialization would make the storage format part of the contract every layer shares, and the next storage decision would have to be argued there too. Instead `:data` owns a private snapshot type, roughly a tenth the size, and `:core:database` treats the column as opaque text.
+
+The test that keeps this honest asserts `fresh == fromCache` across the whole aggregate, so a field added to `MovieDetail` but forgotten in the snapshot mapping fails a test rather than silently vanishing the next time a user goes offline.
+
 ### Composable identity is positional — keep the tree shape stable
 
 Hiding the navigation bar on full-bleed destinations looks like a one-line conditional, and the first version was one: content rendered directly when the bar was hidden and inside a `Column` when it was shown. It compiled, it looked right on both screens, and it quietly broke scroll restoration on the way back from detail — which reads as a navigation bug even though nothing in the navigation code is wrong.
@@ -334,7 +342,7 @@ TMDB issues two credentials and they are strict inverses: the v3 API key authent
 | Home — "Trending today" | /trending/movie/day | — |
 | Home category chips | /movie/{popular,now_playing,top_rated,upcoming} | Four lists must not overwrite each other in one table |
 | Search | /search/movie?query= | Debounce with the existing `Flags.SearchDebounceMs` (300ms) |
-| Detail + cast + trailer | /movie/{id}?append_to_response=credits,videos | One call, not three; `credits` feeds `SinemaCastCard`, `videos` feeds the trailer button |
+| Detail, cast, trailer, recommendations, certification, keywords, IMDb, streaming | /movie/{id}?append_to_response=credits,videos,recommendations,similar,release_dates,keywords,external_ids,watch/providers | One call, not eight. The block list is a byte budget — see §10 for what was excluded and why |
 | Genre names | /genre/movie/list | Fetch once, cache — list endpoints return ids only |
 | Favorites | local only | Room; no endpoint |
 
@@ -432,15 +440,15 @@ Dependency versions live in a single Gradle version catalog. Nothing else in the
 | Build, modules, conventions | **Done** | 13 modules, 5 archetypes, catalog, clean build |
 | Design system | **Done** | Tokens + 16 components + ~92 in-file previews; both themes verified on device |
 | DI composition root | **Done** | Hilt graph compiles; adapters bound in `:sinema` only |
-| Guardrails & tests | **Done** | 65 unit tests green; five Konsist rules enforcing layering, including one that keeps `androidx.navigation` inside the app shell |
+| Guardrails & tests | **Done** | 115 unit tests green; five Konsist rules enforcing layering, including one that keeps `androidx.navigation` inside the app shell |
 | Domain layer | **Done** | `MovieRepository` contract plus observe/refresh use cases |
 | Movie data pipeline | **Done** | DTOs, `MovieApi`, mapper and offline-first repository; Room is the single source of truth, per-category |
 | Feature modules & ViewModels | **Partial** | Every screen is real — UDF contracts, ViewModels, zero mocks — but they live in `:sinema` rather than `feature/*` modules; extraction is the remaining structural step (§9·03) |
 | Favorites | **Done** | Local-only snapshots in their own Room table (survive cache clearing and offline); heart on detail; grid opens detail with the shared-element transition |
-| Settings | **Done** | Theme persisted via DataStore (survives process death, verified on device); real clear-cache with computed size — catalogue + images, favourites kept; app version row |
+| Settings | **Done** | Theme persisted via DataStore (survives process death, verified on device); **content region picker** over the 139 regions TMDB holds data for, searchable by name or code, with "follow device" as a distinct option; real clear-cache with computed size — catalogue + images, favourites kept; app version row |
 | Pagination | **Done** | Infinite scroll on Home and Search; append with dedupe, end-of-list detection, quiet append failures. Room gained a `page` column (DB v4) |
 | Search | **Done** | Hybrid: blank query browses `/discover` (genre server-side), typed query hits `/search` (genre client-side); debounced via `Flags.SearchDebounceMs` — the flag system's first real consumer — with `mapLatest` cancellation; real genre chips from the cached table; results open detail with the shared-element transition |
-| Movie detail | **Done** | One `append_to_response=credits,videos` call; backdrop, cast and trailer flag, with a shared-element poster transition from the grid. Not yet cached for offline reads. |
+| Movie detail | **Done** | One call carrying eight appended blocks: backdrop, cast, trailer flag, age certification, themes, an IMDb link, streaming availability for the device region, and a "More like this" row that makes detail open detail. Cached in Room (DB v5) so a second open costs nothing and works offline. |
 | Navigation | **Done** | Real `NavHost` with type-safe `@Serializable` routes in `:core:navigation`; the speculative `Navigator` contract was deleted, not completed. Tab selection derives from the back stack rather than an enum, and `androidx.navigation` is confined to three shell files by a Konsist rule (§4) |
 | Remote config & analytics backends | **Speculative** | Full port machinery with one debug sink, no backend, and no flag read by any screen |
 | Images | **Done** | Coil 3 sharing the app's OkHttp client; auth is host-scoped so image requests carry no credential |
@@ -478,32 +486,50 @@ Deliberately ordered: the first slice validates the architecture end to end, and
 
 Everything below was probed against the live API with this project's own credentials, so the endpoints, response shapes and counts are verified rather than assumed. The tiers are ordered by cost, not by appeal: tier 1 costs no extra network call at all.
 
-### Tier 1 — free: appended to the detail request we already make
+### Tier 1 — complete — **Shipped**
 
-Detail already sends `append_to_response=credits,videos`. Additional blocks ride the same request, so each of these is a comma and a DTO — no extra round trip, no extra latency. Fourteen blocks were verified returning together in a single call.
+Additional blocks ride the request detail already makes, so each is a comma and a DTO rather than a round trip. An earlier revision of this document called that *free*. It is not, and the correction is the useful part: one request is not one cost. Measured against the live API for a single title:
 
-| Block | Returns | Unlocks |
-| --- | --- | --- |
-| recommendations | 20 movies | "More like this" row — reuses `SinemaMovieCard`; turns detail into a browsing loop |
-| similar | 20 movies | Second discovery row, or a fallback when recommendations are thin |
-| release_dates | 51 country entries | Age certification (PG-13/R) as a `SinemaChip` beside the genres |
-| images | posters, backdrops, logos | Higher-resolution artwork; title logo in place of text on the hero |
-| keywords | tag list | Tag chips, and the seed for "because you liked…" |
-| external_ids | IMDb, Wikidata, socials | "View on IMDb" affordance |
-| reviews | user reviews | A reviews section on detail |
-| watch/providers | 129 regions | Streaming availability — note the JSON key contains a slash and needs an explicit `@SerialName` |
-| translations · alternative_titles | localised titles | Localisation, when the app ships beyond English |
+| Block | Payload | Share | Status |
+| --- | --- | --- | --- |
+| credits | 101.9 KB | 26% | Already paid — and it carries the full crew, which the DTO discards. TMDB has no cast-only variant. |
+| recommendations | 14.4 KB | 4% | **In** "More like this" row |
+| similar | 13.6 KB | 3% | **In** merged behind recommendations as a fallback |
+| release_dates | 17.6 KB | 4% | **In** certification chip — 85 countries arrive, one is shown |
+| keywords | 0.7 KB | 0.2% | **In** "Themes" chips |
+| external_ids | ~0.2 KB | — | **In** IMDb link |
+| watch/providers | 57.8 KB | 15% | **In** "Where to watch" — 98 regions arrive, one is shown |
+| images | 30.7 KB | — | **In** studio title logo on the hero. Scoped with `include_image_language=en`: 132 KB unfiltered, 55 KB with `en,null`, 31 KB with `en` alone — `null` is what the textless backdrops are tagged with |
+| reviews | 0 KB | — | **In** its own `/movie/{id}/reviews` request, fetched alongside detail. Kept off the detail payload so it paginates on its own axis and can fail without taking detail down with it |
+| alternative_titles | 2.7 KB | 1% | **In** "Also known as" |
+| translations | 31.9 KB | 8% | **In** a device-language overview and tagline, merged field-by-field because community translations are often partial |
 
-### Tier 2 — new capability on patterns that already exist
+Every Tier 1 block now ships, but not by appending them all. Doing that naively would have taken detail from **90 KB to 489 KB**. Filtering `images` to English and moving `reviews` onto its own endpoint lands the detail payload at **290 KB**. The lesson worth carrying: **"one request" is a latency argument, not a bandwidth one**, and on a slow connection bandwidth is what the user feels.
+
+Two blocks are region-scoped and have no server-side filter when appended — `release_dates` returns 85 countries and `watch/providers` 98, for one of each. That waste is accepted rather than solved, because the alternative is a second round trip; caching the result (§4) means it is paid once per title instead of once per open.
+
+`translations` looked inert — the app's own UI is not localised, so what would a translation do? It turned out to be the opposite: it is the *only* way a non-English user sees their language today. A device set to Indonesian gets an Indonesian synopsis inside English chrome, which is honest rather than incongruous, and `MovieDetail.isLocalised` records that it happened rather than implying the app is localised. Verified on device with a per-app locale override.
+
+### Tier 2 — new capability on patterns that already exist — **Shipped**
 
 | Capability | Endpoint | Notes |
 | --- | --- | --- |
 | **Search** **Done** | /search/movie  
-+ /discover/movie | Shipped with hybrid semantics and the debounce flag in real use. `/search/multi` (movies + TV + people in one box) remains open for when those content types exist. |
-| **Streaming availability** | /watch/providers/movie  
-?watch_region=… | 290 providers in the catalogue. Provider logos on detail; "available on" as a filter later. TMDB's headline feature and currently untouched. |
-| **Regional lists** | ?region=ID | The existing list endpoints accept a region: `now_playing` returns local cinema listings rather than US ones. One query parameter, materially better relevance. |
-| **Trending across types** | /trending/all/week | Mixed movies/TV/people; a weekly window alongside the daily one Home already uses. |
++ /discover/movie | Shipped with hybrid semantics and the debounce flag in real use. `/search/multi` is **not implemented** and cannot be until TV and person types exist — it returns three shapes behind one `media_type` discriminator, each needing its own model, card and destination. That is a Tier 3 move, not a query parameter. |
+| **Streaming availability** **Done** | /watch/providers/movie  
+?watch_region=…  
++ discover  
+?with_watch_providers=… | Both halves shipped: per-title availability on detail (Tier 1), and a service filter on browse. The catalogue is emphatically regional — **289 services in the US, 46 in Indonesia** — so the row takes the top twelve by TMDB's display priority rather than assuming a fixed set. `with_watch_providers` is silently ignored without a `watch_region` beside it, which presents as a filter that simply does nothing; the two always travel together. The filter is hidden during a typed search rather than disabled, because `/search/movie` accepts no provider filter and its results carry no provider data to filter client-side — there is no honest way to make the control work there. |
+| **Regional lists** **Done** | ?region=…  
+/watch/providers/regions | The four curated lists carry a region, so `now_playing` is actual local cinema listings. Verified against the live API before building: US and Indonesian results genuinely differ. Trending is deliberately excluded — TMDB does not accept a region there, and a global trend is the point of it.   
+  
+ The region is **user-selectable in Settings** rather than assumed from the device locale, because the locale is a guess that is wrong for anyone travelling or running an English phone abroad. Three design points: the picker lists the 139 regions from `/watch/providers/regions` rather than the 251 ISO countries, since the other 112 hold no TMDB data and offering them lets a user silently make the app worse; "follow device" is stored as *null* rather than a resolved code, so it keeps tracking the phone instead of freezing at whatever it said the day it was chosen; and changing region drops the movie-list and detail caches, because certification, availability and listings were all fetched for the old one and would otherwise show under the new one's label. |
+| **Trending across types** **Done** | /trending/movie/week  
+/trending/all/week | Both windows shipped. The weekly movie list is its own Home category beside the daily one — they return visibly different orderings, and each caches under its own key so refreshing one never evicts the other.   
+  
+ `/trending/all/week` interleaves films, series and people behind a `media_type` discriminator, and is modelled as a sealed `TrendingItem` rather than one wide class of nullable fields: a series has no runtime and a person has no rating, and calling that "null" pushes the question of which fields mean anything onto every call site. Three details were only obvious once it ran against real data — TMDB ids are unique only *within* a media type, so the cache key and the Compose list key are both composite (film 550 and series 550 are different things); an unknown `media_type` is dropped rather than coerced, because TMDB returns types its own documentation does not list; and the feed gets its own table rather than reusing `movie_entity`, so it stays offline-first like every other list instead of being the one chip that blanks without a connection.   
+  
+ Films open native detail. Series and people open TMDB's own page, because their native screens are Tier 3 — a card that silently does nothing when tapped teaches the user the feed is broken, and one that leaves the app is at least truthful. |
 
 ### Tier 3 — larger moves
 
@@ -550,4 +576,4 @@ Detail already sends `append_to_response=credits,videos`. Additional blocks ride
 
 ---
 
-Sinema · technical solution · Revision 13 — native Android · supersedes revision 12 · Supersedes the KMP/CMP planning document
+Sinema · technical solution · Revision 18 — native Android · supersedes revision 17 · Supersedes the KMP/CMP planning document
