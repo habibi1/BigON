@@ -7,7 +7,9 @@ import com.bigon.core.model.MovieCategory
 import com.bigon.core.model.MovieDetail
 import com.bigon.core.model.MoviePage
 import com.bigon.core.model.MovieCollection
+import com.bigon.core.model.PersonDetail
 import com.bigon.core.model.Region
+import com.bigon.core.model.TvDetail
 import com.bigon.core.model.ReviewPage
 import com.bigon.core.model.TrendingItem
 import com.bigon.core.model.WatchProvider
@@ -88,6 +90,12 @@ interface MovieRepository {
 
     /** A franchise and its parts, ordered by release. Network-only. */
     suspend fun collection(collectionId: Long): AppResult<MovieCollection>
+
+    /** A person and their merged cast/crew filmography. Network-only. */
+    suspend fun person(personId: Long): AppResult<PersonDetail>
+
+    /** Series detail, region-scoped for certification and availability. */
+    suspend fun tvDetail(tvId: Long): AppResult<TvDetail>
 
     /** Regions the user may choose between, alphabetical by name. */
     suspend fun availableRegions(): AppResult<List<Region>>

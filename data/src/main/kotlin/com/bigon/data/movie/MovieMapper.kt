@@ -10,8 +10,11 @@ import com.bigon.core.model.MoviePage
 import com.bigon.core.model.Review
 import com.bigon.core.model.ReviewPage
 import com.bigon.core.model.CollectionRef
+import com.bigon.core.model.Credit
 import com.bigon.core.model.MovieCollection
+import com.bigon.core.model.PersonDetail
 import com.bigon.core.model.TrendingItem
+import com.bigon.core.model.TvDetail
 import com.bigon.core.model.WatchProvider
 import com.bigon.core.model.WatchProviders
 import java.time.LocalDate
@@ -267,7 +270,7 @@ internal object MovieMapper {
         totalResults = response.totalResults,
     )
 
-    // ── collections ────────────────────────────────────────────────────────
+    // ── collections, people, series ─────────────────────────────────────────
 
     fun toCollection(dto: CollectionResponse, genresById: Map<Int, String>): MovieCollection =
         MovieCollection(
@@ -282,6 +285,106 @@ internal object MovieMapper {
                 .sortedBy { it.releaseDate?.takeIf { d -> d.isNotBlank() } ?: "9999" }
                 .map { toDomain(it, genresById) },
         )
+
+    /**
+     * Cast and crew credits merged into one filmography.
+     *
+     * Users think in "things this person made", not TMDB's department split, so
+     * a director who also acted appears once per film rather than in two
+     * disconnected lists. Ordered newest first because recent work is what a
+     * person is currently known for; undated entries (announced but unscheduled)
+     * sort last rather than jumping to the top.
+     */
+    fun toPersonDetail(dto: PersonResponse, genresById: Map<Int, String>): PersonDetail {
+        val cast = dto.movieCredits.cast.map { it.id to Credit(
+            movie = personCredit(it.id, it.title, it.overview, it.posterPath, it.backdropPath,
+                it.releaseDate, it.voteAverage, it.voteCount, it.genreIds, genresById),
+            role = it.character.takeIf { c -> c.isNotBlank() },
+        ) }
+        val crew = dto.movieCredits.crew.map { it.id to Credit(
+            movie = personCredit(it.id, it.title, it.overview, it.posterPath, it.backdropPath,
+                it.releaseDate, it.voteAverage, it.voteCount, it.genreIds, genresById),
+            role = it.job.takeIf { j -> j.isNotBlank() },
+        ) }
+
+        return PersonDetail(
+            id = dto.id,
+            name = dto.name,
+            biography = dto.biography.trim(),
+            profileUrl = TmdbImageUrl.build(dto.profilePath, TmdbImageUrl.PROFILE_LARGE),
+            knownForDepartment = dto.knownForDepartment?.takeIf { it.isNotBlank() },
+            birthday = dto.birthday.toLocalDateOrNull(),
+            deathday = dto.deathday.toLocalDateOrNull(),
+            placeOfBirth = dto.placeOfBirth?.takeIf { it.isNotBlank() },
+            filmography = (cast + crew)
+                .distinctBy { it.first }
+                .map { it.second }
+                .filter { it.movie.title.isNotBlank() }
+                .sortedByDescending { it.movie.releaseDate?.toString() ?: "" }
+                .take(MAX_FILMOGRAPHY),
+        )
+    }
+
+    @Suppress("LongParameterList")
+    private fun personCredit(
+        id: Long,
+        title: String,
+        overview: String,
+        posterPath: String?,
+        backdropPath: String?,
+        releaseDate: String?,
+        voteAverage: Double,
+        voteCount: Int,
+        genreIds: List<Int>,
+        genresById: Map<Int, String>,
+    ): Movie = Movie(
+        id = id,
+        title = title,
+        overview = overview,
+        posterUrl = TmdbImageUrl.build(posterPath, TmdbImageUrl.POSTER_CARD),
+        backdropUrl = TmdbImageUrl.build(backdropPath, TmdbImageUrl.BACKDROP_WIDE),
+        releaseDate = releaseDate.toLocalDateOrNull(),
+        // The unrated rule from the list mapper applies to credits too.
+        voteAverage = voteAverage.takeIf { voteCount > 0 && it > 0.0 },
+        genres = genreIds.mapNotNull(genresById::get),
+    )
+
+    fun toTvDetail(dto: TvDetailResponse, region: String = FALLBACK_REGION): TvDetail = TvDetail(
+        id = dto.id,
+        name = dto.name,
+        tagline = dto.tagline?.takeIf { it.isNotBlank() },
+        overview = dto.overview,
+        posterUrl = TmdbImageUrl.build(dto.posterPath, TmdbImageUrl.POSTER_CARD),
+        backdropUrl = TmdbImageUrl.build(dto.backdropPath, TmdbImageUrl.BACKDROP_WIDE),
+        firstAirDate = dto.firstAirDate.toLocalDateOrNull(),
+        lastAirDate = dto.lastAirDate.toLocalDateOrNull(),
+        voteAverage = dto.voteAverage.takeIf { dto.voteCount > 0 && it > 0.0 },
+        voteCount = dto.voteCount,
+        numberOfSeasons = dto.numberOfSeasons,
+        numberOfEpisodes = dto.numberOfEpisodes,
+        status = dto.status?.takeIf { it.isNotBlank() },
+        genres = dto.genres.map { it.name },
+        cast = dto.credits.cast
+            .sortedBy { it.order }
+            .take(MAX_CAST)
+            .map { CastMember(it.id, it.name, it.character, TmdbImageUrl.build(it.profilePath, TmdbImageUrl.PROFILE_SMALL)) },
+        trailerKey = dto.videos.results
+            .filter { it.site.equals("YouTube", ignoreCase = true) && it.type.equals("Trailer", ignoreCase = true) }
+            .minByOrNull { if (it.official) 0 else 1 }
+            ?.key
+            ?.takeIf { it.isNotBlank() },
+        // Flatter than a film's release_dates: one rating per country, no
+        // release-type nesting to pick through.
+        certification = dto.contentRatings.results
+            .firstOrNull { it.country.equals(region, ignoreCase = true) && it.rating.isNotBlank() }
+            ?.rating
+            ?: dto.contentRatings.results
+                .firstOrNull { it.country.equals(FALLBACK_REGION, ignoreCase = true) && it.rating.isNotBlank() }
+                ?.rating,
+        watchProviders = dto.watchProviders.forRegion(region),
+    )
+
+    private const val MAX_FILMOGRAPHY = 40
 
     // ── mixed trending feed ─────────────────────────────────────────────────
 

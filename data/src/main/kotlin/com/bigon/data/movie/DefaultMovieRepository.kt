@@ -14,7 +14,9 @@ import com.bigon.core.model.MovieCategory
 import com.bigon.core.model.MovieDetail
 import com.bigon.core.model.MoviePage
 import com.bigon.core.model.MovieCollection
+import com.bigon.core.model.PersonDetail
 import com.bigon.core.model.Region
+import com.bigon.core.model.TvDetail
 import com.bigon.core.model.ReviewPage
 import com.bigon.core.model.TrendingItem
 import com.bigon.core.model.WatchProvider
@@ -120,6 +122,20 @@ class DefaultMovieRepository @Inject constructor(
             val genresById = genreDao.getAll().associate { it.id to it.name }
             apiCaller.execute { movieApi.collection(collectionId) }
                 .map { MovieMapper.toCollection(it, genresById) }
+        }
+
+    override suspend fun person(personId: Long): AppResult<PersonDetail> =
+        withContext(dispatchers.io) {
+            refreshGenresIfNeeded()
+            val genresById = genreDao.getAll().associate { it.id to it.name }
+            apiCaller.execute { movieApi.person(personId) }
+                .map { MovieMapper.toPersonDetail(it, genresById) }
+        }
+
+    override suspend fun tvDetail(tvId: Long): AppResult<TvDetail> =
+        withContext(dispatchers.io) {
+            apiCaller.execute { movieApi.tvDetail(tvId) }
+                .map { MovieMapper.toTvDetail(it, regionProvider.region()) }
         }
 
     override suspend fun availableRegions(): AppResult<List<Region>> =

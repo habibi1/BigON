@@ -122,6 +122,27 @@ interface MovieApi {
     @GET("collection/{id}")
     suspend fun collection(@Path("id") id: Long): CollectionResponse
 
+    /**
+     * A person and their film credits. `movie_credits` is nearly all of the
+     * ~92 KB, but it is the point of the screen — a person without their
+     * filmography is a photograph and a paragraph.
+     */
+    @GET("person/{id}")
+    suspend fun person(
+        @Path("id") id: Long,
+        @Query("append_to_response") append: String = "movie_credits",
+    ): PersonResponse
+
+    /**
+     * Series detail. `content_ratings` rather than `release_dates` — TV's
+     * certification lives under a different key with a flatter shape.
+     */
+    @GET("tv/{id}")
+    suspend fun tvDetail(
+        @Path("id") id: Long,
+        @Query("append_to_response") append: String = TV_BLOCKS,
+    ): TvDetailResponse
+
     /** The regions TMDB holds availability data for. */
     @GET("watch/providers/regions")
     suspend fun regions(): RegionListResponse
@@ -133,6 +154,9 @@ interface MovieApi {
     ): WatchProviderListResponse
 
     companion object {
+        /** Series equivalent of [DETAIL_BLOCKS]; TV has no recommendations worth the bytes. */
+        const val TV_BLOCKS: String = "credits,videos,content_ratings,watch/providers"
+
         /**
          * Appended blocks, cheapest-first. `watch/providers` carries a slash,
          * which is legal in the query value even though it is not a legal

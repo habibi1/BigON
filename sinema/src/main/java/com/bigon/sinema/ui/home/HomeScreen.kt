@@ -42,7 +42,6 @@ import com.bigon.sinema.ui.PosterTransition
 import com.bigon.sinema.ui.metaLine
 import com.bigon.sinema.ui.posterModifier
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.ui.platform.LocalUriHandler
 import com.bigon.core.model.TrendingItem
 import com.bigon.core.model.typeLabel
 
@@ -53,17 +52,19 @@ import com.bigon.core.model.typeLabel
 @Composable
 fun HomeRoute(
     onMovieClick: (Long) -> Unit,
+    onTvClick: (Long) -> Unit = {},
+    onPersonClick: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
     transition: PosterTransition? = null,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    val uriHandler = LocalUriHandler.current
     ObserveEffects(viewModel.effects) { effect ->
         when (effect) {
             is HomeEffect.NavigateToDetail -> onMovieClick(effect.movieId)
-            is HomeEffect.OpenExternal -> uriHandler.openUri(effect.url)
+            is HomeEffect.NavigateToTv -> onTvClick(effect.tvId)
+            is HomeEffect.NavigateToPerson -> onPersonClick(effect.personId)
         }
     }
 

@@ -17,6 +17,9 @@ object TmdbImageUrl {
     const val BACKDROP_WIDE = "w780"
     const val PROFILE_SMALL = "w185"
 
+    /** The person screen shows one portrait large; w185 visibly softens there. */
+    const val PROFILE_LARGE = "h632"
+
     /** Provider logos are small squares; w92 is the smallest TMDB publishes. */
     const val LOGO_SMALL = "w92"
 

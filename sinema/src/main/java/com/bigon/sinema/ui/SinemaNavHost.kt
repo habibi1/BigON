@@ -15,10 +15,14 @@ import com.bigon.core.navigation.FavoritesDestination
 import com.bigon.core.navigation.HomeDestination
 import com.bigon.core.navigation.CollectionDestination
 import com.bigon.core.navigation.MovieDetailDestination
+import com.bigon.core.navigation.PersonDestination
+import com.bigon.core.navigation.TvDetailDestination
 import com.bigon.core.navigation.SearchDestination
 import com.bigon.core.navigation.SettingsDestination
 import com.bigon.sinema.ui.collection.CollectionRoute
 import com.bigon.sinema.ui.detail.DetailRoute
+import com.bigon.sinema.ui.person.PersonRoute
+import com.bigon.sinema.ui.tv.TvDetailRoute
 import com.bigon.sinema.ui.favorites.FavoritesRoute
 import com.bigon.sinema.ui.home.HomeRoute
 import com.bigon.sinema.ui.search.SearchRoute
@@ -57,6 +61,8 @@ fun SharedTransitionScope.SinemaNavHost(
         composable<HomeDestination> {
             HomeRoute(
                 onMovieClick = { navController.navigateToMovie(it) },
+                onTvClick = { navController.navigate(TvDetailDestination(it)) },
+                onPersonClick = { navController.navigate(PersonDestination(it)) },
                 transition = PosterTransition(this@SinemaNavHost, this@composable),
             )
         }
@@ -89,8 +95,17 @@ fun SharedTransitionScope.SinemaNavHost(
                 // than replacing this one, so back walks the trail the user
                 // actually followed instead of jumping to the grid.
                 onMovieClick = { navController.navigateToMovie(it) },
+                onPersonClick = { navController.navigate(PersonDestination(it)) },
                 onCollectionClick = { navController.navigate(CollectionDestination(it)) },
                 transition = PosterTransition(this@SinemaNavHost, this@composable),
+            )
+        }
+
+        composable<PersonDestination> { entry ->
+            PersonRoute(
+                personId = entry.toRoute<PersonDestination>().personId,
+                onBack = { navController.popBackStack() },
+                onMovieClick = { navController.navigateToMovie(it) },
             )
         }
 
@@ -99,6 +114,14 @@ fun SharedTransitionScope.SinemaNavHost(
                 collectionId = entry.toRoute<CollectionDestination>().collectionId,
                 onBack = { navController.popBackStack() },
                 onMovieClick = { navController.navigateToMovie(it) },
+            )
+        }
+
+        composable<TvDetailDestination> { entry ->
+            TvDetailRoute(
+                tvId = entry.toRoute<TvDetailDestination>().tvId,
+                onBack = { navController.popBackStack() },
+                onPersonClick = { navController.navigate(PersonDestination(it)) },
             )
         }
     }

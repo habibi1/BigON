@@ -113,6 +113,8 @@ class DefaultMovieRepositoryTest {
         override suspend fun trendingAll(page: Int) = TrendingListResponse()
         override suspend fun regions() = RegionListResponse()
         override suspend fun collection(id: Long) = CollectionResponse()
+        override suspend fun person(id: Long, append: String) = PersonResponse()
+        override suspend fun tvDetail(id: Long, append: String) = TvDetailResponse()
     }
 
     private fun dispatchers() = object : DispatcherProvider {
@@ -477,7 +479,9 @@ class DefaultMovieRepositoryTest {
             override suspend fun watchProviders(watchRegion: String) = WatchProviderListResponse()
             override suspend fun trendingAll(page: Int) = TrendingListResponse()
             override suspend fun collection(id: Long) = CollectionResponse()
-                    override suspend fun regions() = RegionListResponse()
+            override suspend fun person(id: Long, append: String) = PersonResponse()
+            override suspend fun tvDetail(id: Long, append: String) = TvDetailResponse()
+            override suspend fun regions() = RegionListResponse()
         }
         val repo = repository(FakeMovieDao(), FakeGenreDao(), api, region = "ID")
 

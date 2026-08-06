@@ -70,10 +70,7 @@ sealed interface HomeIntent {
 sealed interface HomeEffect {
     data class NavigateToDetail(val movieId: Long) : HomeEffect
 
-    /**
-     * Series and people have no native screen yet (Tier 3), so they open
-     * TMDB's own page. A card that does nothing when tapped teaches the user
-     * the feed is broken; one that leaves the app is at least truthful.
-     */
-    data class OpenExternal(val url: String) : HomeEffect
+    /** Tier 3 gave series and people native screens; nothing leaves the app now. */
+    data class NavigateToTv(val tvId: Long) : HomeEffect
+    data class NavigateToPerson(val personId: Long) : HomeEffect
 }
