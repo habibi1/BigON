@@ -9,6 +9,8 @@ import com.bigon.core.model.MovieDetail
 import com.bigon.core.model.MoviePage
 import com.bigon.core.model.Review
 import com.bigon.core.model.ReviewPage
+import com.bigon.core.model.CollectionRef
+import com.bigon.core.model.MovieCollection
 import com.bigon.core.model.TrendingItem
 import com.bigon.core.model.WatchProvider
 import com.bigon.core.model.WatchProviders
@@ -116,6 +118,9 @@ internal object MovieMapper {
             .filter { it.isNotBlank() && !it.equals(dto.title, ignoreCase = true) }
             .distinctBy { it.lowercase() }
             .take(MAX_ALTERNATIVE_TITLES),
+        collection = dto.belongsToCollection
+            ?.takeIf { it.id != 0L && it.name.isNotBlank() }
+            ?.let { CollectionRef(id = it.id, name = it.name) },
     )
 
     /**
@@ -261,6 +266,22 @@ internal object MovieMapper {
         totalPages = response.totalPages,
         totalResults = response.totalResults,
     )
+
+    // ── collections ────────────────────────────────────────────────────────
+
+    fun toCollection(dto: CollectionResponse, genresById: Map<Int, String>): MovieCollection =
+        MovieCollection(
+            id = dto.id,
+            name = dto.name,
+            overview = dto.overview,
+            posterUrl = TmdbImageUrl.build(dto.posterPath, TmdbImageUrl.POSTER_CARD),
+            backdropUrl = TmdbImageUrl.build(dto.backdropPath, TmdbImageUrl.BACKDROP_WIDE),
+            // Parts arrive in release order only by accident; sorting makes the
+            // franchise readable as a sequence, which is why people open it.
+            parts = dto.parts
+                .sortedBy { it.releaseDate?.takeIf { d -> d.isNotBlank() } ?: "9999" }
+                .map { toDomain(it, genresById) },
+        )
 
     // ── mixed trending feed ─────────────────────────────────────────────────
 

@@ -118,6 +118,10 @@ interface MovieApi {
     @GET("genre/movie/list")
     suspend fun genres(): GenreListResponse
 
+    /** A franchise and its parts. Small: parts use the list shape. */
+    @GET("collection/{id}")
+    suspend fun collection(@Path("id") id: Long): CollectionResponse
+
     /** The regions TMDB holds availability data for. */
     @GET("watch/providers/regions")
     suspend fun regions(): RegionListResponse

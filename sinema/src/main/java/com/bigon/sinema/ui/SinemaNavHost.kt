@@ -13,9 +13,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.bigon.core.navigation.FavoritesDestination
 import com.bigon.core.navigation.HomeDestination
+import com.bigon.core.navigation.CollectionDestination
 import com.bigon.core.navigation.MovieDetailDestination
 import com.bigon.core.navigation.SearchDestination
 import com.bigon.core.navigation.SettingsDestination
+import com.bigon.sinema.ui.collection.CollectionRoute
 import com.bigon.sinema.ui.detail.DetailRoute
 import com.bigon.sinema.ui.favorites.FavoritesRoute
 import com.bigon.sinema.ui.home.HomeRoute
@@ -87,7 +89,16 @@ fun SharedTransitionScope.SinemaNavHost(
                 // than replacing this one, so back walks the trail the user
                 // actually followed instead of jumping to the grid.
                 onMovieClick = { navController.navigateToMovie(it) },
+                onCollectionClick = { navController.navigate(CollectionDestination(it)) },
                 transition = PosterTransition(this@SinemaNavHost, this@composable),
+            )
+        }
+
+        composable<CollectionDestination> { entry ->
+            CollectionRoute(
+                collectionId = entry.toRoute<CollectionDestination>().collectionId,
+                onBack = { navController.popBackStack() },
+                onMovieClick = { navController.navigateToMovie(it) },
             )
         }
     }

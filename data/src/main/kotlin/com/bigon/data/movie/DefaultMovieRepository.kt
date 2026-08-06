@@ -13,6 +13,7 @@ import com.bigon.core.model.Movie
 import com.bigon.core.model.MovieCategory
 import com.bigon.core.model.MovieDetail
 import com.bigon.core.model.MoviePage
+import com.bigon.core.model.MovieCollection
 import com.bigon.core.model.Region
 import com.bigon.core.model.ReviewPage
 import com.bigon.core.model.TrendingItem
@@ -111,6 +112,14 @@ class DefaultMovieRepository @Inject constructor(
             refreshGenresIfNeeded()
             apiCaller.execute { movieApi.trendingAll(page = 1) }
                 .map { response -> trendingItemDao.replaceAll(MovieMapper.toTrendingEntities(response)) }
+        }
+
+    override suspend fun collection(collectionId: Long): AppResult<MovieCollection> =
+        withContext(dispatchers.io) {
+            refreshGenresIfNeeded()
+            val genresById = genreDao.getAll().associate { it.id to it.name }
+            apiCaller.execute { movieApi.collection(collectionId) }
+                .map { MovieMapper.toCollection(it, genresById) }
         }
 
     override suspend fun availableRegions(): AppResult<List<Region>> =

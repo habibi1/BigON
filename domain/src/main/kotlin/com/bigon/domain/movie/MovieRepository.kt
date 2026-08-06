@@ -6,6 +6,7 @@ import com.bigon.core.model.Movie
 import com.bigon.core.model.MovieCategory
 import com.bigon.core.model.MovieDetail
 import com.bigon.core.model.MoviePage
+import com.bigon.core.model.MovieCollection
 import com.bigon.core.model.Region
 import com.bigon.core.model.ReviewPage
 import com.bigon.core.model.TrendingItem
@@ -84,6 +85,9 @@ interface MovieRepository {
     fun observeTrendingAll(): Flow<List<TrendingItem>>
 
     suspend fun refreshTrendingAll(): AppResult<Unit>
+
+    /** A franchise and its parts, ordered by release. Network-only. */
+    suspend fun collection(collectionId: Long): AppResult<MovieCollection>
 
     /** Regions the user may choose between, alphabetical by name. */
     suspend fun availableRegions(): AppResult<List<Region>>

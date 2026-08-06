@@ -43,6 +43,8 @@ data class MovieDetailResponse(
     val images: ImagesDto = ImagesDto(),
     @SerialName("alternative_titles") val alternativeTitles: AlternativeTitlesDto = AlternativeTitlesDto(),
     val translations: TranslationsDto = TranslationsDto(),
+    /** Already on the payload — no extra request to know a film is part of one. */
+    @SerialName("belongs_to_collection") val belongsToCollection: CollectionRefDto? = null,
 )
 
 /**

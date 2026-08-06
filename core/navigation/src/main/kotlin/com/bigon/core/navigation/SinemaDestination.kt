@@ -32,3 +32,7 @@ data object SettingsDestination : TopLevelDestination
 
 @Serializable
 data class MovieDetailDestination(val movieId: Long) : SinemaDestination
+
+/** A franchise, reached from the detail screen of any part. */
+@Serializable
+data class CollectionDestination(val collectionId: Long) : SinemaDestination

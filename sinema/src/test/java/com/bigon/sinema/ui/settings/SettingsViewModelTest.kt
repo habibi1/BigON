@@ -8,6 +8,7 @@ import com.bigon.core.model.Movie
 import com.bigon.core.model.MovieCategory
 import com.bigon.core.model.MovieDetail
 import com.bigon.core.model.MoviePage
+import com.bigon.core.model.MovieCollection
 import com.bigon.core.model.Region
 import com.bigon.core.model.ReviewPage
 import com.bigon.core.model.TrendingItem
@@ -93,6 +94,8 @@ class SettingsViewModelTest {
             AppResult.Failure(AppError.Unknown("unused"))
         override fun observeGenres(): Flow<List<Genre>> = flowOf(emptyList())
         override suspend fun search(query: String, page: Int): AppResult<MoviePage> =
+            AppResult.Failure(AppError.Unknown("unused"))
+        override suspend fun collection(collectionId: Long): AppResult<MovieCollection> =
             AppResult.Failure(AppError.Unknown("unused"))
         override suspend fun discover(genreId: Int?, page: Int, streamingProviderId: Int?): AppResult<MoviePage> =
             AppResult.Failure(AppError.Unknown("unused"))

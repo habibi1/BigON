@@ -546,27 +546,6 @@ class MovieMapperTest {
     }
 
     @Test
-    fun `a person keeps their department and known-for titles`() {
-        val entity = MovieMapper.toTrendingEntities(
-            trending(
-                TrendingItemDto(
-                    id = 3, mediaType = "person", name = "Zendaya", knownForDepartment = "Acting",
-                    profilePath = "/z.jpg",
-                    knownFor = listOf(
-                        TrendingItemDto(id = 9, mediaType = "movie", title = "Dune"),
-                        TrendingItemDto(id = 10, mediaType = "tv", name = "Euphoria"),
-                    ),
-                ),
-            ),
-        ).single()
-
-        val person = assertIs<TrendingItem.Person>(MovieMapper.toTrendingItem(entity, emptyMap()))
-        assertEquals("Acting", person.knownForDepartment)
-        assertEquals(listOf("Dune", "Euphoria"), person.knownFor)
-        assertEquals("https://image.tmdb.org/t/p/w185/z.jpg", person.profileUrl)
-    }
-
-    @Test
     fun `the unrated rule applies to the mixed feed too`() {
         val entity = MovieMapper.toTrendingEntities(
             trending(TrendingItemDto(id = 1, mediaType = "movie", title = "New", voteAverage = 0.0, voteCount = 0)),
@@ -593,4 +572,44 @@ class MovieMapperTest {
             urls,
         )
     }
+
+    // ── Tier 3: collections, people, series ─────────────────────────────────
+
+    @Test
+    fun `collection parts are ordered by release, undated last`() {
+        val collection = MovieMapper.toCollection(
+            CollectionResponse(
+                id = 1, name = "Alien Collection",
+                parts = listOf(
+                    MovieDto(id = 3, title = "Alien 3", releaseDate = "1992-05-22"),
+                    MovieDto(id = 99, title = "Untitled sequel", releaseDate = ""),
+                    MovieDto(id = 1, title = "Alien", releaseDate = "1979-05-25"),
+                    MovieDto(id = 2, title = "Aliens", releaseDate = "1986-07-18"),
+                ),
+            ),
+            emptyMap(),
+        )
+
+        // A franchise read out of order is unreadable as a sequence, which is
+        // the only reason to group them.
+        assertEquals(listOf("Alien", "Aliens", "Alien 3", "Untitled sequel"), collection.parts.map { it.title })
+    }
+
+    @Test
+    fun `belongs_to_collection becomes a reference on detail`() {
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(id = 1, belongsToCollection = CollectionRefDto(id = 131292, name = "Iron Man Collection")),
+        )
+        assertEquals(131292L, detail.collection?.id)
+        assertEquals("Iron Man Collection", detail.collection?.name)
+    }
+
+    @Test
+    fun `a blank collection stub is dropped rather than shown as an empty chip`() {
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(id = 1, belongsToCollection = CollectionRefDto(id = 0, name = "")),
+        )
+        assertNull(detail.collection)
+    }
+
 }

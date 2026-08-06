@@ -7,6 +7,7 @@ import com.bigon.core.config.FeatureFlagRepository
 import com.bigon.core.model.Genre
 import com.bigon.core.model.Movie
 import com.bigon.core.model.MoviePage
+import com.bigon.core.model.MovieCollection
 import com.bigon.core.model.Region
 import com.bigon.core.model.ReviewPage
 import com.bigon.core.model.TrendingItem
@@ -79,6 +80,8 @@ class SearchViewModelTest {
         }
 
         var lastProviderId: Int? = null
+        override suspend fun collection(collectionId: Long): AppResult<MovieCollection> =
+            AppResult.Failure(AppError.Unknown("unused"))
         override suspend fun discover(
             genreId: Int?,
             page: Int,

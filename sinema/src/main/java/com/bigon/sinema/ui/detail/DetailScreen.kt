@@ -66,6 +66,7 @@ fun DetailRoute(
     movieId: Long,
     onBack: () -> Unit,
     onMovieClick: (Long) -> Unit,
+    onCollectionClick: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
     transition: PosterTransition? = null,
     viewModel: DetailViewModel = hiltViewModel<DetailViewModel, DetailViewModel.Factory>(
@@ -84,6 +85,7 @@ fun DetailRoute(
             viewModel.onIntent(DetailIntent.RecommendationClicked(id))
             onMovieClick(id)
         },
+        onCollectionClick = onCollectionClick,
         transition = transition,
         modifier = modifier,
     )
@@ -96,6 +98,7 @@ fun DetailScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     onRecommendationClick: (Long) -> Unit = {},
+    onCollectionClick: (Long) -> Unit = {},
     transition: PosterTransition? = null,
 ) {
     val spacing = SinemaTheme.spacing
@@ -234,6 +237,18 @@ fun DetailScreen(
                             )
                         }
                     }
+                }
+
+                state.detail?.collection?.let { collection ->
+                    SinemaSectionHeader(
+                        title = "Part of a collection",
+                        modifier = Modifier.padding(top = spacing.xl),
+                    )
+                    SinemaTonalButton(
+                        text = collection.name,
+                        onClick = { onCollectionClick(collection.id) },
+                        modifier = Modifier.padding(top = spacing.m),
+                    )
                 }
 
                 state.watchProviders?.let { providers ->
