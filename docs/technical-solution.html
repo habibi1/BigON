@@ -311,7 +311,7 @@
 <div class="wrap">
 
   <header class="mast">
-    <div class="eyebrow">Technical solution · Revision 18 · Native Android</div>
+    <div class="eyebrow">Technical solution · Revision 19 · Native Android</div>
     <h1>Sinema <span class="dim">— architecture &amp; delivery plan</span></h1>
     <p class="standfirst">
       A TMDB movie explorer built as a modular, offline-first native Android app. This document records the
@@ -1077,7 +1077,7 @@ graph TD
             <tr><td>Build, modules, conventions</td><td><span class="pill ok">Done</span></td><td class="t-note">13 modules, 5 archetypes, catalog, clean build</td></tr>
             <tr><td>Design system</td><td><span class="pill ok">Done</span></td><td class="t-note">Tokens + 16 components + ~92 in-file previews; both themes verified on device</td></tr>
             <tr><td>DI composition root</td><td><span class="pill ok">Done</span></td><td class="t-note">Hilt graph compiles; adapters bound in <code>:sinema</code> only</td></tr>
-            <tr><td>Guardrails &amp; tests</td><td><span class="pill ok">Done</span></td><td class="t-note">115 unit tests green; five Konsist rules enforcing layering, including one that keeps <code>androidx.navigation</code> inside the app shell</td></tr>
+            <tr><td>Guardrails &amp; tests</td><td><span class="pill ok">Done</span></td><td class="t-note">130 unit tests green; five Konsist rules enforcing layering, including one that keeps <code>androidx.navigation</code> inside the app shell</td></tr>
             <tr><td>Domain layer</td><td><span class="pill ok">Done</span></td><td class="t-note"><code>MovieRepository</code> contract plus observe/refresh use cases</td></tr>
             <tr><td>Movie data pipeline</td><td><span class="pill ok">Done</span></td><td class="t-note">DTOs, <code>MovieApi</code>, mapper and offline-first repository; Room is the single source of truth, per-category</td></tr>
             <tr><td>Feature modules &amp; ViewModels</td><td><span class="pill warn">Partial</span></td><td class="t-note">Every screen is real — UDF contracts, ViewModels, zero mocks — but they live in <code>:sinema</code> rather than <code>feature/*</code> modules; extraction is the remaining structural step (§9·03)</td></tr>
@@ -1085,7 +1085,11 @@ graph TD
             <tr><td>Settings</td><td><span class="pill ok">Done</span></td><td class="t-note">Theme persisted via DataStore (survives process death, verified on device); <strong>content region picker</strong> over the 139 regions TMDB holds data for, searchable by name or code, with "follow device" as a distinct option; real clear-cache with computed size — catalogue + images, favourites kept; app version row</td></tr>
             <tr><td>Pagination</td><td><span class="pill ok">Done</span></td><td class="t-note">Infinite scroll on Home and Search; append with dedupe, end-of-list detection, quiet append failures. Room gained a <code>page</code> column (DB v4)</td></tr>
             <tr><td>Search</td><td><span class="pill ok">Done</span></td><td class="t-note">Hybrid: blank query browses <code>/discover</code> (genre server-side), typed query hits <code>/search</code> (genre client-side); debounced via <code>Flags.SearchDebounceMs</code> — the flag system's first real consumer — with <code>mapLatest</code> cancellation; real genre chips from the cached table; results open detail with the shared-element transition</td></tr>
-            <tr><td>Movie detail</td><td><span class="pill ok">Done</span></td><td class="t-note">One call carrying eight appended blocks: backdrop, cast, trailer flag, age certification, themes, an IMDb link, streaming availability for the device region, and a "More like this" row that makes detail open detail. Cached in Room (DB v5) so a second open costs nothing and works offline.</td></tr>
+            <tr><td>Movie detail</td><td><span class="pill ok">Done</span></td><td class="t-note">One call carrying every Tier 1 block: backdrop and studio title logo, cast, trailer, age certification, themes, an IMDb link, streaming availability for the chosen region, alternative titles, a device-language overview merged field-by-field, and a "More like this" row that makes detail open detail. Reviews ride a second request so they paginate and fail independently. Shimmer skeleton on load, and a sticky toolbar whose title logo fades in only once the hero has scrolled away. Cached in Room (DB v5) so a second open costs nothing and works offline</td></tr>
+            <tr><td>Person</td><td><span class="pill ok">Done</span></td><td class="t-note">Reached from any cast card on movie or series detail: profile, lifespan, birthplace, a biography that collapses at five lines, and a filmography merging cast and crew credits de-duplicated by film. Network-only by design — it is always a tap-through, never a landing screen (§10 Tier 3)</td></tr>
+            <tr><td>Collection</td><td><span class="pill ok">Done</span></td><td class="t-note">Franchise view reached from detail, where the reference already arrives free in the payload. Parts ordered by release with undated entries last; round-trips through the detail snapshot so an opened franchise stays readable offline</td></tr>
+            <tr><td>TV series detail</td><td><span class="pill ok">Done</span></td><td class="t-note">Sibling of movie detail, not a generalisation of it: seasons and episode counts instead of a runtime, certification from <code>content_ratings</code> with a US fallback. Closes the trending hand-off — series cards now open natively rather than leaving for TMDB's website. Seasons and episodes are explicitly out of scope</td></tr>
+            <tr><td>Browse refinements</td><td><span class="pill ok">Done</span></td><td class="t-note">Sort, release year, rating floor and maximum runtime over <code>/discover</code>, in a sheet that batches its selections into one request. Shown only while browsing, since a typed query honours none of them. The rating floor is paired with a vote-count floor in the repository, where the rule cannot be forgotten by a call site</td></tr>
             <tr><td>Navigation</td><td><span class="pill ok">Done</span></td><td class="t-note">Real <code>NavHost</code> with type-safe <code>@Serializable</code> routes in <code>:core:navigation</code>; the speculative <code>Navigator</code> contract was deleted, not completed. Tab selection derives from the back stack rather than an enum, and <code>androidx.navigation</code> is confined to three shell files by a Konsist rule (§4)</td></tr>
             <tr><td>Remote config &amp; analytics backends</td><td><span class="pill warn">Speculative</span></td><td class="t-note">Full port machinery with one debug sink, no backend, and no flag read by any screen</td></tr>
             <tr><td>Images</td><td><span class="pill ok">Done</span></td><td class="t-note">Coil 3 sharing the app's OkHttp client; auth is host-scoped so image requests carry no credential</td></tr>
@@ -1159,10 +1163,12 @@ graph TD
             <h3>Detail · Search · Favorites · Settings <span class="pill ok">All done</span></h3>
             <p>
               All four shipped: detail with the shared-element transition and two-pass paint, search with hybrid
-              semantics and debounce, favourites as offline-proof snapshots, settings with persisted theme and real
-              cache management. What remains of this step is structural — feature-module extraction — plus the
-              adaptive list–detail layout, including the adaptive list–detail layout for tablets and
-              foldables that <code>AppScaffold</code> already anticipates.
+              semantics and debounce, favourites as offline-proof snapshots, settings with persisted theme, a
+              content region picker and real cache management. Four more screens arrived with the API backlog
+              (§10) — person, collection, series detail, and the browse refinement sheet — on the same UDF
+              contract, which is the useful signal: the archetype absorbed a new content domain without being
+              reopened. What remains of this step is structural — feature-module extraction — plus the adaptive
+              list–detail layout for tablets and foldables that <code>AppScaffold</code> already anticipates.
             </p>
           </div>
         </li>
@@ -1298,39 +1304,83 @@ graph TD
                 its own table rather than reusing <code>movie_entity</code>, so it stays offline-first like every
                 other list instead of being the one chip that blanks without a connection.
                 <br><br>
-                Films open native detail. Series and people open TMDB's own page, because their native screens are
-                Tier 3 — a card that silently does nothing when tapped teaches the user the feed is broken, and
-                one that leaves the app is at least truthful.
+                Every card now opens a native screen. Until Tier 3 landed, series and people handed off to TMDB's
+                own website — a card that silently does nothing when tapped teaches the user the feed is broken,
+                and one that leaves the app is at least truthful. The hand-off was a placeholder with a stated
+                expiry, and Tier 3 is where it expired.
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h3>Tier 3 — larger moves</h3>
+      <h3>Tier 3 — larger moves <span class="pill ok">Shipped</span></h3>
+      <p>
+        All four shipped, and the ordering they arrived in was not the one this document originally proposed.
+        Collections turned out to be nearly free — the franchise reference already rides the detail payload — while
+        TV, forecast as the move that "effectively doubles the domain model", cost one screen. The estimate that
+        held was Discover: it really did reshape browse rather than extend it.
+      </p>
       <div class="scroller">
         <table>
-          <thead><tr><th>Capability</th><th>Endpoint</th><th>Why it is bigger</th></tr></thead>
+          <thead><tr><th>Capability</th><th>Endpoint</th><th>What shipped, and what it cost</th></tr></thead>
           <tbody>
             <tr>
-              <td><strong>Discover</strong></td>
-              <td class="mono">/discover/movie</td>
-              <td>30+ filters and sorts — genre, year, rating floor, runtime, language, cast, keyword, provider. Replaces five fixed categories with real browsing, so it reshapes Home's state model, the cache key scheme and the chip row rather than adding to them.</td>
-            </tr>
-            <tr>
-              <td><strong>People</strong></td>
-              <td class="mono">/person/{id}<br>+ movie_credits</td>
-              <td>Makes <code>SinemaCastCard</code> tappable and adds a filmography screen. A new content domain: its own model, repository, cache table and screen.</td>
-            </tr>
-            <tr>
-              <td><strong>TV</strong></td>
-              <td class="mono">/tv/*, /discover/tv</td>
-              <td>A full parallel API — series, seasons, episodes. Effectively doubles the domain model. Needs a product decision before any code.</td>
-            </tr>
-            <tr>
-              <td><strong>Collections</strong></td>
+              <td><strong>Collections</strong> <span class="pill ok">Done</span></td>
               <td class="mono">/collection/{id}</td>
-              <td>Franchises as a single grouped entity (the Alien collection returns 8 parts). Small on its own, but wants a dedicated screen.</td>
+              <td>
+                Cheaper than forecast. <code>belongs_to_collection</code> is already in the detail response, so the
+                "Part of a collection" entry point costs nothing — the extra request happens only when the user
+                taps it. Parts are sorted by release date with undated entries last, which matters because TMDB
+                returns them in no useful order and an announced-but-undated sequel would otherwise land in the
+                middle of a franchise. The result round-trips through the detail snapshot, so a franchise you have
+                opened stays readable offline.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>People</strong> <span class="pill ok">Done</span></td>
+              <td class="mono">/person/{id}<br>+ movie_credits</td>
+              <td>
+                A new content domain, as predicted: its own model, use case and screen. Cast cards are now tappable
+                from both movie and series detail. Filmography merges the <code>cast</code> and <code>crew</code>
+                arrays and de-duplicates by film id — someone who wrote and directed the same picture appears once,
+                not twice — newest first, capped at 40. Biographies collapse at five lines, and the "Read more"
+                affordance appears only when the text actually clipped; most biographies are one sentence.
+                <strong>Deliberately not cached:</strong> a person is reached by tapping through, never as a
+                landing screen, so a cache table would carry schema and eviction cost for rows nobody reopens.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>TV</strong> <span class="pill ok">Done</span></td>
+              <td class="mono">/tv/{id}</td>
+              <td>
+                Series detail, with <code>credits,videos,content_ratings,watch/providers</code> appended on the
+                same request. It is a sibling of <code>MovieDetail</code>, not a generalisation of it: a series has
+                seasons and episode counts and no runtime, and the certification comes from
+                <code>content_ratings</code> rather than <code>release_dates</code> — a different endpoint with a
+                different shape, falling back to US when the user's region has no entry. This closes the Tier 2
+                hand-off: trending series now open natively instead of leaving for TMDB's website.
+                <strong>Out of scope:</strong> <code>/discover/tv</code> and seasons/episodes. Browsing series and
+                drilling into an episode list are each their own feature, and neither is needed to make a series
+                card mean something when tapped.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Discover</strong> <span class="pill ok">Done</span></td>
+              <td class="mono">/discover/movie</td>
+              <td>
+                The estimate that held. Four refinements ship — sort, release year, rating floor, maximum runtime —
+                out of the thirty the endpoint accepts, because the rest are either already covered by another
+                control on that screen or are the kind of filter people reach for once a year, and each one costs
+                a row everybody scrolls past. Two rules are enforced in the repository rather than the UI, since
+                both are silent when wrong: a rating floor <em>always</em> travels with
+                <code>vote_count.gte=200</code>, or "8.0+" surfaces obscure titles rated 10.0 by three people; and
+                that vote floor is <em>never</em> sent alone, or it quietly excludes every new release. The sheet
+                holds its selections as a draft and commits once on close — applying each tap live meant four
+                discover requests to set four refinements, against results nobody can see behind the sheet.
+                Refinements are hidden the moment a query is typed, for the same reason the service row is:
+                <code>/search/movie</code> honours none of them.
+              </td>
             </tr>
           </tbody>
         </table>
@@ -1357,12 +1407,15 @@ graph TD
       </div>
 
       <div class="callout">
-        <div class="eyebrow">Suggested order</div>
+        <div class="eyebrow">What is left</div>
         <p>
-          <strong>1.</strong> <code>recommendations</code> on detail — one word, immediate value, reuses existing
-          components. <strong>2.</strong> Search via <code>/search/multi</code> — a mocked screen with its component
-          already built. <strong>3.</strong> <code>watch/providers</code> — genuinely useful and visually distinctive.
-          <strong>4.</strong> Discover — only once real browsing is the goal, since it reshapes Home.
+          The three tiers are shipped. What remains is named here so its absence reads as a decision rather than an
+          oversight. <strong><code>/search/multi</code></strong> is now unblocked — it needed TV and person models to
+          exist, and they do — but a mixed result list is a ranking problem, not a parsing one: a query for "spider"
+          should not put an obscure crew member above the films. <strong><code>/discover/tv</code></strong> would give
+          series the browse surface films have. <strong>Seasons and episodes</strong> are the one genuinely large
+          piece left, and the only one that still wants a product decision before code. Person data stays
+          network-only until something makes a person a landing screen rather than a tap-through.
         </p>
       </div>
     </div>
@@ -1390,7 +1443,8 @@ graph TD
           <h3>Needed to proceed</h3>
           <ul class="tight">
             <li><strong>Firebase project</strong> for the analytics and Remote Config adapters — optional until step 05.</li>
-            <li><strong>Product decision</strong> on the first feature scope beyond Home.</li>
+            <li><strong>Product decision</strong> on seasons and episodes — the one remaining piece of the API
+              backlog large enough to want a scope before it wants code (§10).</li>
           </ul>
         </div>
       </div>
@@ -1407,7 +1461,7 @@ graph TD
 
   <footer>
     <span>Sinema · technical solution</span>
-    <span>Revision 18 — native Android · supersedes revision 17</span>
+    <span>Revision 19 — native Android · supersedes revision 18</span>
     <span>Supersedes the KMP/CMP planning document</span>
   </footer>
 
