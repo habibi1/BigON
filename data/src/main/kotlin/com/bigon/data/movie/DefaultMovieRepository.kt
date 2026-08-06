@@ -22,6 +22,7 @@ import com.bigon.core.model.TrendingItem
 import com.bigon.core.model.WatchProvider
 import com.bigon.core.datastore.PreferenceStorage
 import com.bigon.core.network.ApiCaller
+import com.bigon.domain.movie.DiscoverFilters
 import com.bigon.domain.movie.LoadMoreOutcome
 import com.bigon.domain.movie.MovieRepository
 import kotlinx.coroutines.flow.Flow
@@ -275,6 +276,7 @@ class DefaultMovieRepository @Inject constructor(
         genreId: Int?,
         page: Int,
         streamingProviderId: Int?,
+        filters: DiscoverFilters,
     ): AppResult<MoviePage> =
         withContext(dispatchers.io) {
             refreshGenresIfNeeded()
@@ -282,11 +284,18 @@ class DefaultMovieRepository @Inject constructor(
             apiCaller.execute {
                 movieApi.discover(
                     withGenres = genreId?.toString(),
+                    sortBy = filters.sort.apiValue,
                     page = page,
                     withWatchProviders = streamingProviderId?.toString(),
                     // Only sent alongside a provider; on its own it would
                     // narrow results for no reason the user asked for.
                     watchRegion = streamingProviderId?.let { regionProvider.region() },
+                    releaseYear = filters.releaseYear,
+                    minRating = filters.minRating,
+                    // Only meaningful alongside a rating floor; sending it alone
+                    // would quietly exclude every newly released film.
+                    minVotes = filters.minRating?.let { DiscoverFilters.MIN_VOTES_FOR_RATING_FILTER },
+                    maxRuntime = filters.maxRuntimeMinutes,
                 )
             }.map { response -> MovieMapper.toPage(response, genresById) }
         }

@@ -65,12 +65,17 @@ class DetailCacheTest {
         override suspend fun upcoming(page: Int, region: String?) = MovieListResponse()
         override suspend fun genres() = GenreListResponse()
         override suspend fun search(query: String, page: Int, includeAdult: Boolean) = MovieListResponse()
+        @Suppress("LongParameterList")
         override suspend fun discover(
             withGenres: String?,
             sortBy: String,
             page: Int,
             withWatchProviders: String?,
             watchRegion: String?,
+            releaseYear: Int?,
+            minRating: Double?,
+            minVotes: Int?,
+            maxRuntime: Int?,
         ) = MovieListResponse()
         override suspend fun watchProviders(watchRegion: String) = WatchProviderListResponse()
         override suspend fun trendingAll(page: Int) = TrendingListResponse()

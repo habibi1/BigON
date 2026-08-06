@@ -16,6 +16,8 @@ import com.bigon.core.database.MovieEntity
 import com.bigon.core.model.MovieCategory
 import com.bigon.core.network.ApiCaller
 import com.bigon.core.network.error.NetworkErrorMapper
+import com.bigon.domain.movie.DiscoverFilters
+import com.bigon.domain.movie.DiscoverSort
 import com.bigon.domain.movie.LoadMoreOutcome
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -98,15 +100,27 @@ class DefaultMovieRepositoryTest {
         }
         var lastWatchProviders: String? = null
         var lastWatchRegion: String? = null
+        var lastSortBy: String? = null
+        var lastReleaseYear: Int? = null
+        var lastMinRating: Double? = null
+        var lastMinVotes: Int? = null
+        var lastMaxRuntime: Int? = null
+        @Suppress("LongParameterList")
         override suspend fun discover(
             withGenres: String?,
             sortBy: String,
             page: Int,
             withWatchProviders: String?,
             watchRegion: String?,
+            releaseYear: Int?,
+            minRating: Double?,
+            minVotes: Int?,
+            maxRuntime: Int?,
         ): MovieListResponse {
             lastDiscoverGenres = withGenres; lastRequestedPage = page
             lastWatchProviders = withWatchProviders; lastWatchRegion = watchRegion
+            lastSortBy = sortBy; lastReleaseYear = releaseYear
+            lastMinRating = minRating; lastMinVotes = minVotes; lastMaxRuntime = maxRuntime
             return onList()
         }
         override suspend fun watchProviders(watchRegion: String) = WatchProviderListResponse()
@@ -321,6 +335,57 @@ class DefaultMovieRepositoryTest {
     }
 
     @Test
+    fun `refinements travel as discover query parameters`() = runTest(dispatcher) {
+        val api = FakeApi(onList = { MovieListResponse() })
+        val repo = repository(FakeMovieDao(), FakeGenreDao(), api)
+
+        repo.discover(
+            genreId = null,
+            filters = DiscoverFilters(
+                sort = DiscoverSort.Rating,
+                releaseYear = 2024,
+                maxRuntimeMinutes = 120,
+            ),
+        )
+
+        assertEquals("vote_average.desc", api.lastSortBy)
+        assertEquals(2024, api.lastReleaseYear)
+        assertEquals(120, api.lastMaxRuntime)
+    }
+
+    @Test
+    fun `a rating floor always travels with a vote-count floor`() = runTest(dispatcher) {
+        val api = FakeApi(onList = { MovieListResponse() })
+        val repo = repository(FakeMovieDao(), FakeGenreDao(), api)
+
+        // Without the vote-count guard, "8.0+" surfaces obscure titles rated
+        // 10.0 by three people ahead of everything the user has heard of.
+        repo.discover(genreId = null, filters = DiscoverFilters(minRating = 8.0))
+        assertEquals(8.0, api.lastMinRating)
+        assertEquals(DiscoverFilters.MIN_VOTES_FOR_RATING_FILTER, api.lastMinVotes)
+
+        // And it is never sent alone: on its own it would quietly exclude every
+        // newly released film, which has no votes yet.
+        repo.discover(genreId = null, filters = DiscoverFilters(releaseYear = 2026))
+        assertEquals(null, api.lastMinRating)
+        assertEquals(null, api.lastMinVotes)
+    }
+
+    @Test
+    fun `default filters leave discover unnarrowed`() = runTest(dispatcher) {
+        val api = FakeApi(onList = { MovieListResponse() })
+        val repo = repository(FakeMovieDao(), FakeGenreDao(), api)
+
+        repo.discover(genreId = null)
+
+        assertEquals("popularity.desc", api.lastSortBy)
+        assertEquals(null, api.lastReleaseYear)
+        assertEquals(null, api.lastMinRating)
+        assertEquals(null, api.lastMinVotes)
+        assertEquals(null, api.lastMaxRuntime)
+    }
+
+    @Test
     fun `observeGenres exposes the cached table as domain genres`() = runTest(dispatcher) {
         val repo = repository(
             FakeMovieDao(),
@@ -469,12 +534,17 @@ class DefaultMovieRepositoryTest {
                 MovieDetailResponse(id = id)
             override suspend fun reviews(id: Long, page: Int) = ReviewListResponse()
             override suspend fun search(query: String, page: Int, includeAdult: Boolean) = MovieListResponse()
+            @Suppress("LongParameterList")
             override suspend fun discover(
                 withGenres: String?,
                 sortBy: String,
                 page: Int,
                 withWatchProviders: String?,
                 watchRegion: String?,
+                releaseYear: Int?,
+                minRating: Double?,
+                minVotes: Int?,
+                maxRuntime: Int?,
             ) = MovieListResponse()
             override suspend fun watchProviders(watchRegion: String) = WatchProviderListResponse()
             override suspend fun trendingAll(page: Int) = TrendingListResponse()

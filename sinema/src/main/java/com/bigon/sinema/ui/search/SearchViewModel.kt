@@ -8,6 +8,7 @@ import com.bigon.core.config.Flags
 import com.bigon.core.tracker.AnalyticsEvent
 import com.bigon.core.tracker.AnalyticsTracker
 import com.bigon.core.ui.toUiText
+import com.bigon.domain.movie.DiscoverFilters
 import com.bigon.domain.movie.DiscoverMoviesUseCase
 import com.bigon.domain.movie.GetStreamingServicesUseCase
 import com.bigon.domain.movie.ObserveGenresUseCase
@@ -55,6 +56,7 @@ class SearchViewModel @Inject constructor(
     private val queryInput = MutableStateFlow("")
     private val genreInput = MutableStateFlow<Int?>(null)
     private val serviceInput = MutableStateFlow<Int?>(null)
+    private val filterInput = MutableStateFlow(DiscoverFilters())
     private val retries = MutableStateFlow(0)
 
     private val debounceMillis = flags.get(Flags.SearchDebounceMs).toLong()
@@ -80,12 +82,15 @@ class SearchViewModel @Inject constructor(
             .debounce { input -> if (input.isBlank()) 0L else debounceMillis }
             .combine(genreInput) { query, genre -> query.trim() to genre }
             .combine(serviceInput) { (query, genre), service -> Triple(query, genre, service) }
+            .combine(filterInput) { (query, genre, service), filters ->
+                Request(query, genre, service, filters)
+            }
             // Retries re-emit the same request; StateFlow inputs dedupe themselves.
             .combine(retries) { request, _ -> request }
-            .mapLatest { (query, genreId, serviceId) ->
+            .mapLatest { (query, genreId, serviceId, filters) ->
                 _state.update { it.copy(isSearching = true, error = null) }
                 if (query.isBlank()) {
-                    discoverMovies(genreId, streamingProviderId = serviceId)
+                    discoverMovies(genreId, streamingProviderId = serviceId, filters = filters)
                 } else {
                     // `/search/movie` takes no provider filter and its results
                     // carry no provider data, so the service selection simply
@@ -120,7 +125,12 @@ class SearchViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isAppending = true) }
             val result = if (snapshot.query.isBlank()) {
-                discoverMovies(snapshot.selectedGenreId, nextPage, snapshot.selectedServiceId)
+                discoverMovies(
+                    snapshot.selectedGenreId,
+                    nextPage,
+                    snapshot.selectedServiceId,
+                    snapshot.filters,
+                )
             } else {
                 searchMovies(snapshot.query, nextPage)
             }
@@ -129,7 +139,8 @@ class SearchViewModel @Inject constructor(
                 // in flight, drop the response rather than mixing result sets.
                 val stale = current.query != snapshot.query ||
                     current.selectedGenreId != snapshot.selectedGenreId ||
-                    current.selectedServiceId != snapshot.selectedServiceId
+                    current.selectedServiceId != snapshot.selectedServiceId ||
+                    current.filters != snapshot.filters
                 when {
                     stale -> current.copy(isAppending = false)
                     result is AppResult.Success -> current.copy(
@@ -156,6 +167,12 @@ class SearchViewModel @Inject constructor(
                 genreInput.value = intent.genreId
                 _state.update { it.copy(selectedGenreId = intent.genreId) }
             }
+            SearchIntent.FilterSheetOpened -> _state.update { it.copy(isFilterSheetOpen = true) }
+            SearchIntent.FilterSheetDismissed -> _state.update { it.copy(isFilterSheetOpen = false) }
+            is SearchIntent.FiltersChanged -> {
+                filterInput.value = intent.filters
+                _state.update { it.copy(filters = intent.filters) }
+            }
             is SearchIntent.ServiceSelected -> {
                 serviceInput.value = intent.serviceId
                 _state.update { it.copy(selectedServiceId = intent.serviceId) }
@@ -166,6 +183,14 @@ class SearchViewModel @Inject constructor(
             SearchIntent.Retry -> retries.update { it + 1 }
         }
     }
+
+    /** Four inputs is past what Triple can carry legibly. */
+    private data class Request(
+        val query: String,
+        val genreId: Int?,
+        val serviceId: Int?,
+        val filters: DiscoverFilters,
+    )
 
     private companion object {
         /**

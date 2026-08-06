@@ -3,6 +3,7 @@ package com.bigon.sinema.ui.search
 import com.bigon.core.model.Genre
 import com.bigon.core.model.Movie
 import com.bigon.core.model.WatchProvider
+import com.bigon.domain.movie.DiscoverFilters
 import com.bigon.core.ui.UiText
 
 /**
@@ -24,6 +25,8 @@ data class SearchUiState(
     val selectedGenreId: Int? = null,
     val services: List<WatchProvider> = emptyList(),
     val selectedServiceId: Int? = null,
+    val filters: DiscoverFilters = DiscoverFilters(),
+    val isFilterSheetOpen: Boolean = false,
     val results: List<Movie> = emptyList(),
     val isSearching: Boolean = true,
     /** A further page is being appended below the current results. */
@@ -44,6 +47,13 @@ data class SearchUiState(
      */
     val showServiceFilter: Boolean get() = query.isBlank() && services.isNotEmpty()
 
+    /**
+     * Refinements are discover-only for the same reason the service row is:
+     * `/search/movie` accepts no sort, year, rating or runtime parameter, so
+     * offering them beside a typed query would be a control that does nothing.
+     */
+    val showFilters: Boolean get() = query.isBlank()
+
     /** Genre filter applied client-side when a typed search is active. */
     val visibleResults: List<Movie>
         get() = if (query.isBlank() || selectedGenreName == null) {
@@ -61,6 +71,9 @@ sealed interface SearchIntent {
     data object LoadMore : SearchIntent
     data class GenreSelected(val genreId: Int?) : SearchIntent
     data class ServiceSelected(val serviceId: Int?) : SearchIntent
+    data object FilterSheetOpened : SearchIntent
+    data object FilterSheetDismissed : SearchIntent
+    data class FiltersChanged(val filters: DiscoverFilters) : SearchIntent
     data class MovieClicked(val movie: Movie) : SearchIntent
     data object Retry : SearchIntent
 }

@@ -60,11 +60,15 @@ interface MovieApi {
         @Query("include_adult") includeAdult: Boolean = false,
     ): MovieListResponse
 
-    /** Filtered browsing; drives the Search tab's idle state and genre chips. */
     /**
-     * [withWatchProviders] must travel with [watchRegion] — TMDB silently
-     * ignores a provider filter that has no region to resolve it against,
-     * which reads as "the filter does nothing" rather than as an error.
+     * Filtered browsing; drives the Search tab's idle state, its genre and
+     * service chips, and the Tier 3 refine sheet.
+     *
+     * Two pairings TMDB enforces implicitly. [withWatchProviders] must travel
+     * with [watchRegion] — a provider filter with no region to resolve it
+     * against is silently ignored, which reads as "the filter does nothing"
+     * rather than as an error. [minRating] must travel with [minVotes], or a
+     * single 10/10 vote outranks a film with a thousand good ones.
      */
     @GET("discover/movie")
     suspend fun discover(
@@ -73,6 +77,10 @@ interface MovieApi {
         @Query("page") page: Int = 1,
         @Query("with_watch_providers") withWatchProviders: String? = null,
         @Query("watch_region") watchRegion: String? = null,
+        @Query("primary_release_year") releaseYear: Int? = null,
+        @Query("vote_average.gte") minRating: Double? = null,
+        @Query("vote_count.gte") minVotes: Int? = null,
+        @Query("with_runtime.lte") maxRuntime: Int? = null,
     ): MovieListResponse
 
     /**

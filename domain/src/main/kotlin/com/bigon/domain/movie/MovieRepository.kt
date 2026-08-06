@@ -65,6 +65,7 @@ interface MovieRepository {
         genreId: Int?,
         page: Int = 1,
         streamingProviderId: Int? = null,
+        filters: DiscoverFilters = DiscoverFilters(),
     ): AppResult<MoviePage>
 
     /**

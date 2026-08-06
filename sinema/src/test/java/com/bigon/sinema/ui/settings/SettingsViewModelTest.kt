@@ -11,6 +11,7 @@ import com.bigon.core.model.MoviePage
 import com.bigon.core.model.MovieCollection
 import com.bigon.core.model.PersonDetail
 import com.bigon.core.model.TvDetail
+import com.bigon.domain.movie.DiscoverFilters
 import com.bigon.core.model.Region
 import com.bigon.core.model.ReviewPage
 import com.bigon.core.model.TrendingItem
@@ -103,8 +104,12 @@ class SettingsViewModelTest {
             AppResult.Failure(AppError.Unknown("unused"))
         override suspend fun tvDetail(tvId: Long): AppResult<TvDetail> =
             AppResult.Failure(AppError.Unknown("unused"))
-        override suspend fun discover(genreId: Int?, page: Int, streamingProviderId: Int?): AppResult<MoviePage> =
-            AppResult.Failure(AppError.Unknown("unused"))
+        override suspend fun discover(
+            genreId: Int?,
+            page: Int,
+            streamingProviderId: Int?,
+            filters: DiscoverFilters,
+        ): AppResult<MoviePage> = AppResult.Failure(AppError.Unknown("unused"))
         override suspend fun streamingServices(): AppResult<List<WatchProvider>> = AppResult.Success(emptyList())
         override fun observeTrendingAll(): Flow<List<TrendingItem>> = flowOf(emptyList())
         override suspend fun refreshTrendingAll(): AppResult<Unit> = AppResult.Success(Unit)
