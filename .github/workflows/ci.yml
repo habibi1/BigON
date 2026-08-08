@@ -216,12 +216,16 @@ jobs:
           mkdir -p docs/screenshots/emulator
           cp screenshots/*.png docs/screenshots/emulator/ 2>/dev/null || {
             echo "nothing captured — leaving the committed set alone"; exit 0; }
-          if git diff --quiet -- docs/screenshots/emulator; then
-            echo "captures are byte-identical to the committed set"; exit 0
-          fi
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Stage first, then compare the index. `git diff` alone reports no
+          # change for a directory whose files are all untracked, which is
+          # exactly the state of the very first run — it would report "nothing
+          # to do" precisely when there was everything to do.
           git add docs/screenshots/emulator
+          if git diff --cached --quiet -- docs/screenshots/emulator; then
+            echo "captures are byte-identical to the committed set"; exit 0
+          fi
           git commit -m "docs: refresh emulator captures for ${GITHUB_SHA::7} [skip ci]"
           git push origin "HEAD:${GITHUB_REF_NAME}"
 
