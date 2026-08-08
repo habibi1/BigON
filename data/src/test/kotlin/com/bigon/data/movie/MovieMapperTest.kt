@@ -593,4 +593,115 @@ class MovieMapperTest {
             urls,
         )
     }
+
+    // ── Tier 3: collections, people, series ─────────────────────────────────
+
+    @Test
+    fun `collection parts are ordered by release, undated last`() {
+        val collection = MovieMapper.toCollection(
+            CollectionResponse(
+                id = 1, name = "Alien Collection",
+                parts = listOf(
+                    MovieDto(id = 3, title = "Alien 3", releaseDate = "1992-05-22"),
+                    MovieDto(id = 99, title = "Untitled sequel", releaseDate = ""),
+                    MovieDto(id = 1, title = "Alien", releaseDate = "1979-05-25"),
+                    MovieDto(id = 2, title = "Aliens", releaseDate = "1986-07-18"),
+                ),
+            ),
+            emptyMap(),
+        )
+
+        // A franchise read out of order is unreadable as a sequence, which is
+        // the only reason to group them.
+        assertEquals(listOf("Alien", "Aliens", "Alien 3", "Untitled sequel"), collection.parts.map { it.title })
+    }
+
+    @Test
+    fun `belongs_to_collection becomes a reference on detail`() {
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(id = 1, belongsToCollection = CollectionRefDto(id = 131292, name = "Iron Man Collection")),
+        )
+        assertEquals(131292L, detail.collection?.id)
+        assertEquals("Iron Man Collection", detail.collection?.name)
+    }
+
+    @Test
+    fun `a blank collection stub is dropped rather than shown as an empty chip`() {
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(id = 1, belongsToCollection = CollectionRefDto(id = 0, name = "")),
+        )
+        assertNull(detail.collection)
+    }
+
+    @Test
+    fun `filmography merges cast and crew, one entry per film, newest first`() {
+        val person = MovieMapper.toPersonDetail(
+            PersonResponse(
+                id = 1, name = "Someone",
+                movieCredits = PersonCreditsDto(
+                    cast = listOf(
+                        PersonCastCreditDto(id = 10, title = "Older", releaseDate = "1999-01-01", character = "Him"),
+                        PersonCastCreditDto(id = 20, title = "Newer", releaseDate = "2020-01-01", character = "Her"),
+                    ),
+                    // Same film they also acted in: one card, not two.
+                    crew = listOf(PersonCrewCreditDto(id = 20, title = "Newer", releaseDate = "2020-01-01", job = "Director")),
+                ),
+            ),
+            emptyMap(),
+        )
+
+        assertEquals(listOf("Newer", "Older"), person.filmography.map { it.movie.title })
+        // The cast credit wins the merge, so the role shown is the character.
+        assertEquals("Her", person.filmography.first().role)
+    }
+
+    @Test
+    fun `a living person has a birth year but no dangling range`() {
+        val alive = MovieMapper.toPersonDetail(
+            PersonResponse(id = 1, name = "A", birthday = "1970-04-01"), emptyMap(),
+        )
+        assertEquals("1970", alive.lifespan)
+
+        val gone = MovieMapper.toPersonDetail(
+            PersonResponse(id = 2, name = "B", birthday = "1930-01-01", deathday = "2000-01-01"), emptyMap(),
+        )
+        assertEquals("1930 – 2000", gone.lifespan)
+
+        val unknown = MovieMapper.toPersonDetail(PersonResponse(id = 3, name = "C"), emptyMap())
+        assertNull(unknown.lifespan)
+    }
+
+    @Test
+    fun `series certification comes from content_ratings, falling back to US`() {
+        val response = TvDetailResponse(
+            id = 1, name = "Show",
+            contentRatings = ContentRatingsDto(
+                listOf(ContentRatingDto("US", "TV-MA"), ContentRatingDto("GB", "18")),
+            ),
+        )
+        assertEquals("18", MovieMapper.toTvDetail(response, region = "GB").certification)
+        // A region TMDB has no rating for degrades to US rather than to null.
+        assertEquals("TV-MA", MovieMapper.toTvDetail(response, region = "ID").certification)
+    }
+
+    @Test
+    fun `an ended series shows a closed range, a running one stays open`() {
+        val ended = MovieMapper.toTvDetail(
+            TvDetailResponse(id = 1, name = "S", firstAirDate = "2011-04-17", lastAirDate = "2019-05-19", status = "Ended"),
+        )
+        assertEquals("2011 – 2019", ended.airedRange)
+
+        // A returning series has a last-aired date too, but printing it would
+        // read as though the show had finished.
+        val running = MovieMapper.toTvDetail(
+            TvDetailResponse(id = 2, name = "S", firstAirDate = "2022-01-01", lastAirDate = "2024-01-01", status = "Returning Series"),
+        )
+        assertEquals("2022 –", running.airedRange)
+    }
+
+    @Test
+    fun `series applies the unrated rule like everything else`() {
+        val unrated = MovieMapper.toTvDetail(TvDetailResponse(id = 1, name = "S", voteAverage = 0.0, voteCount = 0))
+        assertNull(unrated.voteAverage)
+    }
 }

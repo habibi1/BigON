@@ -66,6 +66,8 @@ fun DetailRoute(
     movieId: Long,
     onBack: () -> Unit,
     onMovieClick: (Long) -> Unit,
+    onPersonClick: (Long) -> Unit = {},
+    onCollectionClick: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
     transition: PosterTransition? = null,
     viewModel: DetailViewModel = hiltViewModel<DetailViewModel, DetailViewModel.Factory>(
@@ -84,6 +86,8 @@ fun DetailRoute(
             viewModel.onIntent(DetailIntent.RecommendationClicked(id))
             onMovieClick(id)
         },
+        onPersonClick = onPersonClick,
+        onCollectionClick = onCollectionClick,
         transition = transition,
         modifier = modifier,
     )
@@ -96,6 +100,8 @@ fun DetailScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     onRecommendationClick: (Long) -> Unit = {},
+    onPersonClick: (Long) -> Unit = {},
+    onCollectionClick: (Long) -> Unit = {},
     transition: PosterTransition? = null,
 ) {
     val spacing = SinemaTheme.spacing
@@ -213,27 +219,44 @@ fun DetailScreen(
                             .padding(top = spacing.m),
                     ) {
                         cast.forEach { member ->
-                            SinemaCastCard(
-                                name = member.name,
-                                role = member.character,
-                                avatar = {
-                                    member.profileUrl?.let { url ->
-                                        AsyncImage(
-                                            model = url,
+                            // Faces are a destination now; before this the cast
+                            // row was the one place the app showed a name it
+                            // could tell you nothing more about.
+                            Box(modifier = Modifier.clickable { onPersonClick(member.id) }) {
+                                SinemaCastCard(
+                                    name = member.name,
+                                    role = member.character,
+                                    avatar = {
+                                        member.profileUrl?.let { url ->
+                                            AsyncImage(
+                                                model = url,
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier.fillMaxSize(),
+                                            )
+                                        } ?: Icon(
+                                            imageVector = SinemaIcons.Person,
                                             contentDescription = null,
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier.fillMaxSize(),
+                                            tint = colors.textSecondary,
+                                            modifier = Modifier.size(28.dp).align(Alignment.Center),
                                         )
-                                    } ?: Icon(
-                                        imageVector = SinemaIcons.Person,
-                                        contentDescription = null,
-                                        tint = colors.textSecondary,
-                                        modifier = Modifier.size(28.dp).align(Alignment.Center),
-                                    )
-                                },
-                            )
+                                    },
+                                )
+                            }
                         }
                     }
+                }
+
+                state.detail?.collection?.let { collection ->
+                    SinemaSectionHeader(
+                        title = "Part of a collection",
+                        modifier = Modifier.padding(top = spacing.xl),
+                    )
+                    SinemaTonalButton(
+                        text = collection.name,
+                        onClick = { onCollectionClick(collection.id) },
+                        modifier = Modifier.padding(top = spacing.m),
+                    )
                 }
 
                 state.watchProviders?.let { providers ->

@@ -46,6 +46,8 @@ data class MovieDetail(
      * can be honest about it rather than implying the app itself is localised.
      */
     val isLocalised: Boolean = false,
+    /** Set when the film belongs to a franchise; the parts need their own request. */
+    val collection: CollectionRef? = null,
 ) {
     val releaseYear: Int? get() = releaseDate?.year
 

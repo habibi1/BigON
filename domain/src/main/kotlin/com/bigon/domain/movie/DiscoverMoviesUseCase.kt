@@ -12,5 +12,6 @@ class DiscoverMoviesUseCase @Inject constructor(
         genreId: Int?,
         page: Int = 1,
         streamingProviderId: Int? = null,
-    ): AppResult<MoviePage> = repository.discover(genreId, page, streamingProviderId)
+        filters: DiscoverFilters = DiscoverFilters(),
+    ): AppResult<MoviePage> = repository.discover(genreId, page, streamingProviderId, filters)
 }

@@ -50,6 +50,16 @@ import com.bigon.core.model.WatchProvider
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.Text
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.window.Dialog
+import com.bigon.core.designsystem.components.SinemaChip
+import com.bigon.core.designsystem.components.SinemaPrimaryButton
+import com.bigon.domain.movie.DiscoverFilters
+import com.bigon.domain.movie.DiscoverSort
 
 private const val ALL_CHIP = "All"
 
@@ -109,6 +119,35 @@ fun SearchScreen(
             )
         }
 
+        if (state.showFilters) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = spacing.s),
+            ) {
+                SinemaChip(
+                    label = if (state.filters.activeCount > 0) {
+                        "Refine (${state.filters.activeCount})"
+                    } else {
+                        "Refine"
+                    },
+                    selected = state.filters.isActive,
+                    onClick = { onIntent(SearchIntent.FilterSheetOpened) },
+                )
+                if (state.filters.isActive) {
+                    Text(
+                        text = "Clear",
+                        style = SinemaTheme.typography.caption,
+                        color = SinemaTheme.colors.primary,
+                        modifier = Modifier
+                            .padding(start = spacing.m)
+                            .clip(SinemaTheme.shapes.pill)
+                            .clickable { onIntent(SearchIntent.FiltersChanged(DiscoverFilters())) }
+                            .padding(spacing.xs),
+                    )
+                }
+            }
+        }
+
         // Streaming services, shown only while browsing — a typed search cannot
         // honour this filter, and a control that silently does nothing is worse
         // than one that is absent.
@@ -134,6 +173,16 @@ fun SearchScreen(
                     )
                 }
             }
+        }
+
+        if (state.isFilterSheetOpen) {
+            RefineSheet(
+                filters = state.filters,
+                onDone = {
+                    onIntent(SearchIntent.FiltersChanged(it))
+                    onIntent(SearchIntent.FilterSheetDismissed)
+                },
+            )
         }
 
         state.error?.let { error ->
@@ -285,4 +334,131 @@ private fun ServiceChip(
             modifier = Modifier.align(Alignment.Center),
         )
     }
+}
+
+/**
+ * The refine sheet.
+ *
+ * Deliberately four controls, not the thirty TMDB's discover endpoint accepts.
+ * The rest — language, cast, keyword, company — are either already covered by
+ * another affordance on this screen or are the kind of filter people reach for
+ * once a year, and every one added costs a row that everyone scrolls past.
+ *
+ * Selections are held as a local draft and committed once, on the way out.
+ * Applying each tap live would mean four discover requests to set four
+ * refinements, and the results are behind the sheet where nobody can see them
+ * anyway.
+ */
+@Composable
+private fun RefineSheet(
+    filters: DiscoverFilters,
+    onDone: (DiscoverFilters) -> Unit,
+) {
+    val spacing = SinemaTheme.spacing
+    val colors = SinemaTheme.colors
+    val thisYear = remember { java.time.LocalDate.now().year }
+    var draft by remember(filters) { mutableStateOf(filters) }
+    val commit = { onDone(draft) }
+
+    // Back press and a scrim tap commit too: a sheet whose only exit that keeps
+    // your choices is one particular button is a sheet that loses them.
+    Dialog(onDismissRequest = commit) {
+        Surface(shape = SinemaTheme.shapes.container, color = colors.surface) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(spacing.l),
+            ) {
+                Text("Refine", style = SinemaTheme.typography.title, color = colors.textPrimary)
+
+                RefineLabel("Sort by")
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(spacing.s),
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                ) {
+                    DiscoverSort.entries.forEach { sort ->
+                        SinemaChip(
+                            label = sort.label,
+                            selected = draft.sort == sort,
+                            onClick = { draft = draft.copy(sort = sort) },
+                        )
+                    }
+                }
+
+                RefineLabel("Release year")
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(spacing.s),
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                ) {
+                    SinemaChip(
+                        label = "Any",
+                        selected = draft.releaseYear == null,
+                        onClick = { draft = draft.copy(releaseYear = null) },
+                    )
+                    (0..7).map { thisYear - it }.forEach { year ->
+                        SinemaChip(
+                            label = year.toString(),
+                            selected = draft.releaseYear == year,
+                            onClick = { draft = draft.copy(releaseYear = year) },
+                        )
+                    }
+                }
+
+                RefineLabel("Minimum rating")
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(spacing.s),
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                ) {
+                    SinemaChip(
+                        label = "Any",
+                        selected = draft.minRating == null,
+                        onClick = { draft = draft.copy(minRating = null) },
+                    )
+                    listOf(6.0, 7.0, 8.0).forEach { rating ->
+                        SinemaChip(
+                            label = "★ $rating+",
+                            selected = draft.minRating == rating,
+                            onClick = { draft = draft.copy(minRating = rating) },
+                        )
+                    }
+                }
+
+                RefineLabel("Maximum runtime")
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(spacing.s),
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                ) {
+                    SinemaChip(
+                        label = "Any",
+                        selected = draft.maxRuntimeMinutes == null,
+                        onClick = { draft = draft.copy(maxRuntimeMinutes = null) },
+                    )
+                    listOf(90, 120, 150).forEach { minutes ->
+                        SinemaChip(
+                            label = "under ${minutes / 60}h${(minutes % 60).takeIf { it > 0 } ?: ""}",
+                            selected = draft.maxRuntimeMinutes == minutes,
+                            onClick = { draft = draft.copy(maxRuntimeMinutes = minutes) },
+                        )
+                    }
+                }
+
+                SinemaPrimaryButton(
+                    text = "Done",
+                    onClick = commit,
+                    modifier = Modifier.padding(top = spacing.xl).fillMaxWidth(),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RefineLabel(text: String) {
+    Text(
+        text = text,
+        style = SinemaTheme.typography.caption,
+        color = SinemaTheme.colors.textSecondary,
+        modifier = Modifier.padding(top = SinemaTheme.spacing.l, bottom = SinemaTheme.spacing.s),
+    )
 }

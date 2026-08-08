@@ -1,6 +1,7 @@
 package com.bigon.data.movie
 
 import com.bigon.core.model.CastMember
+import com.bigon.core.model.CollectionRef
 import com.bigon.core.model.Movie
 import com.bigon.core.model.MovieDetail
 import com.bigon.core.model.WatchProvider
@@ -46,6 +47,8 @@ internal data class MovieDetailSnapshot(
     @SerialName("lg") val logoUrl: String? = null,
     @SerialName("alt") val alternativeTitles: List<String> = emptyList(),
     @SerialName("loc") val isLocalised: Boolean = false,
+    @SerialName("colId") val collectionId: Long? = null,
+    @SerialName("colName") val collectionName: String? = null,
 )
 
 @Serializable
@@ -118,6 +121,8 @@ internal fun MovieDetail.toSnapshot(): MovieDetailSnapshot = MovieDetailSnapshot
     logoUrl = logoUrl,
     alternativeTitles = alternativeTitles,
     isLocalised = isLocalised,
+    collectionId = collection?.id,
+    collectionName = collection?.name,
     watchProviders = watchProviders?.let { wp ->
         WatchProvidersSnapshot(
             region = wp.region,
@@ -161,6 +166,7 @@ internal fun MovieDetailSnapshot.toDomain(): MovieDetail = MovieDetail(
     logoUrl = logoUrl,
     alternativeTitles = alternativeTitles,
     isLocalised = isLocalised,
+    collection = collectionId?.let { id -> collectionName?.let { CollectionRef(id, it) } },
     watchProviders = watchProviders?.let { wp ->
         WatchProviders(
             region = wp.region,

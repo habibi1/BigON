@@ -65,16 +65,24 @@ class DetailCacheTest {
         override suspend fun upcoming(page: Int, region: String?) = MovieListResponse()
         override suspend fun genres() = GenreListResponse()
         override suspend fun search(query: String, page: Int, includeAdult: Boolean) = MovieListResponse()
+        @Suppress("LongParameterList")
         override suspend fun discover(
             withGenres: String?,
             sortBy: String,
             page: Int,
             withWatchProviders: String?,
             watchRegion: String?,
+            releaseYear: Int?,
+            minRating: Double?,
+            minVotes: Int?,
+            maxRuntime: Int?,
         ) = MovieListResponse()
         override suspend fun watchProviders(watchRegion: String) = WatchProviderListResponse()
         override suspend fun trendingAll(page: Int) = TrendingListResponse()
         override suspend fun regions() = RegionListResponse()
+        override suspend fun collection(id: Long) = CollectionResponse()
+        override suspend fun person(id: Long, append: String) = PersonResponse()
+        override suspend fun tvDetail(id: Long, append: String) = TvDetailResponse()
     }
 
     private fun dispatchers() = object : DispatcherProvider {
@@ -120,6 +128,7 @@ class DetailCacheTest {
         watchProviders = WatchProvidersDto(
             mapOf("US" to WatchProviderCountryDto(link = "https://tmdb", flatrate = listOf(ProviderDto(8, "Netflix")))),
         ),
+        belongsToCollection = CollectionRefDto(id = 87359, name = "Mission: Impossible Collection"),
     )
 
     @Test
@@ -212,5 +221,8 @@ class DetailCacheTest {
         // vanishing when the user goes offline.
         assertEquals(fresh, fromCache)
         assertNull(fresh.trailerKey)
+        // Named explicitly because the franchise entry point is the one field
+        // whose absence looks like the film simply has no collection.
+        assertEquals(87359L, fromCache.collection?.id)
     }
 }

@@ -93,7 +93,7 @@ The landing section above the rule comes from [`docs/readme-preamble.md`](docs/r
 
 ---
 
-**Technical solution · Revision 18 · Native Android**
+**Technical solution · Revision 19 · Native Android**
 
 # Sinema — architecture & delivery plan
 
@@ -440,7 +440,7 @@ Dependency versions live in a single Gradle version catalog. Nothing else in the
 | Build, modules, conventions | **Done** | 13 modules, 5 archetypes, catalog, clean build |
 | Design system | **Done** | Tokens + 16 components + ~92 in-file previews; both themes verified on device |
 | DI composition root | **Done** | Hilt graph compiles; adapters bound in `:sinema` only |
-| Guardrails & tests | **Done** | 115 unit tests green; five Konsist rules enforcing layering, including one that keeps `androidx.navigation` inside the app shell |
+| Guardrails & tests | **Done** | 130 unit tests green; five Konsist rules enforcing layering, including one that keeps `androidx.navigation` inside the app shell |
 | Domain layer | **Done** | `MovieRepository` contract plus observe/refresh use cases |
 | Movie data pipeline | **Done** | DTOs, `MovieApi`, mapper and offline-first repository; Room is the single source of truth, per-category |
 | Feature modules & ViewModels | **Partial** | Every screen is real — UDF contracts, ViewModels, zero mocks — but they live in `:sinema` rather than `feature/*` modules; extraction is the remaining structural step (§9·03) |
@@ -448,7 +448,11 @@ Dependency versions live in a single Gradle version catalog. Nothing else in the
 | Settings | **Done** | Theme persisted via DataStore (survives process death, verified on device); **content region picker** over the 139 regions TMDB holds data for, searchable by name or code, with "follow device" as a distinct option; real clear-cache with computed size — catalogue + images, favourites kept; app version row |
 | Pagination | **Done** | Infinite scroll on Home and Search; append with dedupe, end-of-list detection, quiet append failures. Room gained a `page` column (DB v4) |
 | Search | **Done** | Hybrid: blank query browses `/discover` (genre server-side), typed query hits `/search` (genre client-side); debounced via `Flags.SearchDebounceMs` — the flag system's first real consumer — with `mapLatest` cancellation; real genre chips from the cached table; results open detail with the shared-element transition |
-| Movie detail | **Done** | One call carrying eight appended blocks: backdrop, cast, trailer flag, age certification, themes, an IMDb link, streaming availability for the device region, and a "More like this" row that makes detail open detail. Cached in Room (DB v5) so a second open costs nothing and works offline. |
+| Movie detail | **Done** | One call carrying every Tier 1 block: backdrop and studio title logo, cast, trailer, age certification, themes, an IMDb link, streaming availability for the chosen region, alternative titles, a device-language overview merged field-by-field, and a "More like this" row that makes detail open detail. Reviews ride a second request so they paginate and fail independently. Shimmer skeleton on load, and a sticky toolbar whose title logo fades in only once the hero has scrolled away. Cached in Room (DB v5) so a second open costs nothing and works offline |
+| Person | **Done** | Reached from any cast card on movie or series detail: profile, lifespan, birthplace, a biography that collapses at five lines, and a filmography merging cast and crew credits de-duplicated by film. Network-only by design — it is always a tap-through, never a landing screen (§10 Tier 3) |
+| Collection | **Done** | Franchise view reached from detail, where the reference already arrives free in the payload. Parts ordered by release with undated entries last; round-trips through the detail snapshot so an opened franchise stays readable offline |
+| TV series detail | **Done** | Sibling of movie detail, not a generalisation of it: seasons and episode counts instead of a runtime, certification from `content_ratings` with a US fallback. Closes the trending hand-off — series cards now open natively rather than leaving for TMDB's website. Seasons and episodes are explicitly out of scope |
+| Browse refinements | **Done** | Sort, release year, rating floor and maximum runtime over `/discover`, in a sheet that batches its selections into one request. Shown only while browsing, since a typed query honours none of them. The rating floor is paired with a vote-count floor in the repository, where the rule cannot be forgotten by a call site |
 | Navigation | **Done** | Real `NavHost` with type-safe `@Serializable` routes in `:core:navigation`; the speculative `Navigator` contract was deleted, not completed. Tab selection derives from the back stack rather than an enum, and `androidx.navigation` is confined to three shell files by a Konsist rule (§4) |
 | Remote config & analytics backends | **Speculative** | Full port machinery with one debug sink, no backend, and no flag read by any screen |
 | Images | **Done** | Coil 3 sharing the app's OkHttp client; auth is host-scoped so image requests carry no credential |
@@ -476,7 +480,7 @@ Deliberately ordered: the first slice validates the architecture end to end, and
 
 4. **Detail · Search · Favorites · Settings** — **All done**
 
-   All four shipped: detail with the shared-element transition and two-pass paint, search with hybrid semantics and debounce, favourites as offline-proof snapshots, settings with persisted theme and real cache management. What remains of this step is structural — feature-module extraction — plus the adaptive list–detail layout, including the adaptive list–detail layout for tablets and foldables that `AppScaffold` already anticipates.
+   All four shipped: detail with the shared-element transition and two-pass paint, search with hybrid semantics and debounce, favourites as offline-proof snapshots, settings with persisted theme, a content region picker and real cache management. Four more screens arrived with the API backlog (§10) — person, collection, series detail, and the browse refinement sheet — on the same UDF contract, which is the useful signal: the archetype absorbed a new content domain without being reopened. What remains of this step is structural — feature-module extraction — plus the adaptive list–detail layout for tablets and foldables that `AppScaffold` already anticipates.
 
 5. **Production hardening**
 
@@ -529,17 +533,19 @@ Two blocks are region-scoped and have no server-side filter when appended — `r
   
  `/trending/all/week` interleaves films, series and people behind a `media_type` discriminator, and is modelled as a sealed `TrendingItem` rather than one wide class of nullable fields: a series has no runtime and a person has no rating, and calling that "null" pushes the question of which fields mean anything onto every call site. Three details were only obvious once it ran against real data — TMDB ids are unique only *within* a media type, so the cache key and the Compose list key are both composite (film 550 and series 550 are different things); an unknown `media_type` is dropped rather than coerced, because TMDB returns types its own documentation does not list; and the feed gets its own table rather than reusing `movie_entity`, so it stays offline-first like every other list instead of being the one chip that blanks without a connection.   
   
- Films open native detail. Series and people open TMDB's own page, because their native screens are Tier 3 — a card that silently does nothing when tapped teaches the user the feed is broken, and one that leaves the app is at least truthful. |
+ Every card now opens a native screen. Until Tier 3 landed, series and people handed off to TMDB's own website — a card that silently does nothing when tapped teaches the user the feed is broken, and one that leaves the app is at least truthful. The hand-off was a placeholder with a stated expiry, and Tier 3 is where it expired. |
 
-### Tier 3 — larger moves
+### Tier 3 — larger moves — **Shipped**
 
-| Capability | Endpoint | Why it is bigger |
+All four shipped, and the ordering they arrived in was not the one this document originally proposed. Collections turned out to be nearly free — the franchise reference already rides the detail payload — while TV, forecast as the move that "effectively doubles the domain model", cost one screen. The estimate that held was Discover: it really did reshape browse rather than extend it.
+
+| Capability | Endpoint | What shipped, and what it cost |
 | --- | --- | --- |
-| **Discover** | /discover/movie | 30+ filters and sorts — genre, year, rating floor, runtime, language, cast, keyword, provider. Replaces five fixed categories with real browsing, so it reshapes Home's state model, the cache key scheme and the chip row rather than adding to them. |
-| **People** | /person/{id}  
-+ movie_credits | Makes `SinemaCastCard` tappable and adds a filmography screen. A new content domain: its own model, repository, cache table and screen. |
-| **TV** | /tv/*, /discover/tv | A full parallel API — series, seasons, episodes. Effectively doubles the domain model. Needs a product decision before any code. |
-| **Collections** | /collection/{id} | Franchises as a single grouped entity (the Alien collection returns 8 parts). Small on its own, but wants a dedicated screen. |
+| **Collections** **Done** | /collection/{id} | Cheaper than forecast. `belongs_to_collection` is already in the detail response, so the "Part of a collection" entry point costs nothing — the extra request happens only when the user taps it. Parts are sorted by release date with undated entries last, which matters because TMDB returns them in no useful order and an announced-but-undated sequel would otherwise land in the middle of a franchise. The result round-trips through the detail snapshot, so a franchise you have opened stays readable offline. |
+| **People** **Done** | /person/{id}  
++ movie_credits | A new content domain, as predicted: its own model, use case and screen. Cast cards are now tappable from both movie and series detail. Filmography merges the `cast` and `crew` arrays and de-duplicates by film id — someone who wrote and directed the same picture appears once, not twice — newest first, capped at 40. Biographies collapse at five lines, and the "Read more" affordance appears only when the text actually clipped; most biographies are one sentence. **Deliberately not cached:** a person is reached by tapping through, never as a landing screen, so a cache table would carry schema and eviction cost for rows nobody reopens. |
+| **TV** **Done** | /tv/{id} | Series detail, with `credits,videos,content_ratings,watch/providers` appended on the same request. It is a sibling of `MovieDetail`, not a generalisation of it: a series has seasons and episode counts and no runtime, and the certification comes from `content_ratings` rather than `release_dates` — a different endpoint with a different shape, falling back to US when the user's region has no entry. This closes the Tier 2 hand-off: trending series now open natively instead of leaving for TMDB's website. **Out of scope:** `/discover/tv` and seasons/episodes. Browsing series and drilling into an episode list are each their own feature, and neither is needed to make a series card mean something when tapped. |
+| **Discover** **Done** | /discover/movie | The estimate that held. Four refinements ship — sort, release year, rating floor, maximum runtime — out of the thirty the endpoint accepts, because the rest are either already covered by another control on that screen or are the kind of filter people reach for once a year, and each one costs a row everybody scrolls past. Two rules are enforced in the repository rather than the UI, since both are silent when wrong: a rating floor *always* travels with `vote_count.gte=200`, or "8.0+" surfaces obscure titles rated 10.0 by three people; and that vote floor is *never* sent alone, or it quietly excludes every new release. The sheet holds its selections as a draft and commits once on close — applying each tap live meant four discover requests to set four refinements, against results nobody can see behind the sheet. Refinements are hidden the moment a query is typed, for the same reason the service row is: `/search/movie` honours none of them. |
 
 > ### Reference data
 >
@@ -552,9 +558,9 @@ Two blocks are region-scoped and have no server-side filter when appended — `r
 >
 > TMDB can host favourites, watchlists and ratings server-side, but those endpoints need a **user session**, not the app-level read token this project uses. Local favourites in Room stay the simpler choice unless cross-device sync becomes a requirement.
 
-> **Suggested order**
+> **What is left**
 >
-> **1.** `recommendations` on detail — one word, immediate value, reuses existing components. **2.** Search via `/search/multi` — a mocked screen with its component already built. **3.** `watch/providers` — genuinely useful and visually distinctive. **4.** Discover — only once real browsing is the goal, since it reshapes Home.
+> The three tiers are shipped. What remains is named here so its absence reads as a decision rather than an oversight. **`/search/multi`** is now unblocked — it needed TV and person models to exist, and they do — but a mixed result list is a ranking problem, not a parsing one: a query for "spider" should not put an obscure crew member above the films. **`/discover/tv`** would give series the browse surface films have. **Seasons and episodes** are the one genuinely large piece left, and the only one that still wants a product decision before code. Person data stays network-only until something makes a person a landing screen rather than a tap-through.
 
 ## §11 Environment & open items
 
@@ -568,7 +574,7 @@ Two blocks are region-scoped and have no server-side filter when appended — `r
 > ### Needed to proceed
 >
 > - **Firebase project** for the analytics and Remote Config adapters — optional until step 05.
-> - **Product decision** on the first feature scope beyond Home.
+> - **Product decision** on seasons and episodes — the one remaining piece of the API backlog large enough to want a scope before it wants code (§10).
 
 > **Documentation debt**
 >
@@ -576,4 +582,4 @@ Two blocks are region-scoped and have no server-side filter when appended — `r
 
 ---
 
-Sinema · technical solution · Revision 18 — native Android · supersedes revision 17 · Supersedes the KMP/CMP planning document
+Sinema · technical solution · Revision 19 — native Android · supersedes revision 18 · Supersedes the KMP/CMP planning document

@@ -13,12 +13,16 @@ import com.bigon.core.model.Movie
 import com.bigon.core.model.MovieCategory
 import com.bigon.core.model.MovieDetail
 import com.bigon.core.model.MoviePage
+import com.bigon.core.model.MovieCollection
+import com.bigon.core.model.PersonDetail
 import com.bigon.core.model.Region
+import com.bigon.core.model.TvDetail
 import com.bigon.core.model.ReviewPage
 import com.bigon.core.model.TrendingItem
 import com.bigon.core.model.WatchProvider
 import com.bigon.core.datastore.PreferenceStorage
 import com.bigon.core.network.ApiCaller
+import com.bigon.domain.movie.DiscoverFilters
 import com.bigon.domain.movie.LoadMoreOutcome
 import com.bigon.domain.movie.MovieRepository
 import kotlinx.coroutines.flow.Flow
@@ -111,6 +115,28 @@ class DefaultMovieRepository @Inject constructor(
             refreshGenresIfNeeded()
             apiCaller.execute { movieApi.trendingAll(page = 1) }
                 .map { response -> trendingItemDao.replaceAll(MovieMapper.toTrendingEntities(response)) }
+        }
+
+    override suspend fun collection(collectionId: Long): AppResult<MovieCollection> =
+        withContext(dispatchers.io) {
+            refreshGenresIfNeeded()
+            val genresById = genreDao.getAll().associate { it.id to it.name }
+            apiCaller.execute { movieApi.collection(collectionId) }
+                .map { MovieMapper.toCollection(it, genresById) }
+        }
+
+    override suspend fun person(personId: Long): AppResult<PersonDetail> =
+        withContext(dispatchers.io) {
+            refreshGenresIfNeeded()
+            val genresById = genreDao.getAll().associate { it.id to it.name }
+            apiCaller.execute { movieApi.person(personId) }
+                .map { MovieMapper.toPersonDetail(it, genresById) }
+        }
+
+    override suspend fun tvDetail(tvId: Long): AppResult<TvDetail> =
+        withContext(dispatchers.io) {
+            apiCaller.execute { movieApi.tvDetail(tvId) }
+                .map { MovieMapper.toTvDetail(it, regionProvider.region()) }
         }
 
     override suspend fun availableRegions(): AppResult<List<Region>> =
@@ -250,6 +276,7 @@ class DefaultMovieRepository @Inject constructor(
         genreId: Int?,
         page: Int,
         streamingProviderId: Int?,
+        filters: DiscoverFilters,
     ): AppResult<MoviePage> =
         withContext(dispatchers.io) {
             refreshGenresIfNeeded()
@@ -257,11 +284,18 @@ class DefaultMovieRepository @Inject constructor(
             apiCaller.execute {
                 movieApi.discover(
                     withGenres = genreId?.toString(),
+                    sortBy = filters.sort.apiValue,
                     page = page,
                     withWatchProviders = streamingProviderId?.toString(),
                     // Only sent alongside a provider; on its own it would
                     // narrow results for no reason the user asked for.
                     watchRegion = streamingProviderId?.let { regionProvider.region() },
+                    releaseYear = filters.releaseYear,
+                    minRating = filters.minRating,
+                    // Only meaningful alongside a rating floor; sending it alone
+                    // would quietly exclude every newly released film.
+                    minVotes = filters.minRating?.let { DiscoverFilters.MIN_VOTES_FOR_RATING_FILTER },
+                    maxRuntime = filters.maxRuntimeMinutes,
                 )
             }.map { response -> MovieMapper.toPage(response, genresById) }
         }

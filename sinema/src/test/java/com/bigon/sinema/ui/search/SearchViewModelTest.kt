@@ -7,6 +7,10 @@ import com.bigon.core.config.FeatureFlagRepository
 import com.bigon.core.model.Genre
 import com.bigon.core.model.Movie
 import com.bigon.core.model.MoviePage
+import com.bigon.core.model.MovieCollection
+import com.bigon.core.model.PersonDetail
+import com.bigon.core.model.TvDetail
+import com.bigon.domain.movie.DiscoverFilters
 import com.bigon.core.model.Region
 import com.bigon.core.model.ReviewPage
 import com.bigon.core.model.TrendingItem
@@ -14,6 +18,7 @@ import com.bigon.core.model.WatchProvider
 import com.bigon.core.tracker.AnalyticsEvent
 import com.bigon.core.tracker.AnalyticsTracker
 import com.bigon.domain.movie.DiscoverMoviesUseCase
+import com.bigon.domain.movie.DiscoverSort
 import com.bigon.domain.movie.GetStreamingServicesUseCase
 import com.bigon.domain.movie.LoadMoreOutcome
 import com.bigon.domain.movie.MovieRepository
@@ -38,6 +43,7 @@ import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /**
  * The debounce/cancellation contract: typing must not fire a request per
@@ -79,11 +85,20 @@ class SearchViewModelTest {
         }
 
         var lastProviderId: Int? = null
+        var lastFilters: DiscoverFilters = DiscoverFilters()
+        override suspend fun collection(collectionId: Long): AppResult<MovieCollection> =
+            AppResult.Failure(AppError.Unknown("unused"))
+        override suspend fun person(personId: Long): AppResult<PersonDetail> =
+            AppResult.Failure(AppError.Unknown("unused"))
+        override suspend fun tvDetail(tvId: Long): AppResult<TvDetail> =
+            AppResult.Failure(AppError.Unknown("unused"))
         override suspend fun discover(
             genreId: Int?,
             page: Int,
             streamingProviderId: Int?,
+            filters: DiscoverFilters,
         ): AppResult<MoviePage> {
+            lastFilters = filters
             discoverCalls += genreId
             lastProviderId = streamingProviderId
             return AppResult.Success(
@@ -324,4 +339,65 @@ class SearchViewModelTest {
             assertFalse(vm.state.value.showServiceFilter)
             assertEquals(listOf("Discover p1"), vm.state.value.results.map { it.title })
         }
+
+    // ── Tier 3: discover refinements ────────────────────────────────────────
+
+    @Test
+    fun `refinements reach discover`() = runTest(dispatcher) {
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.onIntent(
+            SearchIntent.FiltersChanged(
+                DiscoverFilters(sort = DiscoverSort.Rating, releaseYear = 2024, minRating = 7.0, maxRuntimeMinutes = 120),
+            ),
+        )
+        advanceUntilIdle()
+
+        assertEquals(DiscoverSort.Rating, repository.lastFilters.sort)
+        assertEquals(2024, repository.lastFilters.releaseYear)
+        assertEquals(7.0, repository.lastFilters.minRating)
+        assertEquals(120, repository.lastFilters.maxRuntimeMinutes)
+    }
+
+    @Test
+    fun `the refine affordance hides for a typed search it cannot apply to`() = runTest(dispatcher) {
+        val vm = viewModel()
+        advanceUntilIdle()
+        assertTrue(vm.state.value.showFilters)
+
+        vm.onIntent(SearchIntent.QueryChanged("dune"))
+        advanceUntilIdle()
+
+        // /search/movie takes no sort, year, rating or runtime parameter.
+        assertFalse(vm.state.value.showFilters)
+    }
+
+    @Test
+    fun `the active count drives the badge and default filters are inactive`() = runTest(dispatcher) {
+        val vm = viewModel()
+        advanceUntilIdle()
+        assertFalse(vm.state.value.filters.isActive)
+        assertEquals(0, vm.state.value.filters.activeCount)
+
+        vm.onIntent(SearchIntent.FiltersChanged(DiscoverFilters(releaseYear = 2024, minRating = 8.0)))
+        advanceUntilIdle()
+
+        assertTrue(vm.state.value.filters.isActive)
+        assertEquals(2, vm.state.value.filters.activeCount)
+    }
+
+    @Test
+    fun `changing a filter discards a page that was already in flight`() = runTest(dispatcher) {
+        val vm = viewModel()
+        repository.totalPages = 5
+        advanceUntilIdle()
+
+        vm.onIntent(SearchIntent.FiltersChanged(DiscoverFilters(sort = DiscoverSort.Newest)))
+        advanceUntilIdle()
+
+        // Page resets rather than appending newest-sorted results onto
+        // popularity-sorted ones.
+        assertEquals(1, vm.state.value.page)
+    }
 }

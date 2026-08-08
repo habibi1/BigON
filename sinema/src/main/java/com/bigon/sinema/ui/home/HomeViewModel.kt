@@ -74,10 +74,8 @@ class HomeViewModel @Inject constructor(
                     tracker.track(AnalyticsEvent.MovieOpened(item.id, source = "trending_all"))
                     _effects.trySend(HomeEffect.NavigateToDetail(item.id))
                 }
-                else -> {
-                    tracker.track(AnalyticsEvent.OutboundLink("tmdb_${item.typeLabel.lowercase()}"))
-                    _effects.trySend(HomeEffect.OpenExternal(item.tmdbUrl))
-                }
+                is TrendingItem.Series -> _effects.trySend(HomeEffect.NavigateToTv(item.id))
+                is TrendingItem.Person -> _effects.trySend(HomeEffect.NavigateToPerson(item.id))
             }
             HomeIntent.ErrorDismissed -> _state.update { it.copy(error = null) }
         }
