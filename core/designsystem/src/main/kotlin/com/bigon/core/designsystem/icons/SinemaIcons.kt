@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Search
@@ -49,6 +50,9 @@ object SinemaIcons {
     val Person: ImageVector = Icons.Filled.Person
     val ChevronRight: ImageVector = Icons.Filled.ChevronRight
     val Movie: ImageVector = Icons.Filled.Movie
+
+    /** Opens a refinement sheet — sliders, not a funnel: these adjust, not exclude. */
+    val Filter: ImageVector = Icons.Filled.Tune
 }
 
 // ── Previews ────────────────────────────────────────────────────────────────
@@ -66,6 +70,7 @@ private val iconSheet = listOf(
     "Person" to SinemaIcons.Person,
     "ChevronRight" to SinemaIcons.ChevronRight,
     "Movie" to SinemaIcons.Movie,
+    "Filter" to SinemaIcons.Filter,
 )
 
 /** The full icon vocabulary — the sheet to check before adding a new glyph. */

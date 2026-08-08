@@ -805,9 +805,9 @@ graph TD
             <tr>
               <td><strong>Components</strong></td>
               <td class="t-note">
-                MovieCard &amp; ShimmerCard · SectionHeader · CastCard · ListItem · SearchBar · Chip &amp; ChipRow ·
-                Primary/Tonal buttons · FavoriteToggle · SegmentedControl · SettingRow · OfflineBanner · Snackbar ·
-                LoadingIndicator · EmptyState · AttributionFooter · AppScaffold
+                MovieCard &amp; ShimmerCard · SectionHeader · CastCard · ListItem · SearchBar · Chip · FilterChip &amp;
+                ChipRow · Primary/Tonal buttons · FavoriteToggle · SegmentedControl · SettingRow · OfflineBanner ·
+                Snackbar · LoadingIndicator · EmptyState · AttributionFooter · AppScaffold
               </td>
             </tr>
           </tbody>
@@ -825,6 +825,17 @@ graph TD
         Two rules keep it scalable: images are passed as <strong>slots</strong>, so the design system never depends on
         an image loader; and <code>AppScaffold</code> adapts its own navigation — bottom bar under 600dp, rail above —
         so screens never branch on device type.
+      </p>
+      <p>
+        <strong>Chips split along the line a finger draws.</strong> <code>SinemaChip</code> and
+        <code>SinemaFilterChip</code> render the same pill from the same private implementation, so a metadata row and
+        a filter row read as one vocabulary; only the operable one grows a 40dp pill inside a 48dp touch target, takes
+        an optional count badge, and exposes a leading slot. The split was forced by the search screen, where the
+        streaming filter was a row of bare 40dp logo squares: under the minimum target, with the service name living
+        only in the content description, and clearable only by re-tapping the selected one — a gesture nothing on
+        screen advertised. It also repeats the lesson the TMDB mark taught in §6: provider logos are
+        dark-on-transparent PNGs, so they need a fixed light plate rather than a theme surface, because they are
+        someone else's brand and do not restyle with ours.
       </p>
       <p>
         The app also ships a real <strong>adaptive launcher icon</strong> — separate background, foreground and
@@ -1084,12 +1095,12 @@ graph TD
             <tr><td>Favorites</td><td><span class="pill ok">Done</span></td><td class="t-note">Local-only snapshots in their own Room table (survive cache clearing and offline); heart on detail; grid opens detail with the shared-element transition</td></tr>
             <tr><td>Settings</td><td><span class="pill ok">Done</span></td><td class="t-note">Theme persisted via DataStore (survives process death, verified on device); <strong>content region picker</strong> over the 139 regions TMDB holds data for, searchable by name or code, with "follow device" as a distinct option; real clear-cache with computed size — catalogue + images, favourites kept; app version row</td></tr>
             <tr><td>Pagination</td><td><span class="pill ok">Done</span></td><td class="t-note">Infinite scroll on Home and Search; append with dedupe, end-of-list detection, quiet append failures. Room gained a <code>page</code> column (DB v4)</td></tr>
-            <tr><td>Search</td><td><span class="pill ok">Done</span></td><td class="t-note">Hybrid: blank query browses <code>/discover</code> (genre server-side), typed query hits <code>/search</code> (genre client-side); debounced via <code>Flags.SearchDebounceMs</code> — the flag system's first real consumer — with <code>mapLatest</code> cancellation; real genre chips from the cached table; results open detail with the shared-element transition</td></tr>
+            <tr><td>Search</td><td><span class="pill ok">Done</span></td><td class="t-note">Hybrid: blank query browses <code>/discover</code> (genre server-side), typed query hits <code>/search</code> (genre client-side); debounced via <code>Flags.SearchDebounceMs</code> — the flag system's first real consumer — with <code>mapLatest</code> cancellation; real genre chips from the cached table; results open detail with the shared-element transition. Chrome above the grid is one search field and one filter bar — genre stays on the surface as the axis people actually reach for, everything else sits behind a badged entry point (§5)</td></tr>
             <tr><td>Movie detail</td><td><span class="pill ok">Done</span></td><td class="t-note">One call carrying every Tier 1 block: backdrop and studio title logo, cast, trailer, age certification, themes, an IMDb link, streaming availability for the chosen region, alternative titles, a device-language overview merged field-by-field, and a "More like this" row that makes detail open detail. Reviews ride a second request so they paginate and fail independently. Shimmer skeleton on load, and a sticky toolbar whose title logo fades in only once the hero has scrolled away. Cached in Room (DB v5) so a second open costs nothing and works offline</td></tr>
             <tr><td>Person</td><td><span class="pill ok">Done</span></td><td class="t-note">Reached from any cast card on movie or series detail: profile, lifespan, birthplace, a biography that collapses at five lines, and a filmography merging cast and crew credits de-duplicated by film. Network-only by design — it is always a tap-through, never a landing screen (§10 Tier 3)</td></tr>
             <tr><td>Collection</td><td><span class="pill ok">Done</span></td><td class="t-note">Franchise view reached from detail, where the reference already arrives free in the payload. Parts ordered by release with undated entries last; round-trips through the detail snapshot so an opened franchise stays readable offline</td></tr>
             <tr><td>TV series detail</td><td><span class="pill ok">Done</span></td><td class="t-note">Sibling of movie detail, not a generalisation of it: seasons and episode counts instead of a runtime, certification from <code>content_ratings</code> with a US fallback. Closes the trending hand-off — series cards now open natively rather than leaving for TMDB's website. Seasons and episodes are explicitly out of scope</td></tr>
-            <tr><td>Browse refinements</td><td><span class="pill ok">Done</span></td><td class="t-note">Sort, release year, rating floor and maximum runtime over <code>/discover</code>, in a sheet that batches its selections into one request. Shown only while browsing, since a typed query honours none of them. The rating floor is paired with a vote-count floor in the repository, where the rule cannot be forgotten by a call site</td></tr>
+            <tr><td>Browse refinements</td><td><span class="pill ok">Done</span></td><td class="t-note">Sort, release year, rating floor and maximum runtime over <code>/discover</code>, in a bottom sheet that batches its selections into one request, alongside the streaming service picker. Shown only while browsing, since a typed query honours none of them. The rating floor is paired with a vote-count floor in the repository, where the rule cannot be forgotten by a call site</td></tr>
             <tr><td>Navigation</td><td><span class="pill ok">Done</span></td><td class="t-note">Real <code>NavHost</code> with type-safe <code>@Serializable</code> routes in <code>:core:navigation</code>; the speculative <code>Navigator</code> contract was deleted, not completed. Tab selection derives from the back stack rather than an enum, and <code>androidx.navigation</code> is confined to three shell files by a Konsist rule (§4)</td></tr>
             <tr><td>Remote config &amp; analytics backends</td><td><span class="pill warn">Speculative</span></td><td class="t-note">Full port machinery with one debug sink, no backend, and no flag read by any screen</td></tr>
             <tr><td>Images</td><td><span class="pill ok">Done</span></td><td class="t-note">Coil 3 sharing the app's OkHttp client; auth is host-scoped so image requests carry no credential</td></tr>

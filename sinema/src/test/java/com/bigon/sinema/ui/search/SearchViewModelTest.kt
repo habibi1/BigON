@@ -388,6 +388,36 @@ class SearchViewModelTest {
     }
 
     @Test
+    fun `the badge counts the service alongside the refinements it sits with`() =
+        runTest(dispatcher) {
+            // The chip that opens the sheet is the only thing left on screen
+            // reporting what the sheet holds, so it has to count everything in
+            // there — refinements and the streaming service alike.
+            val vm = viewModel()
+            advanceUntilIdle()
+            assertEquals(0, vm.state.value.activeRefinementCount)
+
+            vm.onIntent(SearchIntent.FiltersChanged(DiscoverFilters(minRating = 8.0)))
+            vm.onIntent(SearchIntent.ServiceSelected(8))
+            advanceUntilIdle()
+
+            assertEquals(2, vm.state.value.activeRefinementCount)
+        }
+
+    @Test
+    fun `genre is not counted by the badge, because it never left the screen`() =
+        runTest(dispatcher) {
+            val vm = viewModel()
+            advanceUntilIdle()
+
+            vm.onIntent(SearchIntent.GenreSelected(878))
+            advanceUntilIdle()
+
+            assertEquals(878, vm.state.value.selectedGenreId)
+            assertEquals(0, vm.state.value.activeRefinementCount)
+        }
+
+    @Test
     fun `changing a filter discards a page that was already in flight`() = runTest(dispatcher) {
         val vm = viewModel()
         repository.totalPages = 5

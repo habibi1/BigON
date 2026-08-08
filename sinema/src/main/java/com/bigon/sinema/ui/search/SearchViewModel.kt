@@ -195,8 +195,8 @@ class SearchViewModel @Inject constructor(
     private companion object {
         /**
          * The US catalogue lists 289 services. Past the first handful they are
-         * long-tail channels nobody filters by, and an endless row would bury
-         * the genre chips beneath it.
+         * long-tail channels nobody filters by, and a section you have to
+         * scroll for a minute to reach the end of is one nobody finishes.
          */
         const val MAX_SERVICES = 12
     }

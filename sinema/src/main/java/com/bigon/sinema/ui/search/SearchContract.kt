@@ -16,8 +16,12 @@ import com.bigon.core.ui.UiText
  * The streaming filter follows the same asymmetry for the same reason, but
  * cannot be papered over client-side: `/search/movie` accepts no provider
  * filter, and search results carry no provider data to filter on. So the
- * service row appears only while browsing, rather than sitting inert beside a
- * typed query pretending to work.
+ * service section appears only while browsing, rather than sitting inert
+ * beside a typed query pretending to work.
+ *
+ * Genre is the one filter that stays on the screen; the rest live in a sheet
+ * behind a badged entry point, because four stacked filter rows put the
+ * screen's settings above its content.
  */
 data class SearchUiState(
     val query: String = "",
@@ -41,18 +45,27 @@ data class SearchUiState(
     val selectedGenreName: String? get() = genres.firstOrNull { it.id == selectedGenreId }?.name
 
     /**
-     * Only meaningful while browsing — see the class comment. Hidden rather
-     * than disabled during a typed search: a greyed-out control invites the
-     * question "why", and there is no good answer at that moment.
+     * Whether the sheet offers a streaming section at all. Only meaningful
+     * while browsing — see the class comment. Hidden rather than disabled
+     * during a typed search: a greyed-out control invites the question "why",
+     * and there is no good answer at that moment.
      */
     val showServiceFilter: Boolean get() = query.isBlank() && services.isNotEmpty()
 
     /**
-     * Refinements are discover-only for the same reason the service row is:
+     * Refinements are discover-only for the same reason the service section is:
      * `/search/movie` accepts no sort, year, rating or runtime parameter, so
      * offering them beside a typed query would be a control that does nothing.
      */
     val showFilters: Boolean get() = query.isBlank()
+
+    /**
+     * Everything the filter sheet owns, counted for the badge on the chip that
+     * opens it. Genre is excluded on purpose: it stays visible on the bar, so
+     * counting it here would report a selection the user can already see.
+     */
+    val activeRefinementCount: Int
+        get() = filters.activeCount + if (selectedServiceId != null) 1 else 0
 
     /** Genre filter applied client-side when a typed search is active. */
     val visibleResults: List<Movie>
