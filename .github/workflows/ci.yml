@@ -133,6 +133,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     timeout-minutes: 60
+    # Widened from the workflow default so the captures can be committed back —
+    # see the final step for why an artifact alone is not enough here.
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -197,6 +201,29 @@ jobs:
           path: screenshots/*.png
           retention-days: 14
           if-no-files-found: warn
+
+      # An artifact expires in 14 days and lives behind a blob host that not
+      # every consumer of this repository can reach. Committing the captures
+      # keeps them reviewable in the diff — the screen that changed shows up
+      # beside the code that changed it, which is the one place a stale capture
+      # cannot hide. `[skip ci]` stops this from triggering itself, and the
+      # frozen status bar (see the capture script) means an unchanged screen
+      # produces an identical file and therefore no commit at all.
+      - name: Commit the captures back to the branch
+        if: github.event_name == 'push' && success()
+        run: |
+          set -euo pipefail
+          mkdir -p docs/screenshots/emulator
+          cp screenshots/*.png docs/screenshots/emulator/ 2>/dev/null || {
+            echo "nothing captured — leaving the committed set alone"; exit 0; }
+          if git diff --quiet -- docs/screenshots/emulator; then
+            echo "captures are byte-identical to the committed set"; exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/screenshots/emulator
+          git commit -m "docs: refresh emulator captures for ${GITHUB_SHA::7} [skip ci]"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
 
 # Deliberately not here yet:
 #

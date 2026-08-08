@@ -26,6 +26,19 @@ for scale in window_animation_scale transition_animation_scale animator_duration
   adb shell settings put global "$scale" 0 || true
 done
 
+# SysUI demo mode freezes the status bar. Without it the clock differs on every
+# run, so two captures of an unchanged screen are two different files — which
+# makes the images useless for spotting a real change, and turns committing
+# them into churn.
+adb shell settings put global sysui_demo_allowed 1 || true
+demo() { adb shell am broadcast -a com.android.systemui.demo -e command "$@" >/dev/null 2>&1 || true; }
+demo enter
+demo clock -e hhmm 1000
+demo battery -e level 100 -e plugged false
+demo network -e wifi show -e level 4
+demo network -e mobile show -e level 4 -e datatype none
+demo notifications -e visible false
+
 # Locate a node by its visible text (or content description) and tap its centre.
 tap_text() {
   local label="$1"
@@ -82,6 +95,8 @@ sleep 2
 adb shell cmd uimode night yes || true
 shot 04-search-dark 4
 adb shell cmd uimode night no || true
+
+demo exit || true
 
 echo "── captured $(ls -1 "$OUT" | wc -l) screenshots ──"
 ls -la "$OUT"
