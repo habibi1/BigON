@@ -42,11 +42,32 @@ jobs:
       - name: Set up the Android SDK
         uses: android-actions/setup-android@v3
 
-      # compileSdk in sinema/build.gradle.kts. Runner images carry the recent
-      # platforms but lag the newest, so this is installed explicitly rather
-      # than left to chance; it is a no-op when the image already has it.
-      - name: Install the compile SDK platform
-        run: sdkmanager "platforms;android-37"
+      # compileSdk in sinema/build.gradle.kts. Runner images lag the newest
+      # platform, so it is provisioned here rather than assumed — but this step
+      # provisions and reports, it does not gatekeep. Whether the build can
+      # actually proceed is a question for the build, which gives a far better
+      # error than a bare sdkmanager exit code. The first run failed exactly
+      # this way: `Failed to find package 'platforms;android-37'` told us
+      # nothing about which platforms *do* exist, so now the log says.
+      - name: Provision the compile SDK platform
+        continue-on-error: true
+        run: |
+          set -u
+          COMPILE_SDK=37
+          if [ -d "${ANDROID_HOME}/platforms/android-${COMPILE_SDK}" ]; then
+            echo "platforms;android-${COMPILE_SDK} already present on the image"
+            exit 0
+          fi
+          # Stable first, then the preview channels — a compileSdk is allowed
+          # to lead the stable channel by a release.
+          sdkmanager "platforms;android-${COMPILE_SDK}" \
+            || sdkmanager --channel=3 "platforms;android-${COMPILE_SDK}" \
+            || echo "::warning::platforms;android-${COMPILE_SDK} not installable — see the inventory below"
+          echo "--- installed platforms ---"
+          ls "${ANDROID_HOME}/platforms" 2>/dev/null || echo "(none)"
+          echo "--- platforms offered by sdkmanager ---"
+          sdkmanager --list 2>/dev/null \
+            | grep -oE "platforms;android-[0-9A-Za-z.-]+" | sort -u | tail -25
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
