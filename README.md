@@ -442,7 +442,7 @@ Dependency versions live in a single Gradle version catalog. Nothing else in the
 | Build, modules, conventions | **Done** | 13 modules, 5 archetypes, catalog, clean build |
 | Design system | **Done** | Tokens + 16 components + ~92 in-file previews; both themes verified on device |
 | DI composition root | **Done** | Hilt graph compiles; adapters bound in `:sinema` only |
-| Guardrails & tests | **Done** | 130 unit tests green; five Konsist rules enforcing layering, including one that keeps `androidx.navigation` inside the app shell |
+| Guardrails & tests | **Done** | 130 unit tests green; five Konsist rules enforcing layering, including one that keeps `androidx.navigation` inside the app shell. Both now run on GitHub Actions for every push and pull request, so the rules are enforced by something other than remembering to run them (§9·05) |
 | Domain layer | **Done** | `MovieRepository` contract plus observe/refresh use cases |
 | Movie data pipeline | **Done** | DTOs, `MovieApi`, mapper and offline-first repository; Room is the single source of truth, per-category |
 | Feature modules & ViewModels | **Partial** | Every screen is real — UDF contracts, ViewModels, zero mocks — but they live in `:sinema` rather than `feature/*` modules; extraction is the remaining structural step (§9·03) |
@@ -486,7 +486,9 @@ Deliberately ordered: the first slice validates the architecture end to end, and
 
 5. **Production hardening**
 
-   Firebase analytics and Remote Config adapters behind the existing ports, crash reporting, R8 configuration, baseline profiles, screenshot tests per window size class, and CI wiring.
+   **CI is wired** — `.github/workflows/ci.yml` assembles the debug variant and runs every unit test and Konsist rule on each push and pull request, on JDK 25 with the compile SDK provisioned rather than assumed, and uploads the debug APK on green. What remains: Firebase analytics and Remote Config adapters behind the existing ports, crash reporting, R8 configuration, baseline profiles, and screenshot tests per window size class.
+
+   Two guardrails are deliberately still outside CI. **Lint** has never been run in this project, so switching it on alongside the workflow itself would have made the first red build a report on pre-existing debt rather than on the commit that triggered it. And an **emulator job** would currently boot a device to assert a package name, since the only instrumented source is the template test. The screenshot tests above are the more valuable version of that second one, and they want a JVM renderer such as Roborazzi rather than an emulator at all.
 
 ## §10 API backlog
 

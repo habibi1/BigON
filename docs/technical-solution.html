@@ -1088,7 +1088,7 @@ graph TD
             <tr><td>Build, modules, conventions</td><td><span class="pill ok">Done</span></td><td class="t-note">13 modules, 5 archetypes, catalog, clean build</td></tr>
             <tr><td>Design system</td><td><span class="pill ok">Done</span></td><td class="t-note">Tokens + 16 components + ~92 in-file previews; both themes verified on device</td></tr>
             <tr><td>DI composition root</td><td><span class="pill ok">Done</span></td><td class="t-note">Hilt graph compiles; adapters bound in <code>:sinema</code> only</td></tr>
-            <tr><td>Guardrails &amp; tests</td><td><span class="pill ok">Done</span></td><td class="t-note">130 unit tests green; five Konsist rules enforcing layering, including one that keeps <code>androidx.navigation</code> inside the app shell</td></tr>
+            <tr><td>Guardrails &amp; tests</td><td><span class="pill ok">Done</span></td><td class="t-note">130 unit tests green; five Konsist rules enforcing layering, including one that keeps <code>androidx.navigation</code> inside the app shell. Both now run on GitHub Actions for every push and pull request, so the rules are enforced by something other than remembering to run them (§9·05)</td></tr>
             <tr><td>Domain layer</td><td><span class="pill ok">Done</span></td><td class="t-note"><code>MovieRepository</code> contract plus observe/refresh use cases</td></tr>
             <tr><td>Movie data pipeline</td><td><span class="pill ok">Done</span></td><td class="t-note">DTOs, <code>MovieApi</code>, mapper and offline-first repository; Room is the single source of truth, per-category</td></tr>
             <tr><td>Feature modules &amp; ViewModels</td><td><span class="pill warn">Partial</span></td><td class="t-note">Every screen is real — UDF contracts, ViewModels, zero mocks — but they live in <code>:sinema</code> rather than <code>feature/*</code> modules; extraction is the remaining structural step (§9·03)</td></tr>
@@ -1188,8 +1188,19 @@ graph TD
           <div class="body">
             <h3>Production hardening</h3>
             <p>
-              Firebase analytics and Remote Config adapters behind the existing ports, crash reporting, R8 configuration,
-              baseline profiles, screenshot tests per window size class, and CI wiring.
+              <strong>CI is wired</strong> — <code>.github/workflows/ci.yml</code> assembles the debug variant and runs
+              every unit test and Konsist rule on each push and pull request, on JDK 25 with the compile SDK provisioned
+              rather than assumed, and uploads the debug APK on green. What remains: Firebase analytics and Remote
+              Config adapters behind the existing ports, crash reporting, R8 configuration, baseline profiles, and
+              screenshot tests per window size class.
+            </p>
+            <p>
+              Two guardrails are deliberately still outside CI. <strong>Lint</strong> has never been run in this project,
+              so switching it on alongside the workflow itself would have made the first red build a report on
+              pre-existing debt rather than on the commit that triggered it. And an <strong>emulator job</strong> would
+              currently boot a device to assert a package name, since the only instrumented source is the template test.
+              The screenshot tests above are the more valuable version of that second one, and they want a JVM renderer
+              such as Roborazzi rather than an emulator at all.
             </p>
           </div>
         </li>
