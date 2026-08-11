@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import com.bigon.core.designsystem.components.SinemaAppScaffold
 import com.bigon.core.designsystem.components.SinemaNavItem
 import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.core.update.ForceUpdateGate
 
 /**
  * App shell: theme, system bars, navigation bar/rail, and the navigation graph.
@@ -44,20 +45,26 @@ fun SinemaApp() {
         val currentEntry by navController.currentBackStackEntryAsState()
         val currentDestination = currentEntry?.destination
 
-        SharedTransitionLayout {
-            SinemaAppScaffold(
-                items = TopLevelTab.entries.map { tab ->
-                    SinemaNavItem(id = tab.name, label = tab.label, icon = tab.icon)
-                },
-                selectedId = (currentDestination.currentTab() ?: TopLevelTab.Home).name,
-                onSelect = { id ->
-                    navController.navigateToTopLevel(TopLevelTab.valueOf(id).destination)
-                },
-                // Detail is full-bleed: its backdrop runs under the status bar
-                // and would fight a navigation bar.
-                showNavigation = currentDestination.isTopLevel(),
-            ) {
-                SinemaNavHost(navController = navController)
+        // One wrapper is the whole force-update integration; :core:update owns
+        // the Play flow, the resume check and the blocking screen. It sits
+        // outside the scaffold so a blocked build has no reachable navigation
+        // bar behind the gate.
+        ForceUpdateGate {
+            SharedTransitionLayout {
+                SinemaAppScaffold(
+                    items = TopLevelTab.entries.map { tab ->
+                        SinemaNavItem(id = tab.name, label = tab.label, icon = tab.icon)
+                    },
+                    selectedId = (currentDestination.currentTab() ?: TopLevelTab.Home).name,
+                    onSelect = { id ->
+                        navController.navigateToTopLevel(TopLevelTab.valueOf(id).destination)
+                    },
+                    // Detail is full-bleed: its backdrop runs under the status bar
+                    // and would fight a navigation bar.
+                    showNavigation = currentDestination.isTopLevel(),
+                ) {
+                    SinemaNavHost(navController = navController)
+                }
             }
         }
     }

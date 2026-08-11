@@ -67,6 +67,7 @@ dependencies {
     implementation(project(":core:tracker:api"))
     implementation(project(":core:config:api"))
     implementation(project(":core:navigation"))
+    implementation(project(":core:update"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:ui"))
     implementation(project(":data"))
