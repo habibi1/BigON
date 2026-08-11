@@ -13,6 +13,9 @@ room = "2.8.4"
 datastore = "1.2.1"
 timber = "5.0.1"
 coil = "3.5.0"
+# Play in-app updates. 2.1.0 is the current release on Google Maven; the
+# artifact has been stable since 2023 and there is no 3.x line.
+playAppUpdate = "2.1.0"
 
 # AndroidX / Compose
 coreKtx = "1.19.0"
@@ -59,6 +62,12 @@ datastore-preferences = { group = "androidx.datastore", name = "datastore-prefer
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+
+# Play in-app updates — the official force-update mechanism. The -ktx artifact
+# is what makes the Task API suspendable; without it this would need a
+# hand-rolled Task bridge.
+play-app-update = { group = "com.google.android.play", name = "app-update", version.ref = "playAppUpdate" }
+play-app-update-ktx = { group = "com.google.android.play", name = "app-update-ktx", version.ref = "playAppUpdate" }
 
 # AndroidX
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

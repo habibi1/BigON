@@ -27,6 +27,8 @@ class ArchitectureTest {
         "com.bigon.sinema",
         "com.bigon.core.database",
         "com.bigon.core.datastore",
+        // Adapts Play's in-app update API, which is Context-bound at its root.
+        "com.bigon.core.update",
         "com.bigon.data",
     )
 
