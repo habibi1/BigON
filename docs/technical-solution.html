@@ -311,7 +311,7 @@
 <div class="wrap">
 
   <header class="mast">
-    <div class="eyebrow">Technical solution · Revision 19 · Native Android</div>
+    <div class="eyebrow">Technical solution · Revision 21 · Native Android</div>
     <h1>Sinema <span class="dim">— architecture &amp; delivery plan</span></h1>
     <p class="standfirst">
       A TMDB movie explorer built as a modular, offline-first native Android app. This document records the
@@ -385,7 +385,7 @@ SinemaTheme.colors.textPrimary <span class="c">// reads a token — the object</
           One identifier deliberately keeps its own name, and this is not an unresolved remainder:
           <strong><code>BigON</code>, the repository and Gradle root.</strong> No user encounters it, and renaming a
           Gradle root is not free — the configuration cache is keyed to absolute paths, so it breaks the build until
-          the stale state is cleared (§11). The distinction that settles it: the design-system prefix is <em>read</em>
+          the stale state is cleared (§12). The distinction that settles it: the design-system prefix is <em>read</em>
           by everyone working in the codebase, whereas the Gradle root is <em>typed</em> by no one and displayed
           nowhere.
         </p>
@@ -1090,6 +1090,7 @@ graph TD
             <tr><td>Collection</td><td><span class="pill ok">Done</span></td><td class="t-note">Franchise view reached from detail, where the reference already arrives free in the payload. Parts ordered by release with undated entries last; round-trips through the detail snapshot so an opened franchise stays readable offline</td></tr>
             <tr><td>TV series detail</td><td><span class="pill ok">Done</span></td><td class="t-note">Sibling of movie detail, not a generalisation of it: seasons and episode counts instead of a runtime, certification from <code>content_ratings</code> with a US fallback. Closes the trending hand-off — series cards now open natively rather than leaving for TMDB's website. Seasons and episodes are explicitly out of scope</td></tr>
             <tr><td>Browse refinements</td><td><span class="pill ok">Done</span></td><td class="t-note">Sort, release year, rating floor and maximum runtime over <code>/discover</code>, in a sheet that batches its selections into one request. Shown only while browsing, since a typed query honours none of them. The rating floor is paired with a vote-count floor in the repository, where the rule cannot be forgotten by a call site</td></tr>
+            <tr><td>In-app updates</td><td><span class="pill ok">Done</span></td><td class="t-note">Both flows behind a one-wrapper module (<code>:core:update</code>): priority 5 forces, priority 4 forces after a week, everything below suggests via a bottom sheet over a working app. Forced blocking removes the app from composition rather than covering it; optional prompting is rate-limited per version — see §11.</td></tr>
             <tr><td>Navigation</td><td><span class="pill ok">Done</span></td><td class="t-note">Real <code>NavHost</code> with type-safe <code>@Serializable</code> routes in <code>:core:navigation</code>; the speculative <code>Navigator</code> contract was deleted, not completed. Tab selection derives from the back stack rather than an enum, and <code>androidx.navigation</code> is confined to three shell files by a Konsist rule (§4)</td></tr>
             <tr><td>Remote config &amp; analytics backends</td><td><span class="pill warn">Speculative</span></td><td class="t-note">Full port machinery with one debug sink, no backend, and no flag read by any screen</td></tr>
             <tr><td>Images</td><td><span class="pill ok">Done</span></td><td class="t-note">Coil 3 sharing the app's OkHttp client; auth is host-scoped so image requests carry no credential</td></tr>
@@ -1422,7 +1423,151 @@ graph TD
   </section>
 
   <section>
-    <div class="shead"><span class="no">§11</span><h2>Environment &amp; open items</h2></div>
+    <div class="shead"><span class="no">§11</span><h2>In-app updates</h2></div>
+    <div class="stack-lg">
+      <p>
+        Shipped as <code>:core:update</code> — a self-contained module rather than app code, because a forced update is
+        the one feature whose failure cannot be patched: a build that blocks when it should not, or fails to block when
+        it must, is already on devices by the time anyone finds out. The module names the host app from the package
+        manager and styles itself from <code>MaterialTheme</code>, so a second app adopts it with one dependency and
+        one wrapper.
+      </p>
+
+      <div class="grid-2">
+        <div class="panel">
+          <h3>What Play does</h3>
+          <p>
+            Play's IMMEDIATE flow is the official mechanism and does the real work: full-screen block, download,
+            install, restart. This module contains no download, progress, install or restart code at all.
+          </p>
+        </div>
+        <div class="panel">
+          <h3>What the module does</h3>
+          <p>
+            Decides <em>whether</em> to force, and stands in for the app in the windows Play leaves open — the user
+            backing out of Play's flow, <code>startUpdateFlowForResult</code> failing to start, and the moment between
+            resume and Play's UI appearing.
+          </p>
+        </div>
+      </div>
+
+      <h3>The rule <span class="pill ok">Shipped</span></h3>
+      <p>
+        Priority answers both questions at once. Above the threshold the app is replaced; below it, the same check
+        produces a suggestion instead of silence — which is the half that was missing until revision 21, when priority
+        0–3 meant the user was never told an update existed at all.
+      </p>
+      <div class="scroller">
+        <table>
+          <thead><tr><th class="num">updatePriority</th><th>Staleness</th><th>Result</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td class="num">5</td><td>any</td><td><strong>force</strong></td><td>Data loss, a broken payment path, a revoked API — no grace period.</td></tr>
+            <tr><td class="num">4</td><td>≥ 7 days</td><td><strong>force</strong></td><td>Important, not on fire: most people update themselves within a week.</td></tr>
+            <tr><td class="num">4</td><td>&lt; 7 days</td><td>suggest</td><td>Worth mentioning, not worth interrupting for.</td></tr>
+            <tr><td class="num">0–3</td><td>any</td><td>suggest</td><td>Forcing on every update means a typo fix locks out the user base.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Priority is a property of the release that <em>supersedes</em> yours, set through the Play Developer API
+        (<code>releases[].inAppUpdatePriority</code>) and deliberately absent from the Play Console UI. A build cannot
+        know how urgent it is; only its successor can say. Thresholds are an <code>UpdateConfig</code> argument that
+        validates on construction — a zero threshold would silently turn "urgent releases only" into "every release".
+      </p>
+
+      <div class="callout">
+        <div class="eyebrow">What device testing caught that review did not</div>
+        <p>
+          <strong>The gate was cosmetic.</strong> It was drawn <em>over</em> the app, which looks identical to blocking
+          and is not the same thing: a Compose surface does not consume pointer input unless asked. With "Update
+          required" filling the screen, tapping where a poster sat navigated the app underneath and fired two TMDB
+          requests, and <code>uiautomator</code> listed the entire app — titles, ratings, all three tabs — so TalkBack
+          could operate a build that was supposed to be locked out. The fix is to not compose the app at all while
+          blocked. A UI test now asserts it, because the defect was invisible to every other kind.
+        </p>
+        <p>
+          <strong>Cancellation was being read as "no update".</strong> <code>runCatching</code> swallows
+          <code>CancellationException</code>, and the gate cancels its check when the app is backgrounded — so
+          backgrounding a blocked app lowered the gate, and every resume reopened it for as long as the next check took.
+        </p>
+        <p>
+          <strong>The blocking screen ignored window insets and stretched to full width.</strong> Both invisible at the
+          phone size the emulator had been pinned to; the second only appeared once the foldable was tested at its real
+          unfolded width, where one sentence spanned 2076px.
+        </p>
+      </div>
+
+
+      <h3>Optional updates, and how often to ask <span class="pill ok">Shipped</span></h3>
+      <p>
+        A forced update replaces the app; an optional one is a bottom sheet over an app that keeps working, using
+        Play's FLEXIBLE flow — background download, app stays usable. It carries a second moment the forced flow does
+        not: Play downloads a flexible update but <strong>will not install it</strong>. An app that never calls
+        <code>completeUpdate()</code> leaves the update sitting on disk forever, so the sheet returns as "Update ready"
+        with a restart button once the download lands.
+      </p>
+      <p>
+        The interesting problem is not the flow, it is the asking. An update the user is allowed to ignore is one they
+        <em>will</em> ignore, and a prompt that returns every launch becomes reflex-dismissed — taking the prompt that
+        matters later with it. So the cadence is its own policy, deliberately separate from the one that reads Play's
+        facts: <code>UpdatePolicy</code> asks whether the <em>release</em> matters, <code>UpdateNagPolicy</code> asks
+        whether this <em>person</em> should be asked again.
+      </p>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>Rule</th><th class="num">Default</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>First ask</td><td class="num">immediate</td><td>A version never shown is always worth one mention, whatever was said about the last one.</td></tr>
+            <tr><td>Re-ask after</td><td class="num">3 launches</td><td>Long enough not to nag, short enough to catch someone who meant to update later.</td></tr>
+            <tr><td>Give up after</td><td class="num">3 refusals</td><td>Per version. A new version resets it — declining 1.4 says nothing about 1.5.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Three details decide whether that policy is honest, and each is a test. Swiping the sheet away counts as a
+        refusal, or the cheapest dismissal is the one the counter never sees. Cancelling Play's own confirmation counts
+        too — which is why the flexible flow gets its own launcher, since cancelling a <em>forced</em> update changes
+        nothing while cancelling an optional one is a "not now". And launches before the first refusal are not counted,
+        or a frequently-opened app spends its budget before it has asked anything.
+      </p>
+      <p>
+        Verified on device rather than only in tests: prompt on first launch, silent for two launches after "Not now",
+        prompt again on the third, and silent for good after the third refusal.
+      </p>
+
+      <h3>Rehearsal</h3>
+      <p>
+        Play refuses an immediate update against a sideloaded build — it has no release to compare against and answers
+        <code>UPDATE_NOT_AVAILABLE</code> — so the flow is otherwise unverifiable until it is already in front of users.
+        Google's <code>FakeAppUpdateManager</code> stands in, driven by Gradle properties on the module rather than
+        anything in the host app, so rehearsing costs a consuming app no code:
+      </p>
+      <pre class="mono">./gradlew :sinema:installDebug -Pbigon.fakeUpdatePriority=5   # forced
+./gradlew :sinema:installDebug -Pbigon.fakeUpdatePriority=1   # optional</pre>
+      <p>
+        The fake needed driving as well as configuring. It records that a flow started but never progresses on its own —
+        no bytes, <code>DOWNLOADED</code> never arrives — so the restart prompt was unreachable and an optional
+        rehearsal showed only its first frame. It also exposes no query for whether a download is running, so the
+        driver is an explicit state machine rather than a reaction to the fake's own state.
+      </p>
+      <p>
+        Debug builds only — the release variant has no such field. Verified on a foldable in both states: gated at
+        priority 5, open at priority 4 within the grace period, gated at day 7, and back to normal with no flag.
+      </p>
+
+      <h3>What is deliberately not closed</h3>
+      <p>
+        The first launch after a release turns critical still composes the app for roughly 300&nbsp;ms while Play is
+        asked. Subsequent launches do not — the last verdict is remembered and a blocked build starts blocked with no
+        window at all. Closing the first one too would charge every launch, for every user, for a case almost nobody
+        hits. The Play hand-off itself is covered only by device testing: what the gate does with the result is tested,
+        the <code>IntentSender</code> round trip is not.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§12</span><h2>Environment &amp; open items</h2></div>
     <div class="stack-lg">
       <div class="grid-2">
         <div class="panel">
@@ -1461,7 +1606,7 @@ graph TD
 
   <footer>
     <span>Sinema · technical solution</span>
-    <span>Revision 19 — native Android · supersedes revision 18</span>
+    <span>Revision 21 — native Android · supersedes revision 20</span>
     <span>Supersedes the KMP/CMP planning document</span>
   </footer>
 
