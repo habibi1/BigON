@@ -42,6 +42,7 @@ sealed interface UpdateDecision {
 
     /** Block the app and run Play's immediate flow. */
     data class Force(val versionCode: Int, val reason: ForceReason) : UpdateDecision
+
 }
 
 enum class ForceReason {
@@ -82,7 +83,46 @@ data class UpdateConfig(
     /** Priority that forces only once [gracePeriodDays] have passed. */
     val highPriority: Int = 4,
     val gracePeriodDays: Int = 7,
-)
+    /**
+     * Launches to wait before asking again after a "Not now". The first ask is
+     * immediate; only re-asks wait.
+     */
+    val promptAfterLaunches: Int = 3,
+    /**
+     * How many times one version may be declined before the app stops asking.
+     * A prompt that returns every time trains people to dismiss it on sight,
+     * which costs the one prompt that will matter later.
+     */
+    val maxDismissals: Int = 3,
+) {
+    init {
+        // A zero threshold turns "urgent releases only" into "every release",
+        // which is the outcome this policy exists to prevent — and it would do
+        // it silently, on everyone, at the next routine patch. Cheaper to fail
+        // at construction than to work out afterwards why the whole user base
+        // was locked out by a typo fix.
+        require(criticalPriority in 1..MAX_PLAY_PRIORITY) {
+            "criticalPriority must be 1..$MAX_PLAY_PRIORITY, was $criticalPriority"
+        }
+        require(highPriority in 1..criticalPriority) {
+            "highPriority must be 1..criticalPriority ($criticalPriority), was $highPriority"
+        }
+        require(gracePeriodDays >= 0) {
+            "gracePeriodDays cannot be negative, was $gracePeriodDays"
+        }
+        require(promptAfterLaunches >= 0) {
+            "promptAfterLaunches cannot be negative, was $promptAfterLaunches"
+        }
+        require(maxDismissals >= 0) {
+            "maxDismissals cannot be negative, was $maxDismissals"
+        }
+    }
+
+    private companion object {
+        /** Play's own ceiling for updatePriority. */
+        const val MAX_PLAY_PRIORITY = 5
+    }
+}
 
 class UpdatePolicy(private val config: UpdateConfig = UpdateConfig()) {
 
