@@ -8,7 +8,7 @@ import javax.inject.Singleton
 
 /**
  * The module's own wiring. A host app gets the whole feature by depending on
- * this module and calling [ForceUpdateGate] — there is nothing to bind on the
+ * this module and calling [UpdateGate] — there is nothing to bind on the
  * app side, which is the difference between a reusable module and a snippet to
  * copy.
  */
@@ -19,4 +19,8 @@ internal abstract class UpdateModule {
     @Binds
     @Singleton
     abstract fun bindUpdateSource(impl: PlayUpdateSource): UpdateSource
+
+    @Binds
+    @Singleton
+    abstract fun bindUpdateGateStore(impl: SharedPrefsUpdateGateStore): UpdateGateStore
 }

@@ -11,6 +11,13 @@ android {
         buildConfig = true
     }
 
+    testOptions {
+        unitTests {
+            // Robolectric needs the merged resources to inflate anything.
+            isIncludeAndroidResources = true
+        }
+    }
+
     buildTypes {
         debug {
             // Play refuses an immediate update against a sideloaded build, so
@@ -47,4 +54,15 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlinx.coroutines.test)
+
+    // The gate's one job — a blocked build cannot be reached — is a UI fact, so
+    // it needs a UI test. It runs under Robolectric rather than on a device
+    // because Espresso 3.7.0 (the latest) reflects on InputManager.getInstance,
+    // which API 36+ removed: instrumented Compose tests cannot run on any
+    // platform this project targets. On the JVM they also run in CI.
+    testImplementation(platform(libs.compose.bom))
+    testImplementation(libs.compose.ui.test.junit4)
+    testImplementation(libs.androidx.junit)
+    testImplementation(libs.robolectric)
+    debugImplementation(libs.compose.ui.test.manifest)
 }

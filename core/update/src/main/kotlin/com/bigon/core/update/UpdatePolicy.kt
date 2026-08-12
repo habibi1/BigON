@@ -20,6 +20,8 @@ data class UpdateStatus(
     val stalenessDays: Int? = null,
     /** Play refuses IMMEDIATE for some install sources; then we cannot force. */
     val immediateAllowed: Boolean = false,
+    /** Play refuses FLEXIBLE for some install sources; then we cannot suggest. */
+    val flexibleAllowed: Boolean = false,
 )
 
 enum class UpdateAvailability {
@@ -43,6 +45,12 @@ sealed interface UpdateDecision {
     /** Block the app and run Play's immediate flow. */
     data class Force(val versionCode: Int, val reason: ForceReason) : UpdateDecision
 
+    /**
+     * Mention it and get out of the way. Whether the user is actually asked is
+     * not decided here — that depends on how often they have been asked before,
+     * which is state, not policy. See [UpdateNagPolicy].
+     */
+    data class Suggest(val versionCode: Int) : UpdateDecision
 }
 
 enum class ForceReason {
@@ -152,6 +160,11 @@ class UpdatePolicy(private val config: UpdateConfig = UpdateConfig()) {
             status.priority >= config.highPriority &&
                 (status.stalenessDays ?: 0) >= config.gracePeriodDays ->
                 UpdateDecision.Force(status.versionCode, ForceReason.Staleness)
+
+            // Not urgent enough to force, but there is still a newer version and
+            // saying nothing means nobody updates until Play gets round to it.
+            // Only worth mentioning if Play will actually run the flexible flow.
+            status.flexibleAllowed -> UpdateDecision.Suggest(status.versionCode)
 
             else -> UpdateDecision.Continue
         }

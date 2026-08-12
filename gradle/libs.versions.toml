@@ -32,6 +32,10 @@ junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 turbine = "1.2.1"
 konsist = "0.17.3"
+# Compose UI tests on the JVM. Espresso 3.7.0 — the latest — reflects on
+# InputManager.getInstance, removed in API 36+, so instrumented Compose tests
+# cannot run on this project's own platforms.
+robolectric = "4.16.1"
 
 [libraries]
 # Kotlinx
@@ -93,6 +97,9 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "j
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 konsist = { group = "com.lemonappdev", name = "konsist", version.ref = "konsist" }
+compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 
 # Gradle plugin artifacts (for build-logic)

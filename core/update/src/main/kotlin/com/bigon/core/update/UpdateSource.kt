@@ -5,10 +5,15 @@ import androidx.activity.result.IntentSenderRequest
 import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.install.InstallStateUpdatedListener
 import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.ktx.requestAppUpdateInfo
 import android.util.Log
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 import com.google.android.play.core.install.model.UpdateAvailability as PlayAvailability
@@ -23,6 +28,36 @@ interface UpdateSource {
     suspend fun check(): UpdateStatus
 
     fun startImmediateFlow(launcher: ActivityResultLauncher<IntentSenderRequest>): Boolean
+
+    /**
+     * Starts Play's flexible flow: the download runs in the background and the
+     * app stays usable. Unlike the immediate flow, this one is not finished by
+     * Play — [completeUpdate] has to be called once [installState] reports
+     * [InstallProgress.Downloaded].
+     */
+    fun startFlexibleFlow(launcher: ActivityResultLauncher<IntentSenderRequest>): Boolean
+
+    /** Download progress for a flexible update in flight. */
+    val installState: Flow<InstallProgress>
+
+    /** Restarts the app into the downloaded update. */
+    fun completeUpdate()
+}
+
+/** Where a flexible download has got to. */
+sealed interface InstallProgress {
+    data object Idle : InstallProgress
+
+    data class Downloading(val bytesDownloaded: Long, val totalBytes: Long) : InstallProgress {
+        /** 0f..1f, or null while Play has not reported a total yet. */
+        val fraction: Float?
+            get() = if (totalBytes > 0) (bytesDownloaded.toFloat() / totalBytes).coerceIn(0f, 1f) else null
+    }
+
+    /** Downloaded and waiting for the restart only the app can trigger. */
+    data object Downloaded : InstallProgress
+
+    data object Failed : InstallProgress
 }
 
 /**
@@ -71,6 +106,7 @@ internal class PlayUpdateSource @Inject constructor(
             priority = info.updatePriority(),
             stalenessDays = info.clientVersionStalenessDays(),
             immediateAllowed = info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE),
+            flexibleAllowed = info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE),
         )
     }.getOrElse { error ->
         // Cancellation is not a failed check. runCatching would otherwise
@@ -108,5 +144,50 @@ internal class PlayUpdateSource @Inject constructor(
             Log.w(TAG, "Could not start the immediate update flow", error)
             false
         }
+    }
+
+    override fun startFlexibleFlow(
+        launcher: ActivityResultLauncher<IntentSenderRequest>,
+    ): Boolean {
+        val info = pending ?: return false
+        return runCatching {
+            manager.startUpdateFlowForResult(
+                info,
+                launcher,
+                AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build(),
+            )
+        }.getOrElse { error ->
+            Log.w(TAG, "Could not start the flexible update flow", error)
+            false
+        }
+    }
+
+    /**
+     * Play reports progress through a listener, not a stream. callbackFlow
+     * bridges the two and — the part that matters — unregisters on cancellation,
+     * because a listener held by a Singleton outlives every screen that cared.
+     */
+    override val installState: Flow<InstallProgress> = callbackFlow {
+        val listener = InstallStateUpdatedListener { state ->
+            trySend(
+                when (state.installStatus()) {
+                    InstallStatus.DOWNLOADING -> InstallProgress.Downloading(
+                        bytesDownloaded = state.bytesDownloaded(),
+                        totalBytes = state.totalBytesToDownload(),
+                    )
+
+                    InstallStatus.DOWNLOADED -> InstallProgress.Downloaded
+                    InstallStatus.FAILED, InstallStatus.CANCELED -> InstallProgress.Failed
+                    else -> InstallProgress.Idle
+                },
+            )
+        }
+        manager.registerListener(listener)
+        awaitClose { manager.unregisterListener(listener) }
+    }
+
+    override fun completeUpdate() {
+        runCatching { manager.completeUpdate() }
+            .onFailure { Log.w(TAG, "Could not complete the update", it) }
     }
 }

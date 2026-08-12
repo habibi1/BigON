@@ -46,6 +46,9 @@ internal object AppUpdateManagerModule {
                 "staleness=${BuildConfig.FAKE_UPDATE_STALENESS_DAYS}d) — debug builds only",
         )
         return FakeAppUpdateManager(context).apply {
+            // Without this the fake never leaves its first state — see
+            // driveLikePlay.
+            driveLikePlay()
             // The fake never reaches Play, so it only needs a version above the
             // installed one; the exact number is immaterial.
             setUpdateAvailable(Int.MAX_VALUE)
