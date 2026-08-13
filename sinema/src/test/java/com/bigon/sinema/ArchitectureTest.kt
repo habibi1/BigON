@@ -27,6 +27,8 @@ class ArchitectureTest {
         "com.bigon.sinema",
         "com.bigon.core.database",
         "com.bigon.core.datastore",
+        // Adapts Play's in-app update API, which is Context-bound at its root.
+        "com.bigon.core.update",
         "com.bigon.data",
     )
 
@@ -92,6 +94,25 @@ class ArchitectureTest {
             }
             .assertTrue { file ->
                 file.packagee?.name == "com.bigon.sinema.ui"
+            }
+    }
+
+    /**
+     * Play's in-app update API stays inside :core:update, for the same reason
+     * the navigation host stays inside the shell. "Is this build still allowed
+     * to run?" has to have exactly one answer; a second module starting its own
+     * update flow would split that decision in two, and the half that says yes
+     * wins by default.
+     */
+    @Test
+    fun `only the update module touches Play's update API`() {
+        Konsist.scopeFromProduction()
+            .files
+            .filter { file ->
+                file.imports.any { it.name.startsWith("com.google.android.play.core.") }
+            }
+            .assertTrue { file ->
+                file.packagee?.name == "com.bigon.core.update"
             }
     }
 
