@@ -5,8 +5,8 @@ import com.bigon.core.designsystem.preview.SinemaDevicePreview
 import com.bigon.core.designsystem.preview.SinemaFontScalePreview
 import com.bigon.core.designsystem.preview.SinemaThemePreview
 import com.bigon.core.designsystem.theme.SinemaTheme
-import com.bigon.core.model.Movie
-import com.bigon.core.model.MovieCategory
+import com.bigon.tmdb.model.Movie
+import com.bigon.tmdb.model.MovieCategory
 import com.bigon.sinema.ui.favorites.FavoritesScreen
 import com.bigon.sinema.ui.favorites.FavoritesUiState
 import com.bigon.sinema.ui.home.HomeScreen

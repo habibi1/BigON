@@ -30,7 +30,7 @@ import com.bigon.core.designsystem.components.SinemaShimmerCard
 import com.bigon.core.designsystem.components.SinemaSnackbar
 import com.bigon.core.designsystem.icons.SinemaIcons
 import com.bigon.core.designsystem.theme.SinemaTheme
-import com.bigon.core.model.Movie
+import com.bigon.tmdb.model.Movie
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import com.bigon.core.designsystem.components.SinemaLoadingIndicator
@@ -46,7 +46,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.graphics.Color
-import com.bigon.core.model.WatchProvider
+import com.bigon.tmdb.model.WatchProvider
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.Text
 import androidx.compose.ui.draw.clip
@@ -58,8 +58,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.Dialog
 import com.bigon.core.designsystem.components.SinemaChip
 import com.bigon.core.designsystem.components.SinemaPrimaryButton
-import com.bigon.domain.movie.DiscoverFilters
-import com.bigon.domain.movie.DiscoverSort
+import com.bigon.tmdb.domain.movie.DiscoverFilters
+import com.bigon.tmdb.domain.movie.DiscoverSort
 
 private const val ALL_CHIP = "All"
 

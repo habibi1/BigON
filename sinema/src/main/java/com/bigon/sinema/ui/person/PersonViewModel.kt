@@ -3,12 +3,12 @@ package com.bigon.sinema.ui.person
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bigon.core.common.AppResult
-import com.bigon.core.model.PersonDetail
+import com.bigon.tmdb.model.PersonDetail
 import com.bigon.core.tracker.AnalyticsEvent
 import com.bigon.core.tracker.AnalyticsTracker
 import com.bigon.core.ui.UiText
 import com.bigon.core.ui.toUiText
-import com.bigon.domain.movie.GetPersonUseCase
+import com.bigon.tmdb.domain.movie.GetPersonUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject

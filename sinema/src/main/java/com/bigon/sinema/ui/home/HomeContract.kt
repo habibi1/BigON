@@ -1,8 +1,8 @@
 package com.bigon.sinema.ui.home
 
-import com.bigon.core.model.Movie
-import com.bigon.core.model.MovieCategory
-import com.bigon.core.model.TrendingItem
+import com.bigon.tmdb.model.Movie
+import com.bigon.tmdb.model.MovieCategory
+import com.bigon.tmdb.model.TrendingItem
 import com.bigon.core.ui.UiText
 
 /**

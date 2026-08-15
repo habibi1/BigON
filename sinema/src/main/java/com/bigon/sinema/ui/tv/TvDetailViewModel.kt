@@ -3,12 +3,12 @@ package com.bigon.sinema.ui.tv
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bigon.core.common.AppResult
-import com.bigon.core.model.TvDetail
+import com.bigon.tmdb.model.TvDetail
 import com.bigon.core.tracker.AnalyticsEvent
 import com.bigon.core.tracker.AnalyticsTracker
 import com.bigon.core.ui.UiText
 import com.bigon.core.ui.toUiText
-import com.bigon.domain.movie.GetTvDetailUseCase
+import com.bigon.tmdb.domain.movie.GetTvDetailUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject

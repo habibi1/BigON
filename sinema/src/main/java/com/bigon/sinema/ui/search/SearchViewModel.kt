@@ -8,11 +8,11 @@ import com.bigon.core.config.Flags
 import com.bigon.core.tracker.AnalyticsEvent
 import com.bigon.core.tracker.AnalyticsTracker
 import com.bigon.core.ui.toUiText
-import com.bigon.domain.movie.DiscoverFilters
-import com.bigon.domain.movie.DiscoverMoviesUseCase
-import com.bigon.domain.movie.GetStreamingServicesUseCase
-import com.bigon.domain.movie.ObserveGenresUseCase
-import com.bigon.domain.movie.SearchMoviesUseCase
+import com.bigon.tmdb.domain.movie.DiscoverFilters
+import com.bigon.tmdb.domain.movie.DiscoverMoviesUseCase
+import com.bigon.tmdb.domain.movie.GetStreamingServicesUseCase
+import com.bigon.tmdb.domain.movie.ObserveGenresUseCase
+import com.bigon.tmdb.domain.movie.SearchMoviesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview

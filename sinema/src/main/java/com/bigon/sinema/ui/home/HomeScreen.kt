@@ -30,8 +30,8 @@ import com.bigon.core.designsystem.components.SinemaShimmerCard
 import com.bigon.core.designsystem.components.SinemaSnackbar
 import com.bigon.core.designsystem.icons.SinemaIcons
 import com.bigon.core.designsystem.theme.SinemaTheme
-import com.bigon.core.model.Movie
-import com.bigon.core.model.MovieCategory
+import com.bigon.tmdb.model.Movie
+import com.bigon.tmdb.model.MovieCategory
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import com.bigon.core.designsystem.components.SinemaLoadingIndicator
@@ -42,8 +42,8 @@ import com.bigon.sinema.ui.PosterTransition
 import com.bigon.sinema.ui.metaLine
 import com.bigon.sinema.ui.posterModifier
 import androidx.compose.foundation.layout.BoxScope
-import com.bigon.core.model.TrendingItem
-import com.bigon.core.model.typeLabel
+import com.bigon.tmdb.model.TrendingItem
+import com.bigon.tmdb.model.typeLabel
 
 /**
  * Stateful entry point: owns nothing but the ViewModel, so the stateless

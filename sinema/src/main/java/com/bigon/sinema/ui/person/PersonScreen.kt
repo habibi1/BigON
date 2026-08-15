@@ -45,8 +45,8 @@ import com.bigon.core.designsystem.components.SinemaShimmerCard
 import com.bigon.core.designsystem.components.SinemaSnackbar
 import com.bigon.core.designsystem.icons.SinemaIcons
 import com.bigon.core.designsystem.theme.SinemaTheme
-import com.bigon.core.model.Credit
-import com.bigon.core.model.PersonDetail
+import com.bigon.tmdb.model.Credit
+import com.bigon.tmdb.model.PersonDetail
 import com.bigon.core.ui.asString
 import com.bigon.sinema.ui.metaLine
 

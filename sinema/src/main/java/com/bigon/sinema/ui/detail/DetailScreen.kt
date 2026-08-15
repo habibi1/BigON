@@ -48,8 +48,8 @@ import com.bigon.core.designsystem.components.SinemaSnackbar
 import com.bigon.core.designsystem.components.SinemaTonalButton
 import com.bigon.core.designsystem.icons.SinemaIcons
 import com.bigon.core.designsystem.theme.SinemaTheme
-import com.bigon.core.model.Review
-import com.bigon.core.model.WatchProviders
+import com.bigon.tmdb.model.Review
+import com.bigon.tmdb.model.WatchProviders
 import com.bigon.core.ui.asString
 import com.bigon.sinema.ui.PosterTransition
 import com.bigon.sinema.ui.metaLine

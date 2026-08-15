@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bigon.core.datastore.PreferenceStorage
 import com.bigon.core.ui.toUiText
-import com.bigon.domain.movie.MovieRepository
+import com.bigon.tmdb.domain.movie.MovieRepository
 import com.bigon.core.common.AppResult
 import com.bigon.core.tracker.AnalyticsEvent
 import com.bigon.core.tracker.AnalyticsTracker

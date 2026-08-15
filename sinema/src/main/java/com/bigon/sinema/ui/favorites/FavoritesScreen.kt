@@ -28,7 +28,7 @@ import com.bigon.core.designsystem.components.SinemaPosterPlaceholder
 import com.bigon.core.designsystem.components.SinemaTonalButton
 import com.bigon.core.designsystem.icons.SinemaIcons
 import com.bigon.core.designsystem.theme.SinemaTheme
-import com.bigon.core.model.Movie
+import com.bigon.tmdb.model.Movie
 import com.bigon.core.ui.ObserveEffects
 import com.bigon.sinema.ui.PosterTransition
 import com.bigon.sinema.ui.posterModifier

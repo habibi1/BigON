@@ -1,9 +1,9 @@
 package com.bigon.sinema.ui.detail
 
-import com.bigon.core.model.Movie
-import com.bigon.core.model.MovieDetail
-import com.bigon.core.model.Review
-import com.bigon.core.model.WatchProviders
+import com.bigon.tmdb.model.Movie
+import com.bigon.tmdb.model.MovieDetail
+import com.bigon.tmdb.model.Review
+import com.bigon.tmdb.model.WatchProviders
 import com.bigon.core.ui.UiText
 
 /**
