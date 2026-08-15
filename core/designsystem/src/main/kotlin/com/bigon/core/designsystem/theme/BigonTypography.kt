@@ -20,12 +20,12 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bigon.core.designsystem.preview.SinemaPreviewSurface
-import com.bigon.core.designsystem.preview.SinemaThemePreview
+import com.bigon.core.designsystem.preview.BigonPreviewSurface
+import com.bigon.core.designsystem.preview.BigonThemePreview
 
-/** Level 0 token — SinemaTypography (component gallery §Tokens). */
+/** Level 0 token — BigonTypography (component gallery §Tokens). */
 @Immutable
-data class SinemaTypography(
+data class BigonTypography(
     /** Screen-level wordmark/headers — "Sinema". */
     val display: TextStyle = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
     /** Section titles — "Trending today". */
@@ -48,15 +48,15 @@ data class SinemaTypography(
     val caption: TextStyle = TextStyle(fontSize = 11.sp),
 )
 
-internal val LocalSinemaTypography = staticCompositionLocalOf { SinemaTypography() }
+internal val LocalSinemaTypography = staticCompositionLocalOf { BigonTypography() }
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
 /** The type scale, each style labelled with its token name. */
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaTypographyPreview() {
-    val t = SinemaTheme.typography
+private fun BigonTypographyPreview() {
+    val t = BigonTheme.typography
     val scale = listOf(
         "display" to t.display,
         "title" to t.title,
@@ -65,7 +65,7 @@ private fun SinemaTypographyPreview() {
         "label" to t.label,
         "caption" to t.caption,
     )
-    SinemaPreviewSurface {
+    BigonPreviewSurface {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             scale.forEach { (name, style) ->
                 Row(
@@ -74,14 +74,14 @@ private fun SinemaTypographyPreview() {
                 ) {
                     Text(
                         text = name,
-                        style = SinemaTheme.typography.caption,
-                        color = SinemaTheme.colors.textSecondary,
+                        style = BigonTheme.typography.caption,
+                        color = BigonTheme.colors.textSecondary,
                         modifier = Modifier.width(76.dp),
                     )
                     Text(
                         text = "Dune: Part Three",
                         style = style,
-                        color = SinemaTheme.colors.textPrimary,
+                        color = BigonTheme.colors.textPrimary,
                     )
                 }
             }

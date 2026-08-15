@@ -1,4 +1,4 @@
-package com.bigon.core.navigation
+package com.bigon.sinema.navigation
 
 import kotlinx.serialization.Serializable
 

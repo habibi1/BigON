@@ -30,17 +30,17 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bigon.tmdb.ui.R
-import com.bigon.core.designsystem.components.SinemaShimmerBox
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.preview.SinemaFontScalePreview
-import com.bigon.core.designsystem.preview.SinemaPreview
-import com.bigon.core.designsystem.preview.SinemaPreviewSurface
-import com.bigon.core.designsystem.preview.SinemaThemePreview
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.core.designsystem.components.BigonShimmerBox
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.preview.BigonFontScalePreview
+import com.bigon.core.designsystem.preview.BigonPreview
+import com.bigon.core.designsystem.preview.BigonPreviewSurface
+import com.bigon.core.designsystem.preview.BigonThemePreview
+import com.bigon.core.designsystem.theme.BigonTheme
 
 
 /**
- * SinemaAttributionFooter — TMDB's required notice: their mark plus the exact
+ * BigonAttributionFooter — TMDB's required notice: their mark plus the exact
  * wording they mandate, defined exactly once (N4.3) so no screen can paraphrase
  * it (component gallery §Scaffolding & feedback).
  *
@@ -50,25 +50,25 @@ import com.bigon.core.designsystem.theme.SinemaTheme
  * attribution, so the tint is a compliance requirement, not styling.
  */
 @Composable
-fun SinemaAttributionFooter(
+fun BigonAttributionFooter(
     versionLabel: String,
     modifier: Modifier = Modifier,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(SinemaTheme.spacing.m),
+        verticalArrangement = Arrangement.spacedBy(BigonTheme.spacing.m),
         modifier = modifier.fillMaxWidth(),
     ) {
         Image(
             painter = painterResource(id = R.drawable.ic_tmdb_logo),
             contentDescription = "The Movie Database (TMDB)",
-            colorFilter = ColorFilter.tint(SinemaTheme.colors.textSecondary),
+            colorFilter = ColorFilter.tint(BigonTheme.colors.textSecondary),
             modifier = Modifier.width(72.dp),
         )
         Text(
             text = "$versionLabel · This product uses the TMDB API but is not endorsed or certified by TMDB.",
-            style = SinemaTheme.typography.caption.copy(fontSize = 10.5.sp, lineHeight = 16.sp),
-            color = SinemaTheme.colors.textSecondary,
+            style = BigonTheme.typography.caption.copy(fontSize = 10.5.sp, lineHeight = 16.sp),
+            color = BigonTheme.colors.textSecondary,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -77,10 +77,10 @@ fun SinemaAttributionFooter(
 
 // ── Previews ───────────────────────────────────────────────────────────────
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaAttributionFooterPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaAttributionFooter(versionLabel = "Sinema v0.0.1")
+private fun BigonAttributionFooterPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonAttributionFooter(versionLabel = "Sinema v0.0.1")
     }
 }

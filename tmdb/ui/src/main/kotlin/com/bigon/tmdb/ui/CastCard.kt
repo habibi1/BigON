@@ -25,23 +25,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.bigon.core.designsystem.components.SinemaShimmerBox
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.preview.SinemaFontScalePreview
-import com.bigon.core.designsystem.preview.SinemaPreview
-import com.bigon.core.designsystem.preview.SinemaPreviewSurface
-import com.bigon.core.designsystem.preview.SinemaRtlPreview
-import com.bigon.core.designsystem.preview.SinemaThemePreview
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.core.designsystem.components.BigonShimmerBox
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.preview.BigonFontScalePreview
+import com.bigon.core.designsystem.preview.BigonPreview
+import com.bigon.core.designsystem.preview.BigonPreviewSurface
+import com.bigon.core.designsystem.preview.BigonRtlPreview
+import com.bigon.core.designsystem.preview.BigonThemePreview
+import com.bigon.core.designsystem.theme.BigonTheme
 
 
-/** SinemaCastCard — avatar + actor + role (component gallery §Content). */
+/** BigonCastCard — avatar + actor + role (component gallery §Content). */
 @Composable
-fun SinemaCastCard(
+fun BigonCastCard(
     name: String,
     role: String,
     modifier: Modifier = Modifier,
-    avatar: @Composable BoxScope.() -> Unit = { SinemaAvatarPlaceholder() },
+    avatar: @Composable BoxScope.() -> Unit = { BigonAvatarPlaceholder() },
 ) {
     Column(
         modifier = modifier.width(72.dp),
@@ -50,24 +50,24 @@ fun SinemaCastCard(
         Box(
             modifier = Modifier
                 .size(64.dp)
-                .clip(SinemaTheme.shapes.pill)
-                .background(SinemaTheme.colors.surfaceHigh),
+                .clip(BigonTheme.shapes.pill)
+                .background(BigonTheme.colors.surfaceHigh),
         ) {
             avatar()
         }
         Text(
             text = name,
-            style = SinemaTheme.typography.caption.copy(fontWeight = FontWeight.SemiBold),
-            color = SinemaTheme.colors.textPrimary,
+            style = BigonTheme.typography.caption.copy(fontWeight = FontWeight.SemiBold),
+            color = BigonTheme.colors.textPrimary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = SinemaTheme.spacing.xs),
+            modifier = Modifier.padding(top = BigonTheme.spacing.xs),
         )
         Text(
             text = role,
-            style = SinemaTheme.typography.caption,
-            color = SinemaTheme.colors.textSecondary,
+            style = BigonTheme.typography.caption,
+            color = BigonTheme.colors.textSecondary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
@@ -77,32 +77,32 @@ fun SinemaCastCard(
 
 // ── Previews ───────────────────────────────────────────────────────────────
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaCastCardPreview() {
-    SinemaPreviewSurface {
-        SinemaCastCard(name = "Zendaya", role = "Chani")
+private fun BigonCastCardPreview() {
+    BigonPreviewSurface {
+        BigonCastCard(name = "Zendaya", role = "Chani")
     }
 }
 
 /** Names and roles longer than the 72dp column must ellipsize, not wrap. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaCastCardLongNamePreview() {
-    SinemaPreviewSurface {
+private fun BigonCastCardLongNamePreview() {
+    BigonPreviewSurface {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            SinemaCastCard(name = "T. Chalamet", role = "Paul Atreides")
-            SinemaCastCard(name = "Rebecca Ferguson", role = "Lady Jessica Atreides")
+            BigonCastCard(name = "T. Chalamet", role = "Paul Atreides")
+            BigonCastCard(name = "Rebecca Ferguson", role = "Lady Jessica Atreides")
         }
     }
 }
 
 @Composable
-private fun BoxScope.SinemaAvatarPlaceholder() {
+private fun BoxScope.BigonAvatarPlaceholder() {
     Icon(
-        imageVector = SinemaIcons.Person,
+        imageVector = BigonIcons.Person,
         contentDescription = null,
-        tint = SinemaTheme.colors.textSecondary,
+        tint = BigonTheme.colors.textSecondary,
         modifier = Modifier
             .size(28.dp)
             .align(Alignment.Center),

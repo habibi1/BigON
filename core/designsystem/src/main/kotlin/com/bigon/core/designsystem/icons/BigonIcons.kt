@@ -26,17 +26,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.bigon.core.designsystem.preview.SinemaPreview
-import com.bigon.core.designsystem.preview.SinemaPreviewSurface
-import com.bigon.core.designsystem.preview.SinemaThemePreview
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.core.designsystem.preview.BigonPreview
+import com.bigon.core.designsystem.preview.BigonPreviewSurface
+import com.bigon.core.designsystem.preview.BigonThemePreview
+import com.bigon.core.designsystem.theme.BigonTheme
 
 /**
  * The design system's icon vocabulary, backed by Material icons. Components and
  * features reference these named roles — never `Icons.*` directly — so swapping
  * the icon set (or adding brand icons) stays a one-file change.
  */
-object SinemaIcons {
+object BigonIcons {
     val Back: ImageVector = Icons.AutoMirrored.Filled.ArrowBack
     val Home: ImageVector = Icons.Outlined.Home
     val Search: ImageVector = Icons.Outlined.Search
@@ -54,25 +54,25 @@ object SinemaIcons {
 // ── Previews ────────────────────────────────────────────────────────────────
 
 private val iconSheet = listOf(
-    "Back" to SinemaIcons.Back,
-    "Home" to SinemaIcons.Home,
-    "Search" to SinemaIcons.Search,
-    "Settings" to SinemaIcons.Settings,
-    "Heart" to SinemaIcons.Heart,
-    "HeartOutline" to SinemaIcons.HeartOutline,
-    "Star" to SinemaIcons.Star,
-    "Clear" to SinemaIcons.Clear,
-    "Play" to SinemaIcons.Play,
-    "Person" to SinemaIcons.Person,
-    "ChevronRight" to SinemaIcons.ChevronRight,
-    "Movie" to SinemaIcons.Movie,
+    "Back" to BigonIcons.Back,
+    "Home" to BigonIcons.Home,
+    "Search" to BigonIcons.Search,
+    "Settings" to BigonIcons.Settings,
+    "Heart" to BigonIcons.Heart,
+    "HeartOutline" to BigonIcons.HeartOutline,
+    "Star" to BigonIcons.Star,
+    "Clear" to BigonIcons.Clear,
+    "Play" to BigonIcons.Play,
+    "Person" to BigonIcons.Person,
+    "ChevronRight" to BigonIcons.ChevronRight,
+    "Movie" to BigonIcons.Movie,
 )
 
 /** The full icon vocabulary — the sheet to check before adding a new glyph. */
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaIconsPreview() {
-    SinemaPreviewSurface {
+private fun BigonIconsPreview() {
+    BigonPreviewSurface {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             iconSheet.chunked(4).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -85,13 +85,13 @@ private fun SinemaIconsPreview() {
                             Icon(
                                 imageVector = icon,
                                 contentDescription = null,
-                                tint = SinemaTheme.colors.textPrimary,
+                                tint = BigonTheme.colors.textPrimary,
                                 modifier = Modifier.size(24.dp),
                             )
                             Text(
                                 text = name,
-                                style = SinemaTheme.typography.caption,
-                                color = SinemaTheme.colors.textSecondary,
+                                style = BigonTheme.typography.caption,
+                                color = BigonTheme.colors.textSecondary,
                                 textAlign = TextAlign.Center,
                             )
                         }
@@ -103,19 +103,19 @@ private fun SinemaIconsPreview() {
 }
 
 /** Rendering sizes actually used by components: 11dp badge → 30dp placeholder. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaIconSizesPreview() {
-    SinemaPreviewSurface {
+private fun BigonIconSizesPreview() {
+    BigonPreviewSurface {
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             listOf(11.dp, 16.dp, 18.dp, 20.dp, 24.dp, 30.dp).forEach { size ->
                 Icon(
-                    imageVector = SinemaIcons.Star,
+                    imageVector = BigonIcons.Star,
                     contentDescription = null,
-                    tint = SinemaTheme.colors.primary,
+                    tint = BigonTheme.colors.primary,
                     modifier = Modifier.size(size),
                 )
             }

@@ -4,12 +4,12 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.navigation.FavoritesDestination
-import com.bigon.core.navigation.HomeDestination
-import com.bigon.core.navigation.SearchDestination
-import com.bigon.core.navigation.SettingsDestination
-import com.bigon.core.navigation.TopLevelDestination
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.sinema.navigation.FavoritesDestination
+import com.bigon.sinema.navigation.HomeDestination
+import com.bigon.sinema.navigation.SearchDestination
+import com.bigon.sinema.navigation.SettingsDestination
+import com.bigon.sinema.navigation.TopLevelDestination
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlin.reflect.KClass
 
@@ -22,10 +22,10 @@ enum class TopLevelTab(
     val label: String,
     val icon: ImageVector,
 ) {
-    Home(HomeDestination, "Home", SinemaIcons.Home),
-    Search(SearchDestination, "Search", SinemaIcons.Search),
-    Favorites(FavoritesDestination, "Favorites", SinemaIcons.HeartOutline),
-    Settings(SettingsDestination, "Settings", SinemaIcons.Settings),
+    Home(HomeDestination, "Home", BigonIcons.Home),
+    Search(SearchDestination, "Search", BigonIcons.Search),
+    Favorites(FavoritesDestination, "Favorites", BigonIcons.HeartOutline),
+    Settings(SettingsDestination, "Settings", BigonIcons.Settings),
     ;
 
     val routeClass: KClass<out TopLevelDestination> get() = destination::class

@@ -22,12 +22,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.bigon.core.designsystem.components.SinemaEmptyState
-import com.bigon.tmdb.ui.SinemaMovieCard
-import com.bigon.tmdb.ui.SinemaPosterPlaceholder
-import com.bigon.core.designsystem.components.SinemaTonalButton
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.core.designsystem.components.BigonEmptyState
+import com.bigon.tmdb.ui.BigonMovieCard
+import com.bigon.tmdb.ui.BigonPosterPlaceholder
+import com.bigon.core.designsystem.components.BigonTonalButton
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.theme.BigonTheme
 import com.bigon.tmdb.model.Movie
 import com.bigon.core.ui.ObserveEffects
 import com.bigon.sinema.ui.PosterTransition
@@ -65,7 +65,7 @@ fun FavoritesScreen(
     modifier: Modifier = Modifier,
     transition: PosterTransition? = null,
 ) {
-    val spacing = SinemaTheme.spacing
+    val spacing = BigonTheme.spacing
 
     Column(
         modifier = modifier
@@ -75,19 +75,19 @@ fun FavoritesScreen(
     ) {
         Text(
             text = "Favorites",
-            style = SinemaTheme.typography.display,
-            color = SinemaTheme.colors.textPrimary,
+            style = BigonTheme.typography.display,
+            color = BigonTheme.colors.textPrimary,
             modifier = Modifier.padding(vertical = spacing.l),
         )
 
         if (state.showEmptyState) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                SinemaEmptyState(
-                    icon = SinemaIcons.HeartOutline,
+                BigonEmptyState(
+                    icon = BigonIcons.HeartOutline,
                     title = "No favorites yet",
                     subtitle = "Movies you favorite appear here and work offline.",
                     action = {
-                        SinemaTonalButton(
+                        BigonTonalButton(
                             text = "Browse trending",
                             onClick = { onIntent(FavoritesIntent.BrowseTrending) },
                         )
@@ -116,7 +116,7 @@ fun FavoritesScreen(
 
 @Composable
 private fun FavoriteCard(movie: Movie, transition: PosterTransition?, onClick: () -> Unit) {
-    SinemaMovieCard(
+    BigonMovieCard(
         title = movie.title,
         meta = listOfNotNull(movie.releaseYear?.toString(), movie.genres.firstOrNull())
             .joinToString(" · ")
@@ -127,7 +127,7 @@ private fun FavoriteCard(movie: Movie, transition: PosterTransition?, onClick: (
         modifier = Modifier.fillMaxWidth(),
         poster = {
             if (movie.posterUrl == null) {
-                SinemaPosterPlaceholder()
+                BigonPosterPlaceholder()
             } else {
                 AsyncImage(
                     model = movie.posterUrl,

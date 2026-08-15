@@ -25,20 +25,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.preview.SinemaFontScalePreview
-import com.bigon.core.designsystem.preview.SinemaPreview
-import com.bigon.core.designsystem.preview.SinemaPreviewSurface
-import com.bigon.core.designsystem.preview.SinemaRtlPreview
-import com.bigon.core.designsystem.preview.SinemaThemePreview
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.preview.BigonFontScalePreview
+import com.bigon.core.designsystem.preview.BigonPreview
+import com.bigon.core.designsystem.preview.BigonPreviewSurface
+import com.bigon.core.designsystem.preview.BigonRtlPreview
+import com.bigon.core.designsystem.preview.BigonThemePreview
+import com.bigon.core.designsystem.theme.BigonTheme
 
 /**
- * SinemaSectionHeader — with / without the "see all" affordance
+ * BigonSectionHeader — with / without the "see all" affordance
  * (component gallery §Content).
  */
 @Composable
-fun SinemaSectionHeader(
+fun BigonSectionHeader(
     title: String,
     modifier: Modifier = Modifier,
     onSeeAll: (() -> Unit)? = null,
@@ -51,18 +51,18 @@ fun SinemaSectionHeader(
     ) {
         Text(
             text = title,
-            style = SinemaTheme.typography.title,
-            color = SinemaTheme.colors.textPrimary,
+            style = BigonTheme.typography.title,
+            color = BigonTheme.colors.textPrimary,
         )
         if (onSeeAll != null) {
             Text(
                 text = seeAllLabel,
-                style = SinemaTheme.typography.label,
-                color = SinemaTheme.colors.primary,
+                style = BigonTheme.typography.label,
+                color = BigonTheme.colors.primary,
                 modifier = Modifier
-                    .clip(SinemaTheme.shapes.badge)
+                    .clip(BigonTheme.shapes.badge)
                     .clickable(onClick = onSeeAll)
-                    .padding(horizontal = SinemaTheme.spacing.xs, vertical = SinemaTheme.spacing.xs),
+                    .padding(horizontal = BigonTheme.spacing.xs, vertical = BigonTheme.spacing.xs),
             )
         }
     }
@@ -71,11 +71,11 @@ fun SinemaSectionHeader(
 
 
 /**
- * SinemaListItem — tablet list pane row, default / selected
+ * BigonListItem — tablet list pane row, default / selected
  * (component gallery §Content).
  */
 @Composable
-fun SinemaListItem(
+fun BigonListItem(
     title: String,
     subtitle: String,
     selected: Boolean,
@@ -88,13 +88,13 @@ fun SinemaListItem(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(SinemaTheme.spacing.m),
+        horizontalArrangement = Arrangement.spacedBy(BigonTheme.spacing.m),
         modifier = modifier
             .fillMaxWidth()
-            .clip(SinemaTheme.shapes.card)
-            .background(if (selected) SinemaTheme.colors.surfaceVariant else Color.Transparent)
+            .clip(BigonTheme.shapes.card)
+            .background(if (selected) BigonTheme.colors.surfaceVariant else Color.Transparent)
             .clickable(onClick = onClick)
-            .padding(horizontal = SinemaTheme.spacing.m, vertical = 10.dp),
+            .padding(horizontal = BigonTheme.spacing.m, vertical = 10.dp),
     ) {
         Box(
             modifier = Modifier
@@ -106,18 +106,18 @@ fun SinemaListItem(
         Column {
             Text(
                 text = title,
-                style = SinemaTheme.typography.body.copy(fontWeight = FontWeight.SemiBold),
-                color = SinemaTheme.colors.textPrimary,
+                style = BigonTheme.typography.body.copy(fontWeight = FontWeight.SemiBold),
+                color = BigonTheme.colors.textPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = subtitle,
-                style = SinemaTheme.typography.caption,
-                color = SinemaTheme.colors.textSecondary,
+                style = BigonTheme.typography.caption,
+                color = BigonTheme.colors.textSecondary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = SinemaTheme.spacing.xs / 2),
+                modifier = Modifier.padding(top = BigonTheme.spacing.xs / 2),
             )
         }
     }
@@ -125,95 +125,95 @@ fun SinemaListItem(
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaSectionHeaderPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaSectionHeader(title = "🔥 Trending today", onSeeAll = {})
+private fun BigonSectionHeaderPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonSectionHeader(title = "🔥 Trending today", onSeeAll = {})
     }
 }
 
 /** No action slot — the header collapses to a plain title. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaSectionHeaderTitleOnlyPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaSectionHeader(title = "Cast")
+private fun BigonSectionHeaderTitleOnlyPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonSectionHeader(title = "Cast")
     }
 }
 
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaSectionHeaderCustomActionPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaSectionHeader(title = "Recommendations", onSeeAll = {}, seeAllLabel = "More")
+private fun BigonSectionHeaderCustomActionPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonSectionHeader(title = "Recommendations", onSeeAll = {}, seeAllLabel = "More")
     }
 }
 
 /** RTL: the action must mirror to the left edge. */
-@SinemaRtlPreview
+@BigonRtlPreview
 @Composable
-private fun SinemaSectionHeaderRtlPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaSectionHeader(title = "Trending today", onSeeAll = {})
+private fun BigonSectionHeaderRtlPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonSectionHeader(title = "Trending today", onSeeAll = {})
     }
 }
 
 
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaListItemPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaListItem(
+private fun BigonListItemPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonListItem(
             title = "The Batman II",
             subtitle = "2026 · ★ 7.9 · Crime",
             selected = false,
             onClick = {},
-            thumbnail = { SinemaShimmerBox(modifier = Modifier.matchParentSize()) },
+            thumbnail = { BigonShimmerBox(modifier = Modifier.matchParentSize()) },
         )
     }
 }
 
 /** Selected state — the tablet list pane's current row. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaListItemSelectedPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaListItem(
+private fun BigonListItemSelectedPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonListItem(
             title = "Dune: Part Three",
             subtitle = "2026 · ★ 8.4 · Sci-Fi",
             selected = true,
             onClick = {},
-            thumbnail = { SinemaShimmerBox(modifier = Modifier.matchParentSize()) },
+            thumbnail = { BigonShimmerBox(modifier = Modifier.matchParentSize()) },
         )
     }
 }
 
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaListItemLongTextPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaListItem(
+private fun BigonListItemLongTextPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonListItem(
             title = "A Title Long Enough To Need Ellipsis Treatment",
             subtitle = "2026 · ★ 8.4 · Science Fiction · Adventure · Drama",
             selected = false,
             onClick = {},
-            thumbnail = { SinemaShimmerBox(modifier = Modifier.matchParentSize()) },
+            thumbnail = { BigonShimmerBox(modifier = Modifier.matchParentSize()) },
         )
     }
 }
 
-@SinemaFontScalePreview
+@BigonFontScalePreview
 @Composable
-private fun SinemaListItemFontScalePreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaListItem(
+private fun BigonListItemFontScalePreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonListItem(
             title = "Dune: Part Three",
             subtitle = "2026 · ★ 8.4 · Sci-Fi",
             selected = true,
             onClick = {},
-            thumbnail = { SinemaShimmerBox(modifier = Modifier.matchParentSize()) },
+            thumbnail = { BigonShimmerBox(modifier = Modifier.matchParentSize()) },
         )
     }
 }

@@ -21,20 +21,20 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.preview.SinemaFontScalePreview
-import com.bigon.core.designsystem.preview.SinemaPreview
-import com.bigon.core.designsystem.preview.SinemaPreviewSurface
-import com.bigon.core.designsystem.preview.SinemaThemePreview
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.preview.BigonFontScalePreview
+import com.bigon.core.designsystem.preview.BigonPreview
+import com.bigon.core.designsystem.preview.BigonPreviewSurface
+import com.bigon.core.designsystem.preview.BigonThemePreview
+import com.bigon.core.designsystem.theme.BigonTheme
 
 /**
- * SinemaSettingRow — leading icon bubble, title/subtitle, trailing value
+ * BigonSettingRow — leading icon bubble, title/subtitle, trailing value
  * (component gallery §Input). The trailing chevron appears when the row is
  * clickable.
  */
 @Composable
-fun SinemaSettingRow(
+fun BigonSettingRow(
     title: String,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
@@ -43,14 +43,14 @@ fun SinemaSettingRow(
     onClick: (() -> Unit)? = null,
     showDivider: Boolean = true,
 ) {
-    val colors = SinemaTheme.colors
+    val colors = BigonTheme.colors
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(SinemaTheme.shapes.card)
+                .clip(BigonTheme.shapes.card)
                 .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
                 .padding(vertical = 14.dp),
         ) {
@@ -59,7 +59,7 @@ fun SinemaSettingRow(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .size(40.dp)
-                        .clip(SinemaTheme.shapes.pill)
+                        .clip(BigonTheme.shapes.pill)
                         .background(colors.surfaceVariant),
                 ) {
                     Icon(
@@ -73,7 +73,7 @@ fun SinemaSettingRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    style = SinemaTheme.typography.body.copy(
+                    style = BigonTheme.typography.body.copy(
                         fontSize = 14.5.sp,
                         fontWeight = FontWeight.SemiBold,
                     ),
@@ -82,22 +82,22 @@ fun SinemaSettingRow(
                 if (subtitle != null) {
                     Text(
                         text = subtitle,
-                        style = SinemaTheme.typography.label.copy(fontWeight = FontWeight.Normal),
+                        style = BigonTheme.typography.label.copy(fontWeight = FontWeight.Normal),
                         color = colors.textSecondary,
-                        modifier = Modifier.padding(top = SinemaTheme.spacing.xs / 2),
+                        modifier = Modifier.padding(top = BigonTheme.spacing.xs / 2),
                     )
                 }
             }
             if (value != null) {
                 Text(
                     text = value,
-                    style = SinemaTheme.typography.label,
+                    style = BigonTheme.typography.label,
                     color = colors.primary,
                 )
             }
             if (onClick != null) {
                 Icon(
-                    imageVector = SinemaIcons.ChevronRight,
+                    imageVector = BigonIcons.ChevronRight,
                     contentDescription = null,
                     tint = colors.primary,
                     modifier = Modifier.size(16.dp),
@@ -117,57 +117,57 @@ fun SinemaSettingRow(
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaSettingRowPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(340.dp)) {
-        SinemaSettingRow(
+private fun BigonSettingRowPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(340.dp)) {
+        BigonSettingRow(
             title = "Content language",
             subtitle = "Titles & overviews",
             value = "EN",
-            icon = SinemaIcons.Movie,
+            icon = BigonIcons.Movie,
             onClick = {},
         )
     }
 }
 
 /** No icon slot. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaSettingRowNoIconPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(340.dp)) {
-        SinemaSettingRow(title = "Clear cache", subtitle = "favorites kept", value = "128 MB", onClick = {})
+private fun BigonSettingRowNoIconPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(340.dp)) {
+        BigonSettingRow(title = "Clear cache", subtitle = "favorites kept", value = "128 MB", onClick = {})
     }
 }
 
 /** Title only — no subtitle, no value. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaSettingRowTitleOnlyPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(340.dp)) {
-        SinemaSettingRow(title = "About Sinema", icon = SinemaIcons.Movie, onClick = {})
+private fun BigonSettingRowTitleOnlyPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(340.dp)) {
+        BigonSettingRow(title = "About Sinema", icon = BigonIcons.Movie, onClick = {})
     }
 }
 
 /** Not clickable: no chevron, no ripple. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaSettingRowStaticPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(340.dp)) {
-        SinemaSettingRow(title = "App version", subtitle = "1.0 (1)", icon = SinemaIcons.Settings)
+private fun BigonSettingRowStaticPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(340.dp)) {
+        BigonSettingRow(title = "App version", subtitle = "1.0 (1)", icon = BigonIcons.Settings)
     }
 }
 
 /** Last row in a group — divider suppressed. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaSettingRowNoDividerPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(340.dp)) {
-        SinemaSettingRow(
+private fun BigonSettingRowNoDividerPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(340.dp)) {
+        BigonSettingRow(
             title = "Clear cache",
             subtitle = "favorites kept",
             value = "128 MB",
-            icon = SinemaIcons.Clear,
+            icon = BigonIcons.Clear,
             onClick = {},
             showDivider = false,
         )
@@ -175,25 +175,25 @@ private fun SinemaSettingRowNoDividerPreview() {
 }
 
 /** A settings group, which is how the rows are actually seen. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaSettingRowGroupPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(340.dp)) {
-        SinemaSettingRow(title = "Content language", subtitle = "Titles & overviews", value = "EN", icon = SinemaIcons.Movie, onClick = {})
-        SinemaSettingRow(title = "Clear cache", subtitle = "favorites kept", value = "128 MB", icon = SinemaIcons.Clear, onClick = {})
-        SinemaSettingRow(title = "About", icon = SinemaIcons.Settings, onClick = {}, showDivider = false)
+private fun BigonSettingRowGroupPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(340.dp)) {
+        BigonSettingRow(title = "Content language", subtitle = "Titles & overviews", value = "EN", icon = BigonIcons.Movie, onClick = {})
+        BigonSettingRow(title = "Clear cache", subtitle = "favorites kept", value = "128 MB", icon = BigonIcons.Clear, onClick = {})
+        BigonSettingRow(title = "About", icon = BigonIcons.Settings, onClick = {}, showDivider = false)
     }
 }
 
-@SinemaFontScalePreview
+@BigonFontScalePreview
 @Composable
-private fun SinemaSettingRowFontScalePreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(340.dp)) {
-        SinemaSettingRow(
+private fun BigonSettingRowFontScalePreview() {
+    BigonPreviewSurface(modifier = Modifier.width(340.dp)) {
+        BigonSettingRow(
             title = "Content language",
             subtitle = "Titles & overviews",
             value = "EN",
-            icon = SinemaIcons.Movie,
+            icon = BigonIcons.Movie,
             onClick = {},
             showDivider = false,
         )

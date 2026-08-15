@@ -9,9 +9,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.bigon.core.designsystem.components.SinemaAppScaffold
-import com.bigon.core.designsystem.components.SinemaNavItem
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.core.designsystem.components.BigonAppScaffold
+import com.bigon.core.designsystem.components.BigonNavItem
+import com.bigon.core.designsystem.theme.BigonTheme
 import com.bigon.core.update.UpdateGate
 
 /**
@@ -40,7 +40,7 @@ fun SinemaApp() {
     // Bars follow the app's theme, not the system's (see SystemBarsEffect).
     SystemBarsEffect(darkTheme = darkTheme)
 
-    SinemaTheme(darkTheme = darkTheme) {
+    BigonTheme(darkTheme = darkTheme) {
         val navController = rememberNavController()
         val currentEntry by navController.currentBackStackEntryAsState()
         val currentDestination = currentEntry?.destination
@@ -51,9 +51,9 @@ fun SinemaApp() {
         // no reachable navigation bar behind the gate.
         UpdateGate {
             SharedTransitionLayout {
-                SinemaAppScaffold(
+                BigonAppScaffold(
                     items = TopLevelTab.entries.map { tab ->
-                        SinemaNavItem(id = tab.name, label = tab.label, icon = tab.icon)
+                        BigonNavItem(id = tab.name, label = tab.label, icon = tab.icon)
                     },
                     selectedId = (currentDestination.currentTab() ?: TopLevelTab.Home).name,
                     onSelect = { id ->

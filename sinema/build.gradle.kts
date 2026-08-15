@@ -66,7 +66,6 @@ dependencies {
     implementation(project(":core:datastore"))
     implementation(project(":core:tracker:api"))
     implementation(project(":core:config:api"))
-    implementation(project(":core:navigation"))
     implementation(project(":core:update"))
     implementation(project(":core:designsystem"))
     implementation(project(":tmdb:ui"))

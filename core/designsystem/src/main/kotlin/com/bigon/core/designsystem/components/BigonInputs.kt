@@ -30,20 +30,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.preview.SinemaFontScalePreview
-import com.bigon.core.designsystem.preview.SinemaPreview
-import com.bigon.core.designsystem.preview.SinemaPreviewSurface
-import com.bigon.core.designsystem.preview.SinemaThemePreview
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.preview.BigonFontScalePreview
+import com.bigon.core.designsystem.preview.BigonPreview
+import com.bigon.core.designsystem.preview.BigonPreviewSurface
+import com.bigon.core.designsystem.preview.BigonThemePreview
+import com.bigon.core.designsystem.theme.BigonTheme
 
 /**
- * SinemaSearchBar — pill search field, idle / focused with clear affordance
+ * BigonSearchBar — pill search field, idle / focused with clear affordance
  * (component gallery §Input). Focus is signalled with a 2dp primary ring, the
  * clear affordance appears once there is input.
  */
 @Composable
-fun SinemaSearchBar(
+fun BigonSearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -52,7 +52,7 @@ fun SinemaSearchBar(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
-    val colors = SinemaTheme.colors
+    val colors = BigonTheme.colors
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -60,11 +60,11 @@ fun SinemaSearchBar(
         modifier = modifier
             .fillMaxWidth()
             .height(52.dp)
-            .clip(SinemaTheme.shapes.pill)
+            .clip(BigonTheme.shapes.pill)
             .background(colors.surfaceVariant)
             .then(
                 if (focused) {
-                    Modifier.border(2.dp, colors.primary, SinemaTheme.shapes.pill)
+                    Modifier.border(2.dp, colors.primary, BigonTheme.shapes.pill)
                 } else {
                     Modifier
                 },
@@ -72,7 +72,7 @@ fun SinemaSearchBar(
             .padding(horizontal = 18.dp),
     ) {
         Icon(
-            imageVector = SinemaIcons.Search,
+            imageVector = BigonIcons.Search,
             contentDescription = null,
             tint = colors.textSecondary,
             modifier = Modifier.size(18.dp),
@@ -81,7 +81,7 @@ fun SinemaSearchBar(
             if (query.isEmpty()) {
                 Text(
                     text = placeholder,
-                    style = SinemaTheme.typography.body,
+                    style = BigonTheme.typography.body,
                     color = colors.textSecondary,
                 )
             }
@@ -90,7 +90,7 @@ fun SinemaSearchBar(
                 onValueChange = onQueryChange,
                 enabled = enabled,
                 singleLine = true,
-                textStyle = SinemaTheme.typography.body.copy(color = colors.textPrimary),
+                textStyle = BigonTheme.typography.body.copy(color = colors.textPrimary),
                 cursorBrush = SolidColor(colors.primary),
                 interactionSource = interactionSource,
                 modifier = Modifier.fillMaxWidth(),
@@ -98,37 +98,37 @@ fun SinemaSearchBar(
         }
         if (query.isNotEmpty()) {
             Icon(
-                imageVector = SinemaIcons.Clear,
+                imageVector = BigonIcons.Clear,
                 contentDescription = "Clear search",
                 tint = colors.textSecondary,
                 modifier = Modifier
-                    .clip(SinemaTheme.shapes.pill)
+                    .clip(BigonTheme.shapes.pill)
                     .clickable { onQueryChange("") }
-                    .padding(SinemaTheme.spacing.xs)
+                    .padding(BigonTheme.spacing.xs)
                     .size(16.dp),
             )
         }
     }
 }
 
-/** SinemaChip — filter chip, off / on (component gallery §Input). */
+/** BigonChip — filter chip, off / on (component gallery §Input). */
 @Composable
-fun SinemaChip(
+fun BigonChip(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = SinemaTheme.colors
+    val colors = BigonTheme.colors
     Box(
         modifier = modifier
-            .clip(SinemaTheme.shapes.pill)
+            .clip(BigonTheme.shapes.pill)
             .background(if (selected) colors.primaryContainer else colors.surfaceHigh)
             .then(
                 if (selected) {
                     Modifier
                 } else {
-                    Modifier.border(1.dp, colors.outline, SinemaTheme.shapes.pill)
+                    Modifier.border(1.dp, colors.outline, BigonTheme.shapes.pill)
                 },
             )
             .clickable(onClick = onClick)
@@ -136,7 +136,7 @@ fun SinemaChip(
     ) {
         Text(
             text = label,
-            style = SinemaTheme.typography.label.copy(
+            style = BigonTheme.typography.label.copy(
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
             ),
             color = if (selected) colors.onPrimaryContainer else colors.textSecondary,
@@ -144,20 +144,20 @@ fun SinemaChip(
     }
 }
 
-/** SinemaChipRow — horizontally scrolling single-choice chip row. */
+/** BigonChipRow — horizontally scrolling single-choice chip row. */
 @Composable
-fun SinemaChipRow(
+fun BigonChipRow(
     options: List<String>,
     selectedOption: String,
     onOptionSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(SinemaTheme.spacing.s),
+        horizontalArrangement = Arrangement.spacedBy(BigonTheme.spacing.s),
         modifier = modifier.horizontalScroll(rememberScrollState()),
     ) {
         options.forEach { option ->
-            SinemaChip(
+            BigonChip(
                 label = option,
                 selected = option == selectedOption,
                 onClick = { onOptionSelect(option) },
@@ -168,90 +168,90 @@ fun SinemaChipRow(
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaSearchBarPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaSearchBar(query = "", onQueryChange = {})
+private fun BigonSearchBarPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonSearchBar(query = "", onQueryChange = {})
     }
 }
 
 /** With input: the clear affordance appears. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaSearchBarFilledPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaSearchBar(query = "interstellar", onQueryChange = {})
+private fun BigonSearchBarFilledPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonSearchBar(query = "interstellar", onQueryChange = {})
     }
 }
 
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaSearchBarCustomPlaceholderPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaSearchBar(query = "", onQueryChange = {}, placeholder = "Search cast & crew…")
+private fun BigonSearchBarCustomPlaceholderPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonSearchBar(query = "", onQueryChange = {}, placeholder = "Search cast & crew…")
     }
 }
 
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaSearchBarDisabledPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaSearchBar(query = "read only", onQueryChange = {}, enabled = false)
+private fun BigonSearchBarDisabledPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonSearchBar(query = "read only", onQueryChange = {}, enabled = false)
     }
 }
 
 /** Run this in Interactive Preview (▶) to see the focus ring and type. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaSearchBarInteractivePreview() {
+private fun BigonSearchBarInteractivePreview() {
     var query by remember { mutableStateOf("") }
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaSearchBar(query = query, onQueryChange = { query = it })
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonSearchBar(query = query, onQueryChange = { query = it })
     }
 }
 
-@SinemaFontScalePreview
+@BigonFontScalePreview
 @Composable
-private fun SinemaSearchBarFontScalePreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaSearchBar(query = "", onQueryChange = {})
+private fun BigonSearchBarFontScalePreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonSearchBar(query = "", onQueryChange = {})
     }
 }
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaChipPreview() {
-    SinemaPreviewSurface {
-        SinemaChip(label = "Sci-Fi", selected = false, onClick = {})
+private fun BigonChipPreview() {
+    BigonPreviewSurface {
+        BigonChip(label = "Sci-Fi", selected = false, onClick = {})
     }
 }
 
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaChipSelectedPreview() {
-    SinemaPreviewSurface {
-        SinemaChip(label = "Sci-Fi", selected = true, onClick = {})
+private fun BigonChipSelectedPreview() {
+    BigonPreviewSurface {
+        BigonChip(label = "Sci-Fi", selected = true, onClick = {})
     }
 }
 
 /** Both states side by side — the contrast between them is the design. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaChipStatesPreview() {
-    SinemaPreviewSurface {
+private fun BigonChipStatesPreview() {
+    BigonPreviewSurface {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SinemaChip(label = "All", selected = true, onClick = {})
-            SinemaChip(label = "Drama", selected = false, onClick = {})
+            BigonChip(label = "All", selected = true, onClick = {})
+            BigonChip(label = "Drama", selected = false, onClick = {})
         }
     }
 }
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaChipRowPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaChipRow(
+private fun BigonChipRowPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonChipRow(
             options = listOf("All", "Sci-Fi", "Drama", "Romance", "Horror", "Comedy"),
             selectedOption = "All",
             onOptionSelect = {},
@@ -260,12 +260,12 @@ private fun SinemaChipRowPreview() {
 }
 
 /** Interactive: tap chips to move the selection. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaChipRowInteractivePreview() {
+private fun BigonChipRowInteractivePreview() {
     var selected by remember { mutableStateOf("All") }
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaChipRow(
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonChipRow(
             options = listOf("All", "Sci-Fi", "Drama", "Romance"),
             selectedOption = selected,
             onOptionSelect = { selected = it },

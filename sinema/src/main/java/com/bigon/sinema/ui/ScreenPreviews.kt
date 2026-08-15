@@ -1,10 +1,10 @@
 package com.bigon.sinema.ui
 
 import androidx.compose.runtime.Composable
-import com.bigon.core.designsystem.preview.SinemaDevicePreview
-import com.bigon.core.designsystem.preview.SinemaFontScalePreview
-import com.bigon.core.designsystem.preview.SinemaThemePreview
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.core.designsystem.preview.BigonDevicePreview
+import com.bigon.core.designsystem.preview.BigonFontScalePreview
+import com.bigon.core.designsystem.preview.BigonThemePreview
+import com.bigon.core.designsystem.theme.BigonTheme
 import com.bigon.tmdb.model.Movie
 import com.bigon.tmdb.model.MovieCategory
 import com.bigon.sinema.ui.favorites.FavoritesScreen
@@ -33,10 +33,10 @@ private val sampleMovies = listOf(
 
 // ── Home ────────────────────────────────────────────────────────────────────
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
 private fun HomeScreenPreview() {
-    SinemaTheme {
+    BigonTheme {
         HomeScreen(
             state = HomeUiState(feed = HomeFeed.Category(MovieCategory.Trending), movies = sampleMovies),
             onIntent = {},
@@ -44,10 +44,10 @@ private fun HomeScreenPreview() {
     }
 }
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
 private fun HomeScreenLoadingPreview() {
-    SinemaTheme {
+    BigonTheme {
         HomeScreen(
             state = HomeUiState(feed = HomeFeed.Category(MovieCategory.Popular), isRefreshing = true),
             onIntent = {},
@@ -55,28 +55,28 @@ private fun HomeScreenLoadingPreview() {
     }
 }
 
-@SinemaDevicePreview
+@BigonDevicePreview
 @Composable
 private fun HomeScreenDevicePreview() {
-    SinemaTheme {
+    BigonTheme {
         HomeScreen(state = HomeUiState(movies = sampleMovies), onIntent = {})
     }
 }
 
-@SinemaFontScalePreview
+@BigonFontScalePreview
 @Composable
 private fun HomeScreenFontScalePreview() {
-    SinemaTheme {
+    BigonTheme {
         HomeScreen(state = HomeUiState(movies = sampleMovies), onIntent = {})
     }
 }
 
 // ── Search ──────────────────────────────────────────────────────────────────
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
 private fun SearchScreenPreview() {
-    SinemaTheme {
+    BigonTheme {
         SearchScreen(
             state = SearchUiState(query = "mid", results = sampleMovies, isSearching = false),
             onIntent = {},
@@ -84,10 +84,10 @@ private fun SearchScreenPreview() {
     }
 }
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
 private fun SearchScreenEmptyPreview() {
-    SinemaTheme {
+    BigonTheme {
         SearchScreen(
             state = SearchUiState(query = "zzzz", isSearching = false),
             onIntent = {},
@@ -97,10 +97,10 @@ private fun SearchScreenEmptyPreview() {
 
 // ── Favorites ───────────────────────────────────────────────────────────────
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
 private fun FavoritesScreenPreview() {
-    SinemaTheme {
+    BigonTheme {
         FavoritesScreen(
             state = FavoritesUiState(favorites = sampleMovies, isLoaded = true),
             onIntent = {},
@@ -108,20 +108,20 @@ private fun FavoritesScreenPreview() {
     }
 }
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
 private fun FavoritesScreenEmptyPreview() {
-    SinemaTheme {
+    BigonTheme {
         FavoritesScreen(state = FavoritesUiState(isLoaded = true), onIntent = {})
     }
 }
 
 // ── Settings ────────────────────────────────────────────────────────────────
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
 private fun SettingsScreenPreview() {
-    SinemaTheme {
+    BigonTheme {
         SettingsScreen(
             state = SettingsUiState(themeMode = ThemeMode.Dark, cacheBytes = 134_217_728L),
             onIntent = {},
@@ -129,10 +129,10 @@ private fun SettingsScreenPreview() {
     }
 }
 
-@SinemaFontScalePreview
+@BigonFontScalePreview
 @Composable
 private fun SettingsScreenFontScalePreview() {
-    SinemaTheme {
+    BigonTheme {
         SettingsScreen(
             state = SettingsUiState(themeMode = ThemeMode.System, cacheBytes = 42_000_000L),
             onIntent = {},

@@ -34,7 +34,6 @@ include(":tmdb:database")
 include(":core:datastore")
 include(":core:tracker:api")
 include(":core:config:api")
-include(":core:navigation")
 include(":core:update")
 
 // Compose core (CMP-ready)

@@ -26,39 +26,39 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
-import com.bigon.core.designsystem.components.SinemaShimmerBox
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.preview.SinemaPreview
-import com.bigon.core.designsystem.preview.SinemaPreviewSurface
-import com.bigon.core.designsystem.preview.SinemaThemePreview
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.core.designsystem.components.BigonShimmerBox
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.preview.BigonPreview
+import com.bigon.core.designsystem.preview.BigonPreviewSurface
+import com.bigon.core.designsystem.preview.BigonThemePreview
+import com.bigon.core.designsystem.theme.BigonTheme
 
 /**
- * SinemaShimmerCard — the loading variant of [SinemaMovieCard]
+ * BigonShimmerCard — the loading variant of [BigonMovieCard]
  * (component gallery §Content). Same footprint, animated sheen.
  */
 @Composable
-fun SinemaShimmerCard(
+fun BigonShimmerCard(
     modifier: Modifier = Modifier,
-    width: Dp = SinemaMovieCardDefaults.Width,
+    width: Dp = BigonMovieCardDefaults.Width,
 ) {
     // Dp.Unspecified lets a parent (e.g. a grid cell) size the skeleton, exactly
-    // as SinemaMovieCard allows — the two must stay interchangeable.
+    // as BigonMovieCard allows — the two must stay interchangeable.
     Column(modifier = modifier.then(if (width.isSpecified) Modifier.width(width) else Modifier)) {
-        SinemaShimmerBox(
-            shape = SinemaTheme.shapes.card,
+        BigonShimmerBox(
+            shape = BigonTheme.shapes.card,
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(SinemaMovieCardDefaults.PosterAspectRatio),
+                .aspectRatio(BigonMovieCardDefaults.PosterAspectRatio),
         )
-        SinemaShimmerBox(
+        BigonShimmerBox(
             shape = RoundedCornerShape(6.dp),
             modifier = Modifier
-                .padding(top = SinemaTheme.spacing.s)
+                .padding(top = BigonTheme.spacing.s)
                 .width(100.dp)
                 .height(12.dp),
         )
-        SinemaShimmerBox(
+        BigonShimmerBox(
             shape = RoundedCornerShape(5.dp),
             modifier = Modifier
                 .padding(top = 5.dp)
@@ -70,38 +70,38 @@ fun SinemaShimmerCard(
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaShimmerCardPreview() {
-    SinemaPreviewSurface {
-        SinemaShimmerCard()
+private fun BigonShimmerCardPreview() {
+    BigonPreviewSurface {
+        BigonShimmerCard()
     }
 }
 
 /** A loading row, as Home renders it before the feed arrives. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaShimmerCardRowPreview() {
-    SinemaPreviewSurface {
+private fun BigonShimmerCardRowPreview() {
+    BigonPreviewSurface {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            repeat(3) { SinemaShimmerCard() }
+            repeat(3) { BigonShimmerCard() }
         }
     }
 }
 
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaShimmerCardWidePreview() {
-    SinemaPreviewSurface {
-        SinemaShimmerCard(width = 180.dp)
+private fun BigonShimmerCardWidePreview() {
+    BigonPreviewSurface {
+        BigonShimmerCard(width = 180.dp)
     }
 }
 
-/** Parent-sized skeleton — must stay layout-compatible with SinemaMovieCard. */
-@SinemaPreview
+/** Parent-sized skeleton — must stay layout-compatible with BigonMovieCard. */
+@BigonPreview
 @Composable
-private fun SinemaShimmerCardParentSizedPreview() {
-    SinemaPreviewSurface {
-        SinemaShimmerCard(width = Dp.Unspecified, modifier = Modifier.width(200.dp))
+private fun BigonShimmerCardParentSizedPreview() {
+    BigonPreviewSurface {
+        BigonShimmerCard(width = Dp.Unspecified, modifier = Modifier.width(200.dp))
     }
 }

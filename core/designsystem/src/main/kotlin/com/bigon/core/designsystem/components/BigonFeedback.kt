@@ -30,19 +30,19 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bigon.core.designsystem.R
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.preview.SinemaFontScalePreview
-import com.bigon.core.designsystem.preview.SinemaPreview
-import com.bigon.core.designsystem.preview.SinemaPreviewSurface
-import com.bigon.core.designsystem.preview.SinemaThemePreview
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.preview.BigonFontScalePreview
+import com.bigon.core.designsystem.preview.BigonPreview
+import com.bigon.core.designsystem.preview.BigonPreviewSurface
+import com.bigon.core.designsystem.preview.BigonThemePreview
+import com.bigon.core.designsystem.theme.BigonTheme
 
 /**
- * SinemaOfflineBanner — N2.1 global connectivity banner
+ * BigonOfflineBanner — N2.1 global connectivity banner
  * (component gallery §Scaffolding & feedback).
  */
 @Composable
-fun SinemaOfflineBanner(
+fun BigonOfflineBanner(
     message: String,
     modifier: Modifier = Modifier,
 ) {
@@ -50,33 +50,33 @@ fun SinemaOfflineBanner(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .fillMaxWidth()
-            .clip(SinemaTheme.shapes.badge)
-            .background(SinemaTheme.colors.errorContainer)
-            .padding(SinemaTheme.spacing.s),
+            .clip(BigonTheme.shapes.badge)
+            .background(BigonTheme.colors.errorContainer)
+            .padding(BigonTheme.spacing.s),
     ) {
         Text(
             text = message,
-            style = SinemaTheme.typography.label,
-            color = SinemaTheme.colors.onErrorContainer,
+            style = BigonTheme.typography.label,
+            color = BigonTheme.colors.onErrorContainer,
             textAlign = TextAlign.Center,
         )
     }
 }
 
 /**
- * SinemaSnackbar — transient notice with optional action, e.g. the F3.7
+ * BigonSnackbar — transient notice with optional action, e.g. the F3.7
  * stale-cache "RETRY" (component gallery §Scaffolding & feedback).
  */
 @Composable
-fun SinemaSnackbar(
+fun BigonSnackbar(
     message: String,
     modifier: Modifier = Modifier,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
 ) {
     Surface(
-        shape = SinemaTheme.shapes.card,
-        color = SinemaTheme.colors.surfaceHigh,
+        shape = BigonTheme.shapes.card,
+        color = BigonTheme.colors.surfaceHigh,
         shadowElevation = 6.dp,
         modifier = modifier.fillMaxWidth(),
     ) {
@@ -87,46 +87,46 @@ fun SinemaSnackbar(
         ) {
             Text(
                 text = message,
-                style = SinemaTheme.typography.body.copy(fontSize = 13.sp),
-                color = SinemaTheme.colors.textPrimary,
+                style = BigonTheme.typography.body.copy(fontSize = 13.sp),
+                color = BigonTheme.colors.textPrimary,
                 modifier = Modifier.weight(1f),
             )
             if (actionLabel != null && onAction != null) {
                 Text(
                     text = actionLabel,
-                    style = SinemaTheme.typography.label.copy(fontWeight = FontWeight.Bold),
-                    color = SinemaTheme.colors.primary,
+                    style = BigonTheme.typography.label.copy(fontWeight = FontWeight.Bold),
+                    color = BigonTheme.colors.primary,
                     modifier = Modifier
-                        .clip(SinemaTheme.shapes.badge)
+                        .clip(BigonTheme.shapes.badge)
                         .clickable(onClick = onAction)
-                        .padding(SinemaTheme.spacing.xs),
+                        .padding(BigonTheme.spacing.xs),
                 )
             }
         }
     }
 }
 
-/** SinemaLoadingIndicator — the single spinner used across the app. */
+/** BigonLoadingIndicator — the single spinner used across the app. */
 @Composable
-fun SinemaLoadingIndicator(
+fun BigonLoadingIndicator(
     modifier: Modifier = Modifier,
     size: Dp = 28.dp,
 ) {
     CircularProgressIndicator(
-        color = SinemaTheme.colors.primary,
-        trackColor = SinemaTheme.colors.surfaceHigh,
+        color = BigonTheme.colors.primary,
+        trackColor = BigonTheme.colors.surfaceHigh,
         strokeWidth = 3.dp,
         modifier = modifier.size(size),
     )
 }
 
 /**
- * SinemaEmptyState — slot-based icon + title + subtitle + optional CTA.
+ * BigonEmptyState — slot-based icon + title + subtitle + optional CTA.
  * Also covers the error variant (404 / F3.7): same anatomy, different content
  * (component gallery §Scaffolding & feedback — "exists exactly once in code").
  */
 @Composable
-fun SinemaEmptyState(
+fun BigonEmptyState(
     icon: ImageVector,
     title: String,
     subtitle: String,
@@ -136,34 +136,34 @@ fun SinemaEmptyState(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.padding(
-            horizontal = SinemaTheme.spacing.xl,
-            vertical = SinemaTheme.spacing.xl,
+            horizontal = BigonTheme.spacing.xl,
+            vertical = BigonTheme.spacing.xl,
         ),
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = SinemaTheme.colors.textSecondary,
+            tint = BigonTheme.colors.textSecondary,
             modifier = Modifier
                 .size(40.dp)
                 .alpha(0.5f),
         )
         Text(
             text = title,
-            style = SinemaTheme.typography.title.copy(fontSize = 15.sp),
-            color = SinemaTheme.colors.textPrimary,
+            style = BigonTheme.typography.title.copy(fontSize = 15.sp),
+            color = BigonTheme.colors.textPrimary,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = SinemaTheme.spacing.m),
+            modifier = Modifier.padding(top = BigonTheme.spacing.m),
         )
         Text(
             text = subtitle,
-            style = SinemaTheme.typography.body.copy(fontSize = 12.5.sp, lineHeight = 19.sp),
-            color = SinemaTheme.colors.textSecondary,
+            style = BigonTheme.typography.body.copy(fontSize = 12.5.sp, lineHeight = 19.sp),
+            color = BigonTheme.colors.textSecondary,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = SinemaTheme.spacing.s),
+            modifier = Modifier.padding(top = BigonTheme.spacing.s),
         )
         if (action != null) {
-            Box(modifier = Modifier.padding(top = SinemaTheme.spacing.m)) {
+            Box(modifier = Modifier.padding(top = BigonTheme.spacing.m)) {
                 action()
             }
         }
@@ -173,30 +173,30 @@ fun SinemaEmptyState(
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaOfflineBannerPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaOfflineBanner(message = "✈ You're offline — showing saved content")
+private fun BigonOfflineBannerPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonOfflineBanner(message = "✈ You're offline — showing saved content")
     }
 }
 
 /** A message long enough to wrap to a second line. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaOfflineBannerLongMessagePreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaOfflineBanner(
+private fun BigonOfflineBannerLongMessagePreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonOfflineBanner(
             message = "You're offline — showing content saved on this device, which may be out of date",
         )
     }
 }
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaSnackbarPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaSnackbar(
+private fun BigonSnackbarPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonSnackbar(
             message = "Couldn't refresh — showing saved data",
             actionLabel = "RETRY",
             onAction = {},
@@ -205,19 +205,19 @@ private fun SinemaSnackbarPreview() {
 }
 
 /** No action slot — the message fills the width. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaSnackbarNoActionPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaSnackbar(message = "Added to favorites")
+private fun BigonSnackbarNoActionPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonSnackbar(message = "Added to favorites")
     }
 }
 
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaSnackbarLongMessagePreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaSnackbar(
+private fun BigonSnackbarLongMessagePreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonSnackbar(
             message = "We couldn't reach TMDB, so you're seeing the copy saved on this device",
             actionLabel = "RETRY",
             onAction = {},
@@ -225,50 +225,50 @@ private fun SinemaSnackbarLongMessagePreview() {
     }
 }
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaLoadingIndicatorPreview() {
-    SinemaPreviewSurface {
-        SinemaLoadingIndicator()
+private fun BigonLoadingIndicatorPreview() {
+    BigonPreviewSurface {
+        BigonLoadingIndicator()
     }
 }
 
 /** The three sizes in use: inline, default, full-screen. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaLoadingIndicatorSizesPreview() {
-    SinemaPreviewSurface {
+private fun BigonLoadingIndicatorSizesPreview() {
+    BigonPreviewSurface {
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            SinemaLoadingIndicator(size = 16.dp)
-            SinemaLoadingIndicator()
-            SinemaLoadingIndicator(size = 48.dp)
+            BigonLoadingIndicator(size = 16.dp)
+            BigonLoadingIndicator()
+            BigonLoadingIndicator(size = 48.dp)
         }
     }
 }
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaEmptyStatePreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaEmptyState(
-            icon = SinemaIcons.HeartOutline,
+private fun BigonEmptyStatePreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonEmptyState(
+            icon = BigonIcons.HeartOutline,
             title = "No favorites yet",
             subtitle = "Movies you favorite appear here and work offline.",
-            action = { SinemaTonalButton(text = "Browse trending", onClick = {}) },
+            action = { BigonTonalButton(text = "Browse trending", onClick = {}) },
         )
     }
 }
 
 /** Error variant — same component, no call to action. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaEmptyStateErrorPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaEmptyState(
-            icon = SinemaIcons.Movie,
+private fun BigonEmptyStateErrorPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonEmptyState(
+            icon = BigonIcons.Movie,
             title = "Movie unavailable",
             subtitle = "This title was removed from TMDB.",
         )
@@ -276,27 +276,27 @@ private fun SinemaEmptyStateErrorPreview() {
 }
 
 /** No-results variant. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaEmptyStateNoResultsPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaEmptyState(
-            icon = SinemaIcons.Search,
+private fun BigonEmptyStateNoResultsPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonEmptyState(
+            icon = BigonIcons.Search,
             title = "No results",
             subtitle = "Try a different title or genre.",
         )
     }
 }
 
-@SinemaFontScalePreview
+@BigonFontScalePreview
 @Composable
-private fun SinemaEmptyStateFontScalePreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaEmptyState(
-            icon = SinemaIcons.HeartOutline,
+private fun BigonEmptyStateFontScalePreview() {
+    BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
+        BigonEmptyState(
+            icon = BigonIcons.HeartOutline,
             title = "No favorites yet",
             subtitle = "Movies you favorite appear here and work offline.",
-            action = { SinemaTonalButton(text = "Browse trending", onClick = {}) },
+            action = { BigonTonalButton(text = "Browse trending", onClick = {}) },
         )
     }
 }

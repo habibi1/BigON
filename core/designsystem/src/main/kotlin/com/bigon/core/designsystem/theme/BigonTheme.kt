@@ -13,21 +13,21 @@ import androidx.compose.runtime.ReadOnlyComposable
  * Accessor for the Sinema token system. Components and features read every design
  * value through this object — never raw colors, sizes, or styles.
  *
- * This shares its name with the [SinemaTheme] composable below, deliberately and
+ * This shares its name with the [BigonTheme] composable below, deliberately and
  * legally: Kotlin resolves a classifier and a function in separate namespaces, so
- * `SinemaTheme { }` wraps a subtree while `SinemaTheme.colors` reads a token.
+ * `BigonTheme { }` wraps a subtree while `BigonTheme.colors` reads a token.
  * `MaterialTheme` is defined exactly this way, which is the point — the design
  * system should read like the framework it sits on rather than inventing its own
  * shape.
  */
-object SinemaTheme {
-    val colors: SinemaColors
+object BigonTheme {
+    val colors: BigonColors
         @Composable @ReadOnlyComposable get() = LocalSinemaColors.current
-    val typography: SinemaTypography
+    val typography: BigonTypography
         @Composable @ReadOnlyComposable get() = LocalSinemaTypography.current
-    val spacing: SinemaSpacing
+    val spacing: BigonSpacing
         @Composable @ReadOnlyComposable get() = LocalSinemaSpacing.current
-    val shapes: SinemaShapes
+    val shapes: BigonShapes
         @Composable @ReadOnlyComposable get() = LocalSinemaShapes.current
 }
 
@@ -37,16 +37,16 @@ object SinemaTheme {
  * Pure commonMain — compiles unchanged for Android and iOS.
  */
 @Composable
-fun SinemaTheme(
+fun BigonTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
-    val colors = if (darkTheme) SinemaDarkColors else SinemaLightColors
+    val colors = if (darkTheme) BigonDarkColors else BigonLightColors
     CompositionLocalProvider(
         LocalSinemaColors provides colors,
-        LocalSinemaTypography provides SinemaTypography(),
-        LocalSinemaSpacing provides SinemaSpacing(),
-        LocalSinemaShapes provides SinemaShapes(),
+        LocalSinemaTypography provides BigonTypography(),
+        LocalSinemaSpacing provides BigonSpacing(),
+        LocalSinemaShapes provides BigonShapes(),
     ) {
         MaterialTheme(
             colorScheme = colors.toMaterialColorScheme(),
@@ -55,7 +55,7 @@ fun SinemaTheme(
     }
 }
 
-private fun SinemaColors.toMaterialColorScheme(): ColorScheme {
+private fun BigonColors.toMaterialColorScheme(): ColorScheme {
     val base = if (isDark) darkColorScheme() else lightColorScheme()
     return base.copy(
         primary = primary,

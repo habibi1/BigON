@@ -22,22 +22,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.bigon.core.designsystem.components.SinemaChip
-import com.bigon.core.designsystem.components.SinemaShimmerBox
-import com.bigon.core.designsystem.components.SinemaEmptyState
-import com.bigon.core.designsystem.components.SinemaFavoriteToggle
-import com.bigon.core.designsystem.components.SinemaListItem
-import com.bigon.core.designsystem.components.SinemaLoadingIndicator
-import com.bigon.core.designsystem.components.SinemaOfflineBanner
-import com.bigon.core.designsystem.components.SinemaPrimaryButton
-import com.bigon.core.designsystem.components.SinemaSearchBar
-import com.bigon.core.designsystem.components.SinemaSectionHeader
-import com.bigon.core.designsystem.components.SinemaSegmentedControl
-import com.bigon.core.designsystem.components.SinemaSettingRow
-import com.bigon.core.designsystem.components.SinemaSnackbar
-import com.bigon.core.designsystem.components.SinemaTonalButton
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.core.designsystem.components.BigonChip
+import com.bigon.core.designsystem.components.BigonShimmerBox
+import com.bigon.core.designsystem.components.BigonEmptyState
+import com.bigon.core.designsystem.components.BigonFavoriteToggle
+import com.bigon.core.designsystem.components.BigonListItem
+import com.bigon.core.designsystem.components.BigonLoadingIndicator
+import com.bigon.core.designsystem.components.BigonOfflineBanner
+import com.bigon.core.designsystem.components.BigonPrimaryButton
+import com.bigon.core.designsystem.components.BigonSearchBar
+import com.bigon.core.designsystem.components.BigonSectionHeader
+import com.bigon.core.designsystem.components.BigonSegmentedControl
+import com.bigon.core.designsystem.components.BigonSettingRow
+import com.bigon.core.designsystem.components.BigonSnackbar
+import com.bigon.core.designsystem.components.BigonTonalButton
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.theme.BigonTheme
 
 /**
  * The living style guide: every token and every component on one canvas, in the
@@ -46,13 +46,13 @@ import com.bigon.core.designsystem.theme.SinemaTheme
  *
  * Rendered tall on purpose — scroll the preview, or open it in Interactive mode.
  */
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaComponentGalleryPreview() {
-    SinemaTheme {
+private fun BigonComponentGalleryPreview() {
+    BigonTheme {
         Column(
             modifier = Modifier
-                .background(SinemaTheme.colors.background)
+                .background(BigonTheme.colors.background)
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(28.dp),
@@ -66,65 +66,65 @@ private fun SinemaComponentGalleryPreview() {
             // shimmer and TMDB attribution — have their own gallery in
             // :tmdb:ui. This one shows only what any app can use.
             GalleryHeading("Level 2 · Content")
-            SinemaSectionHeader(title = "Trending today", onSeeAll = {})
-            SinemaListItem(
+            BigonSectionHeader(title = "Trending today", onSeeAll = {})
+            BigonListItem(
                 title = "The Batman II",
                 subtitle = "2026 · ★ 7.9 · Crime",
                 selected = false,
                 onClick = {},
-                thumbnail = { SinemaShimmerBox(modifier = Modifier.matchParentSize()) },
+                thumbnail = { BigonShimmerBox(modifier = Modifier.matchParentSize()) },
             )
-            SinemaListItem(
+            BigonListItem(
                 title = "Dune: Part Three",
                 subtitle = "2026 · ★ 8.4 · Sci-Fi",
                 selected = true,
                 onClick = {},
-                thumbnail = { SinemaShimmerBox(modifier = Modifier.matchParentSize()) },
+                thumbnail = { BigonShimmerBox(modifier = Modifier.matchParentSize()) },
             )
 
             GalleryHeading("Level 2 · Input & control")
-            SinemaSearchBar(query = "", onQueryChange = {})
+            BigonSearchBar(query = "", onQueryChange = {})
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SinemaChip(label = "All", selected = true, onClick = {})
-                SinemaChip(label = "Sci-Fi", selected = false, onClick = {})
-                SinemaChip(label = "Drama", selected = false, onClick = {})
+                BigonChip(label = "All", selected = true, onClick = {})
+                BigonChip(label = "Sci-Fi", selected = false, onClick = {})
+                BigonChip(label = "Drama", selected = false, onClick = {})
             }
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                SinemaPrimaryButton(text = "Watch trailer", leadingIcon = SinemaIcons.Play, onClick = {})
-                SinemaTonalButton(text = "Retry", onClick = {})
-                SinemaFavoriteToggle(checked = true, onCheckedChange = {})
+                BigonPrimaryButton(text = "Watch trailer", leadingIcon = BigonIcons.Play, onClick = {})
+                BigonTonalButton(text = "Retry", onClick = {})
+                BigonFavoriteToggle(checked = true, onCheckedChange = {})
             }
-            SinemaSegmentedControl(
+            BigonSegmentedControl(
                 options = listOf("System", "Dark", "Light"),
                 selectedIndex = 1,
                 onSelect = {},
                 modifier = Modifier.fillMaxWidth(),
             )
-            SinemaSettingRow(
+            BigonSettingRow(
                 title = "Content language",
                 subtitle = "Titles & overviews",
                 value = "EN",
-                icon = SinemaIcons.Movie,
+                icon = BigonIcons.Movie,
                 onClick = {},
                 showDivider = false,
             )
 
             GalleryHeading("Level 2 · Feedback")
-            SinemaOfflineBanner(message = "✈ You're offline — showing saved content")
-            SinemaSnackbar(
+            BigonOfflineBanner(message = "✈ You're offline — showing saved content")
+            BigonSnackbar(
                 message = "Couldn't refresh — showing saved data",
                 actionLabel = "RETRY",
                 onAction = {},
             )
-            SinemaLoadingIndicator(modifier = Modifier.padding(start = 8.dp))
-            SinemaEmptyState(
-                icon = SinemaIcons.HeartOutline,
+            BigonLoadingIndicator(modifier = Modifier.padding(start = 8.dp))
+            BigonEmptyState(
+                icon = BigonIcons.HeartOutline,
                 title = "No favorites yet",
                 subtitle = "Movies you favorite appear here and work offline.",
-                action = { SinemaTonalButton(text = "Browse trending", onClick = {}) },
+                action = { BigonTonalButton(text = "Browse trending", onClick = {}) },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -138,21 +138,21 @@ private fun GalleryHeading(text: String) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
             text = text.uppercase(),
-            style = SinemaTheme.typography.label,
-            color = SinemaTheme.colors.textSecondary,
+            style = BigonTheme.typography.label,
+            color = BigonTheme.colors.textSecondary,
         )
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(SinemaTheme.colors.outline),
+                .background(BigonTheme.colors.outline),
         )
     }
 }
 
 @Composable
 private fun ColorTokens() {
-    val colors = SinemaTheme.colors
+    val colors = BigonTheme.colors
     val swatches = listOf(
         "background" to colors.background,
         "surface" to colors.surface,
@@ -184,21 +184,21 @@ private fun Swatch(name: String, color: Color) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(44.dp)
-                .clip(SinemaTheme.shapes.card)
+                .clip(BigonTheme.shapes.card)
                 .background(color)
-                .border(1.dp, SinemaTheme.colors.outline, SinemaTheme.shapes.card),
+                .border(1.dp, BigonTheme.colors.outline, BigonTheme.shapes.card),
         )
         Text(
             text = name,
-            style = SinemaTheme.typography.caption,
-            color = SinemaTheme.colors.textSecondary,
+            style = BigonTheme.typography.caption,
+            color = BigonTheme.colors.textSecondary,
         )
     }
 }
 
 @Composable
 private fun TypographyTokens() {
-    val type = SinemaTheme.typography
+    val type = BigonTheme.typography
     val rows = listOf(
         "display" to type.display,
         "title" to type.title,
@@ -220,21 +220,21 @@ private fun TypeRow(name: String, style: TextStyle) {
     ) {
         Text(
             text = name,
-            style = SinemaTheme.typography.caption,
-            color = SinemaTheme.colors.textSecondary,
+            style = BigonTheme.typography.caption,
+            color = BigonTheme.colors.textSecondary,
             modifier = Modifier.width(80.dp),
         )
         Text(
             text = "Dune: Part Three",
             style = style,
-            color = SinemaTheme.colors.textPrimary,
+            color = BigonTheme.colors.textPrimary,
         )
     }
 }
 
 @Composable
 private fun SpacingAndShapeTokens() {
-    val spacing = SinemaTheme.spacing
+    val spacing = BigonTheme.spacing
     val steps = listOf(
         "xs" to spacing.xs,
         "s" to spacing.s,
@@ -251,10 +251,10 @@ private fun SpacingAndShapeTokens() {
             steps.forEach { (name, value) -> SpacingStep(name, value) }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            ShapeSample("card", SinemaTheme.shapes.card)
-            ShapeSample("container", SinemaTheme.shapes.container)
-            ShapeSample("pill", SinemaTheme.shapes.pill)
-            ShapeSample("badge", SinemaTheme.shapes.badge)
+            ShapeSample("card", BigonTheme.shapes.card)
+            ShapeSample("container", BigonTheme.shapes.container)
+            ShapeSample("pill", BigonTheme.shapes.pill)
+            ShapeSample("badge", BigonTheme.shapes.badge)
         }
     }
 }
@@ -268,12 +268,12 @@ private fun SpacingStep(name: String, value: Dp) {
         Box(
             modifier = Modifier
                 .size(value)
-                .background(SinemaTheme.colors.primaryContainer),
+                .background(BigonTheme.colors.primaryContainer),
         )
         Text(
             text = "$name ${value.value.toInt()}",
-            style = SinemaTheme.typography.caption,
-            color = SinemaTheme.colors.textSecondary,
+            style = BigonTheme.typography.caption,
+            color = BigonTheme.colors.textSecondary,
         )
     }
 }
@@ -284,13 +284,13 @@ private fun ShapeSample(name: String, shape: androidx.compose.ui.graphics.Shape)
         modifier = Modifier
             .size(58.dp)
             .clip(shape)
-            .background(SinemaTheme.colors.surfaceHigh),
+            .background(BigonTheme.colors.surfaceHigh),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = name,
-            style = SinemaTheme.typography.caption,
-            color = SinemaTheme.colors.textSecondary,
+            style = BigonTheme.typography.caption,
+            color = BigonTheme.colors.textSecondary,
         )
     }
 }

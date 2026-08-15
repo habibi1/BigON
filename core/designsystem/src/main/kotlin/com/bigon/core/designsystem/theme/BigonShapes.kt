@@ -20,12 +20,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import com.bigon.core.designsystem.preview.SinemaPreviewSurface
-import com.bigon.core.designsystem.preview.SinemaThemePreview
+import com.bigon.core.designsystem.preview.BigonPreviewSurface
+import com.bigon.core.designsystem.preview.BigonThemePreview
 
-/** Level 0 token — SinemaShape: card 12 · container 16 · pill (component gallery §Tokens). */
+/** Level 0 token — BigonShape: card 12 · container 16 · pill (component gallery §Tokens). */
 @Immutable
-data class SinemaShapes(
+data class BigonShapes(
     /** Posters, list thumbnails, snackbars. */
     val card: Shape = RoundedCornerShape(12.dp),
     /** Larger containers — spec cards, nav bar. */
@@ -36,30 +36,30 @@ data class SinemaShapes(
     val badge: Shape = RoundedCornerShape(8.dp),
 )
 
-internal val LocalSinemaShapes = staticCompositionLocalOf { SinemaShapes() }
+internal val LocalSinemaShapes = staticCompositionLocalOf { BigonShapes() }
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
 /** Corner treatments: card, container, pill, badge. */
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaShapesPreview() {
-    val sh = SinemaTheme.shapes
+private fun BigonShapesPreview() {
+    val sh = BigonTheme.shapes
     val shapes = listOf("card" to sh.card, "container" to sh.container, "pill" to sh.pill, "badge" to sh.badge)
-    SinemaPreviewSurface {
+    BigonPreviewSurface {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             shapes.forEach { (name, shape) ->
                 Box(
                     modifier = Modifier
                         .size(64.dp)
                         .clip(shape)
-                        .background(SinemaTheme.colors.surfaceHigh),
+                        .background(BigonTheme.colors.surfaceHigh),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = name,
-                        style = SinemaTheme.typography.caption,
-                        color = SinemaTheme.colors.textSecondary,
+                        style = BigonTheme.typography.caption,
+                        color = BigonTheme.colors.textSecondary,
                     )
                 }
             }

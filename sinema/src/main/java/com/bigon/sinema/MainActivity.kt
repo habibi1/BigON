@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
-            // SinemaTheme is applied inside SinemaApp, where the theme picker lives.
+            // BigonTheme is applied inside SinemaApp, where the theme picker lives.
             SinemaApp()
         }
     }

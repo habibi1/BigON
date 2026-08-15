@@ -36,18 +36,18 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.bigon.tmdb.ui.SinemaCastCard
-import com.bigon.core.designsystem.components.SinemaChip
-import com.bigon.core.designsystem.components.SinemaFavoriteToggle
-import com.bigon.core.designsystem.components.SinemaLoadingIndicator
-import com.bigon.tmdb.ui.SinemaMovieCard
-import com.bigon.tmdb.ui.SinemaPosterPlaceholder
-import com.bigon.core.designsystem.components.SinemaPrimaryButton
-import com.bigon.core.designsystem.components.SinemaSectionHeader
-import com.bigon.core.designsystem.components.SinemaSnackbar
-import com.bigon.core.designsystem.components.SinemaTonalButton
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.tmdb.ui.BigonCastCard
+import com.bigon.core.designsystem.components.BigonChip
+import com.bigon.core.designsystem.components.BigonFavoriteToggle
+import com.bigon.core.designsystem.components.BigonLoadingIndicator
+import com.bigon.tmdb.ui.BigonMovieCard
+import com.bigon.tmdb.ui.BigonPosterPlaceholder
+import com.bigon.core.designsystem.components.BigonPrimaryButton
+import com.bigon.core.designsystem.components.BigonSectionHeader
+import com.bigon.core.designsystem.components.BigonSnackbar
+import com.bigon.core.designsystem.components.BigonTonalButton
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.theme.BigonTheme
 import com.bigon.tmdb.model.Review
 import com.bigon.tmdb.model.WatchProviders
 import com.bigon.core.ui.asString
@@ -59,7 +59,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
-import com.bigon.core.designsystem.components.SinemaShimmerBox
+import com.bigon.core.designsystem.components.BigonShimmerBox
 
 @Composable
 fun DetailRoute(
@@ -104,8 +104,8 @@ fun DetailScreen(
     onCollectionClick: (Long) -> Unit = {},
     transition: PosterTransition? = null,
 ) {
-    val spacing = SinemaTheme.spacing
-    val colors = SinemaTheme.colors
+    val spacing = BigonTheme.spacing
+    val colors = BigonTheme.colors
     val uriHandler = LocalUriHandler.current
 
     val scrollState = rememberScrollState()
@@ -131,14 +131,14 @@ fun DetailScreen(
             Column(modifier = Modifier.padding(horizontal = spacing.l)) {
                 Text(
                     text = state.title.orEmpty(),
-                    style = SinemaTheme.typography.display,
+                    style = BigonTheme.typography.display,
                     color = colors.textPrimary,
                     modifier = Modifier.padding(top = spacing.l),
                 )
                 state.detail?.tagline?.let { tagline ->
                     Text(
                         text = tagline,
-                        style = SinemaTheme.typography.body,
+                        style = BigonTheme.typography.body,
                         color = colors.textSecondary,
                         modifier = Modifier.padding(top = spacing.xs),
                     )
@@ -157,10 +157,10 @@ fun DetailScreen(
                         // scans for, and it is selected-styled so it reads as a
                         // rating rather than another genre.
                         state.certification?.let { certification ->
-                            SinemaChip(label = certification, selected = true, onClick = {})
+                            BigonChip(label = certification, selected = true, onClick = {})
                         }
                         state.genres.forEach { genre ->
-                            SinemaChip(label = genre, selected = false, onClick = {})
+                            BigonChip(label = genre, selected = false, onClick = {})
                         }
                     }
                 }
@@ -170,18 +170,18 @@ fun DetailScreen(
                     horizontalArrangement = Arrangement.spacedBy(spacing.m),
                     modifier = Modifier.padding(top = spacing.xl),
                 ) {
-                    SinemaPrimaryButton(
+                    BigonPrimaryButton(
                         text = "Watch trailer",
-                        leadingIcon = SinemaIcons.Play,
+                        leadingIcon = BigonIcons.Play,
                         enabled = state.detail?.trailerKey != null,
                         onClick = { /* playback arrives with the trailer feature */ },
                     )
-                    SinemaFavoriteToggle(
+                    BigonFavoriteToggle(
                         checked = state.isFavorite,
                         onCheckedChange = { onIntent(DetailIntent.FavoriteToggled(it)) },
                     )
                     state.imdbUrl?.let { url ->
-                        SinemaTonalButton(
+                        BigonTonalButton(
                             text = "IMDb",
                             onClick = {
                                 onIntent(DetailIntent.ImdbClicked)
@@ -192,7 +192,7 @@ fun DetailScreen(
                 }
 
                 state.error?.let { error ->
-                    SinemaSnackbar(
+                    BigonSnackbar(
                         message = error.asString(),
                         actionLabel = "RETRY",
                         onAction = { onIntent(DetailIntent.Retry) },
@@ -201,17 +201,17 @@ fun DetailScreen(
                 }
 
                 state.overview?.let { overview ->
-                    SinemaSectionHeader(title = "Overview", modifier = Modifier.padding(top = spacing.xl))
+                    BigonSectionHeader(title = "Overview", modifier = Modifier.padding(top = spacing.xl))
                     Text(
                         text = overview,
-                        style = SinemaTheme.typography.body,
+                        style = BigonTheme.typography.body,
                         color = colors.textSecondary,
                         modifier = Modifier.padding(top = spacing.s),
                     )
                 }
 
                 state.detail?.cast?.takeIf { it.isNotEmpty() }?.let { cast ->
-                    SinemaSectionHeader(title = "Cast", modifier = Modifier.padding(top = spacing.xl))
+                    BigonSectionHeader(title = "Cast", modifier = Modifier.padding(top = spacing.xl))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(spacing.m),
                         modifier = Modifier
@@ -223,7 +223,7 @@ fun DetailScreen(
                             // row was the one place the app showed a name it
                             // could tell you nothing more about.
                             Box(modifier = Modifier.clickable { onPersonClick(member.id) }) {
-                                SinemaCastCard(
+                                BigonCastCard(
                                     name = member.name,
                                     role = member.character,
                                     avatar = {
@@ -235,7 +235,7 @@ fun DetailScreen(
                                                 modifier = Modifier.fillMaxSize(),
                                             )
                                         } ?: Icon(
-                                            imageVector = SinemaIcons.Person,
+                                            imageVector = BigonIcons.Person,
                                             contentDescription = null,
                                             tint = colors.textSecondary,
                                             modifier = Modifier.size(28.dp).align(Alignment.Center),
@@ -248,11 +248,11 @@ fun DetailScreen(
                 }
 
                 state.detail?.collection?.let { collection ->
-                    SinemaSectionHeader(
+                    BigonSectionHeader(
                         title = "Part of a collection",
                         modifier = Modifier.padding(top = spacing.xl),
                     )
-                    SinemaTonalButton(
+                    BigonTonalButton(
                         text = collection.name,
                         onClick = { onCollectionClick(collection.id) },
                         modifier = Modifier.padding(top = spacing.m),
@@ -270,7 +270,7 @@ fun DetailScreen(
                 }
 
                 if (state.recommendations.isNotEmpty()) {
-                    SinemaSectionHeader(
+                    BigonSectionHeader(
                         title = "More like this",
                         modifier = Modifier.padding(top = spacing.xl),
                     )
@@ -281,7 +281,7 @@ fun DetailScreen(
                             .padding(top = spacing.m),
                     ) {
                         state.recommendations.forEach { movie ->
-                            SinemaMovieCard(
+                            BigonMovieCard(
                                 title = movie.title,
                                 meta = movie.metaLine(),
                                 rating = movie.voteAverage,
@@ -294,7 +294,7 @@ fun DetailScreen(
                                             contentScale = ContentScale.Crop,
                                             modifier = Modifier.fillMaxSize(),
                                         )
-                                    } ?: SinemaPosterPlaceholder()
+                                    } ?: BigonPosterPlaceholder()
                                 },
                             )
                         }
@@ -302,7 +302,7 @@ fun DetailScreen(
                 }
 
                 if (state.keywords.isNotEmpty()) {
-                    SinemaSectionHeader(
+                    BigonSectionHeader(
                         title = "Themes",
                         modifier = Modifier.padding(top = spacing.xl),
                     )
@@ -313,19 +313,19 @@ fun DetailScreen(
                             .padding(top = spacing.m),
                     ) {
                         state.keywords.forEach { keyword ->
-                            SinemaChip(label = keyword, selected = false, onClick = {})
+                            BigonChip(label = keyword, selected = false, onClick = {})
                         }
                     }
                 }
 
                 if (state.alternativeTitles.isNotEmpty()) {
-                    SinemaSectionHeader(
+                    BigonSectionHeader(
                         title = "Also known as",
                         modifier = Modifier.padding(top = spacing.xl),
                     )
                     Text(
                         text = state.alternativeTitles.joinToString("  ·  "),
-                        style = SinemaTheme.typography.body,
+                        style = BigonTheme.typography.body,
                         color = colors.textSecondary,
                         modifier = Modifier.padding(top = spacing.s),
                     )
@@ -384,8 +384,8 @@ private fun BoxScope.DetailToolbar(
     progress: Float,
     onBack: () -> Unit,
 ) {
-    val spacing = SinemaTheme.spacing
-    val colors = SinemaTheme.colors
+    val spacing = BigonTheme.spacing
+    val colors = BigonTheme.colors
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -401,7 +401,7 @@ private fun BoxScope.DetailToolbar(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .size(40.dp)
-                .clip(SinemaTheme.shapes.pill)
+                .clip(BigonTheme.shapes.pill)
                 // The scrim is what makes the icon legible over artwork; once
                 // the bar itself is opaque it is redundant, so it fades out as
                 // the bar fades in.
@@ -409,7 +409,7 @@ private fun BoxScope.DetailToolbar(
                 .clickable(onClick = onBack),
         ) {
             Icon(
-                imageVector = SinemaIcons.Back,
+                imageVector = BigonIcons.Back,
                 contentDescription = "Back",
                 tint = colors.textPrimary,
                 modifier = Modifier.size(20.dp),
@@ -444,7 +444,7 @@ private fun BoxScope.DetailToolbar(
                 // No logo for this title: the text stands in, so the toolbar
                 // still says what you are looking at once the header is gone.
                 text = title.orEmpty(),
-                style = SinemaTheme.typography.title,
+                style = BigonTheme.typography.title,
                 color = colors.textPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -467,28 +467,28 @@ private fun BoxScope.DetailToolbar(
  */
 @Composable
 private fun DetailSkeleton(modifier: Modifier = Modifier) {
-    val spacing = SinemaTheme.spacing
+    val spacing = BigonTheme.spacing
 
     Column(modifier = modifier) {
-        SinemaShimmerBox(
+        BigonShimmerBox(
             shape = RectangleShape,
             modifier = Modifier.fillMaxWidth().height(330.dp),
         )
 
         Column(modifier = Modifier.padding(horizontal = spacing.l)) {
             // Poster, overlapping the backdrop exactly as the real one does.
-            SinemaShimmerBox(
+            BigonShimmerBox(
                 modifier = Modifier
                     .padding(top = spacing.l)
                     .width(110.dp)
                     .height(165.dp),
             )
-            SinemaShimmerBox(
-                shape = SinemaTheme.shapes.pill,
+            BigonShimmerBox(
+                shape = BigonTheme.shapes.pill,
                 modifier = Modifier.padding(top = spacing.l).fillMaxWidth(0.7f).height(28.dp),
             )
-            SinemaShimmerBox(
-                shape = SinemaTheme.shapes.pill,
+            BigonShimmerBox(
+                shape = BigonTheme.shapes.pill,
                 modifier = Modifier.padding(top = spacing.s).fillMaxWidth(0.45f).height(16.dp),
             )
 
@@ -497,8 +497,8 @@ private fun DetailSkeleton(modifier: Modifier = Modifier) {
                 modifier = Modifier.padding(top = spacing.m),
             ) {
                 repeat(3) {
-                    SinemaShimmerBox(
-                        shape = SinemaTheme.shapes.pill,
+                    BigonShimmerBox(
+                        shape = BigonTheme.shapes.pill,
                         modifier = Modifier.width(84.dp).height(32.dp),
                     )
                 }
@@ -508,19 +508,19 @@ private fun DetailSkeleton(modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.spacedBy(spacing.m),
                 modifier = Modifier.padding(top = spacing.xl),
             ) {
-                SinemaShimmerBox(
-                    shape = SinemaTheme.shapes.pill,
+                BigonShimmerBox(
+                    shape = BigonTheme.shapes.pill,
                     modifier = Modifier.width(180.dp).height(48.dp),
                 )
-                SinemaShimmerBox(
-                    shape = SinemaTheme.shapes.pill,
+                BigonShimmerBox(
+                    shape = BigonTheme.shapes.pill,
                     modifier = Modifier.size(48.dp),
                 )
             }
 
             repeat(4) { line ->
-                SinemaShimmerBox(
-                    shape = SinemaTheme.shapes.pill,
+                BigonShimmerBox(
+                    shape = BigonTheme.shapes.pill,
                     modifier = Modifier
                         .padding(top = if (line == 0) spacing.xl else spacing.s)
                         // The last line stops short, the way a paragraph does.
@@ -550,16 +550,16 @@ private fun Reviews(
     state: DetailUiState,
     onIntent: (DetailIntent) -> Unit,
 ) {
-    val spacing = SinemaTheme.spacing
-    val colors = SinemaTheme.colors
+    val spacing = BigonTheme.spacing
+    val colors = BigonTheme.colors
 
-    SinemaSectionHeader(
+    BigonSectionHeader(
         title = if (state.totalReviews > 0) "Reviews (${state.totalReviews})" else "Reviews",
         modifier = Modifier.padding(top = spacing.xl),
     )
 
     state.reviewsError?.let { error ->
-        SinemaSnackbar(
+        BigonSnackbar(
             message = error.asString(),
             actionLabel = "RETRY",
             onAction = { onIntent(DetailIntent.ReviewsRequested) },
@@ -583,7 +583,7 @@ private fun Reviews(
                 modifier = Modifier.width(REVIEW_CARD_WIDTH).height(REVIEW_CARD_HEIGHT),
                 contentAlignment = Alignment.Center,
             ) {
-                SinemaLoadingIndicator(size = 28.dp)
+                BigonLoadingIndicator(size = 28.dp)
             }
         }
 
@@ -594,14 +594,14 @@ private fun Reviews(
                 modifier = Modifier
                     .width(REVIEW_CARD_WIDTH)
                     .height(REVIEW_CARD_HEIGHT)
-                    .clip(SinemaTheme.shapes.container)
+                    .clip(BigonTheme.shapes.container)
                     .background(colors.surfaceVariant)
                     .clickable { onIntent(DetailIntent.MoreReviewsRequested) },
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = "Load more",
-                    style = SinemaTheme.typography.body,
+                    style = BigonTheme.typography.body,
                     color = colors.textPrimary,
                 )
             }
@@ -614,14 +614,14 @@ private val REVIEW_CARD_HEIGHT = 200.dp
 
 @Composable
 private fun ReviewCard(review: Review) {
-    val spacing = SinemaTheme.spacing
-    val colors = SinemaTheme.colors
+    val spacing = BigonTheme.spacing
+    val colors = BigonTheme.colors
 
     Column(
         modifier = Modifier
             .width(REVIEW_CARD_WIDTH)
             .height(REVIEW_CARD_HEIGHT)
-            .clip(SinemaTheme.shapes.container)
+            .clip(BigonTheme.shapes.container)
             .background(colors.surface)
             .padding(spacing.m),
     ) {
@@ -629,7 +629,7 @@ private fun ReviewCard(review: Review) {
             Box(
                 modifier = Modifier
                     .size(28.dp)
-                    .clip(SinemaTheme.shapes.pill)
+                    .clip(BigonTheme.shapes.pill)
                     .background(colors.surfaceVariant),
                 contentAlignment = Alignment.Center,
             ) {
@@ -641,7 +641,7 @@ private fun ReviewCard(review: Review) {
                         modifier = Modifier.fillMaxSize(),
                     )
                 } ?: Icon(
-                    imageVector = SinemaIcons.Person,
+                    imageVector = BigonIcons.Person,
                     contentDescription = null,
                     tint = colors.textSecondary,
                     modifier = Modifier.size(16.dp),
@@ -649,7 +649,7 @@ private fun ReviewCard(review: Review) {
             }
             Text(
                 text = review.author,
-                style = SinemaTheme.typography.body,
+                style = BigonTheme.typography.body,
                 color = colors.textPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -660,7 +660,7 @@ private fun ReviewCard(review: Review) {
             review.rating?.let { rating ->
                 Text(
                     text = "★ %.1f".format(rating),
-                    style = SinemaTheme.typography.caption,
+                    style = BigonTheme.typography.caption,
                     color = colors.primary,
                 )
             }
@@ -668,7 +668,7 @@ private fun ReviewCard(review: Review) {
 
         Text(
             text = review.content,
-            style = SinemaTheme.typography.body,
+            style = BigonTheme.typography.body,
             color = colors.textSecondary,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = spacing.s),
@@ -689,8 +689,8 @@ private fun WhereToWatch(
     providers: WatchProviders,
     onOpen: () -> Unit,
 ) {
-    val spacing = SinemaTheme.spacing
-    val colors = SinemaTheme.colors
+    val spacing = BigonTheme.spacing
+    val colors = BigonTheme.colors
 
     // Subscription first — it is the answer to "can I just watch this now?".
     // Rent and buy follow, deduplicated against it so a service offering all
@@ -702,7 +702,7 @@ private fun WhereToWatch(
 
     // The region is part of the claim, not decoration: "where to watch" is
     // only true somewhere, and TMDB's answer differs sharply by country.
-    SinemaSectionHeader(
+    BigonSectionHeader(
         title = "Where to watch in ${providers.region}",
         modifier = Modifier.padding(top = spacing.xl),
     )
@@ -713,14 +713,14 @@ private fun WhereToWatch(
         modifier = Modifier
             .horizontalScroll(rememberScrollState())
             .padding(top = spacing.m)
-            .clip(SinemaTheme.shapes.container)
+            .clip(BigonTheme.shapes.container)
             .clickable(onClick = onOpen),
     ) {
         (streaming + alsoAvailable).forEach { provider ->
             Box(
                 modifier = Modifier
                     .size(44.dp)
-                    .clip(SinemaTheme.shapes.container)
+                    .clip(BigonTheme.shapes.container)
                     .background(colors.surfaceVariant),
             ) {
                 provider.logoUrl?.let { url ->
@@ -738,7 +738,7 @@ private fun WhereToWatch(
     if (streaming.isEmpty() && alsoAvailable.isNotEmpty()) {
         Text(
             text = "Available to rent or buy",
-            style = SinemaTheme.typography.caption,
+            style = BigonTheme.typography.caption,
             color = colors.textSecondary,
             modifier = Modifier.padding(top = spacing.xs),
         )
@@ -754,8 +754,8 @@ private fun Backdrop(
     state: DetailUiState,
     transition: PosterTransition?,
 ) {
-    val spacing = SinemaTheme.spacing
-    val colors = SinemaTheme.colors
+    val spacing = BigonTheme.spacing
+    val colors = BigonTheme.colors
 
     // Tall enough that the poster clears the back button beneath the status bar.
     Box(modifier = Modifier.fillMaxWidth().height(330.dp)) {
@@ -784,7 +784,7 @@ private fun Backdrop(
                 .padding(start = spacing.l, bottom = spacing.xs)
                 .width(110.dp)
                 .aspectRatio(2f / 3f)
-                .clip(SinemaTheme.shapes.card)
+                .clip(BigonTheme.shapes.card)
                 .then(transition.posterModifier(state.movieId)),
         ) {
             state.posterUrl?.let { url ->
@@ -794,14 +794,14 @@ private fun Backdrop(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
                 )
-            } ?: SinemaPosterPlaceholder()
+            } ?: BigonPosterPlaceholder()
         }
     }
 }
 
 @Composable
 private fun MetaRow(state: DetailUiState, modifier: Modifier = Modifier) {
-    val colors = SinemaTheme.colors
+    val colors = BigonTheme.colors
     val parts = buildList {
         state.year?.let { add(it.toString()) }
         state.detail?.runtimeMinutes?.let { add("${it / 60}h ${it % 60}m") }
@@ -812,7 +812,7 @@ private fun MetaRow(state: DetailUiState, modifier: Modifier = Modifier) {
 
     Text(
         text = parts.joinToString("  ·  "),
-        style = SinemaTheme.typography.caption,
+        style = BigonTheme.typography.caption,
         color = colors.textSecondary,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,

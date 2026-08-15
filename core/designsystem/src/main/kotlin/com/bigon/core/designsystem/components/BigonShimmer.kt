@@ -26,20 +26,20 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
-import com.bigon.core.designsystem.preview.SinemaPreview
-import com.bigon.core.designsystem.preview.SinemaPreviewSurface
-import com.bigon.core.designsystem.preview.SinemaThemePreview
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.core.designsystem.preview.BigonPreview
+import com.bigon.core.designsystem.preview.BigonPreviewSurface
+import com.bigon.core.designsystem.preview.BigonThemePreview
+import com.bigon.core.designsystem.theme.BigonTheme
 
 
 /** Building block for any skeleton layout: an animated shimmering surface. */
 @Composable
-fun SinemaShimmerBox(
+fun BigonShimmerBox(
     modifier: Modifier = Modifier,
-    shape: Shape = SinemaTheme.shapes.card,
+    shape: Shape = BigonTheme.shapes.card,
 ) {
-    val base = SinemaTheme.colors.surfaceVariant
-    val highlight = SinemaTheme.colors.surfaceHigh
+    val base = BigonTheme.colors.surfaceVariant
+    val highlight = BigonTheme.colors.surfaceHigh
 
     val transition = rememberInfiniteTransition(label = "cineShimmer")
     val progress by transition.animateFloat(
@@ -73,15 +73,15 @@ fun SinemaShimmerBox(
 
 
 /** The primitive on its own: thumbnail block and text lines. */
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaShimmerBoxPreview() {
-    SinemaPreviewSurface {
+private fun BigonShimmerBoxPreview() {
+    BigonPreviewSurface {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            SinemaShimmerBox(modifier = Modifier.width(52.dp).height(78.dp))
+            BigonShimmerBox(modifier = Modifier.width(52.dp).height(78.dp))
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                SinemaShimmerBox(modifier = Modifier.width(160.dp).height(14.dp))
-                SinemaShimmerBox(modifier = Modifier.width(96.dp).height(12.dp))
+                BigonShimmerBox(modifier = Modifier.width(160.dp).height(14.dp))
+                BigonShimmerBox(modifier = Modifier.width(96.dp).height(12.dp))
             }
         }
     }

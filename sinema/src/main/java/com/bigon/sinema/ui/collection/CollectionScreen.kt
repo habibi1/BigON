@@ -29,12 +29,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.bigon.core.designsystem.components.SinemaLoadingIndicator
-import com.bigon.tmdb.ui.SinemaMovieCard
-import com.bigon.tmdb.ui.SinemaPosterPlaceholder
-import com.bigon.core.designsystem.components.SinemaSnackbar
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.core.designsystem.components.BigonLoadingIndicator
+import com.bigon.tmdb.ui.BigonMovieCard
+import com.bigon.tmdb.ui.BigonPosterPlaceholder
+import com.bigon.core.designsystem.components.BigonSnackbar
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.theme.BigonTheme
 import com.bigon.core.ui.asString
 import com.bigon.sinema.ui.metaLine
 
@@ -49,8 +49,8 @@ fun CollectionRoute(
     ) { factory -> factory.create(collectionId) },
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val spacing = SinemaTheme.spacing
-    val colors = SinemaTheme.colors
+    val spacing = BigonTheme.spacing
+    val colors = BigonTheme.colors
 
     Box(modifier = modifier.fillMaxSize().background(colors.background)) {
         LazyVerticalGrid(
@@ -67,7 +67,7 @@ fun CollectionRoute(
                 Column(modifier = Modifier.padding(top = spacing.xxl + spacing.l)) {
                     Text(
                         text = state.collection?.name.orEmpty(),
-                        style = SinemaTheme.typography.title,
+                        style = BigonTheme.typography.title,
                         color = colors.textPrimary,
                     )
                     state.collection?.let { collection ->
@@ -76,21 +76,21 @@ fun CollectionRoute(
                             // answers "how many of these are there?" before
                             // the user scrolls.
                             text = "${collection.parts.size} films",
-                            style = SinemaTheme.typography.caption,
+                            style = BigonTheme.typography.caption,
                             color = colors.textSecondary,
                             modifier = Modifier.padding(top = spacing.xs),
                         )
                         collection.overview.takeIf { it.isNotBlank() }?.let {
                             Text(
                                 text = it,
-                                style = SinemaTheme.typography.body,
+                                style = BigonTheme.typography.body,
                                 color = colors.textSecondary,
                                 modifier = Modifier.padding(top = spacing.m),
                             )
                         }
                     }
                     state.error?.let { error ->
-                        SinemaSnackbar(
+                        BigonSnackbar(
                             message = error.asString(),
                             actionLabel = "RETRY",
                             onAction = { viewModel.retry() },
@@ -102,7 +102,7 @@ fun CollectionRoute(
             }
 
             items(state.collection?.parts.orEmpty(), key = { it.id }) { movie ->
-                SinemaMovieCard(
+                BigonMovieCard(
                     title = movie.title,
                     meta = movie.metaLine(),
                     rating = movie.voteAverage,
@@ -117,7 +117,7 @@ fun CollectionRoute(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize(),
                             )
-                        } ?: SinemaPosterPlaceholder()
+                        } ?: BigonPosterPlaceholder()
                     },
                 )
             }
@@ -125,7 +125,7 @@ fun CollectionRoute(
 
         if (state.isLoading && state.collection == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                SinemaLoadingIndicator(size = 48.dp)
+                BigonLoadingIndicator(size = 48.dp)
             }
         }
         CollectionBackButton(onBack)
@@ -134,20 +134,20 @@ fun CollectionRoute(
 
 @Composable
 private fun BoxScope.CollectionBackButton(onBack: () -> Unit) {
-    val colors = SinemaTheme.colors
+    val colors = BigonTheme.colors
     Box(
         modifier = Modifier
             .align(Alignment.TopStart)
             .statusBarsPadding()
-            .padding(SinemaTheme.spacing.m)
+            .padding(BigonTheme.spacing.m)
             .size(40.dp)
-            .clip(SinemaTheme.shapes.pill)
+            .clip(BigonTheme.shapes.pill)
             .background(colors.surface.copy(alpha = 0.85f))
             .clickable(onClick = onBack),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            imageVector = SinemaIcons.Back,
+            imageVector = BigonIcons.Back,
             contentDescription = "Back",
             tint = colors.textPrimary,
             modifier = Modifier.size(20.dp),

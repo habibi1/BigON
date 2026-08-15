@@ -35,21 +35,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.preview.SinemaDevicePreview
-import com.bigon.core.designsystem.preview.SinemaPreview
-import com.bigon.core.designsystem.preview.SinemaThemePreview
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.preview.BigonDevicePreview
+import com.bigon.core.designsystem.preview.BigonPreview
+import com.bigon.core.designsystem.preview.BigonThemePreview
+import com.bigon.core.designsystem.theme.BigonTheme
 
 /** One top-level destination in the app shell. */
-data class SinemaNavItem(
+data class BigonNavItem(
     val id: String,
     val label: String,
     val icon: ImageVector,
 )
 
 /**
- * SinemaAppScaffold — the navigation shell. Compact widths get a bottom bar,
+ * BigonAppScaffold — the navigation shell. Compact widths get a bottom bar,
  * medium/expanded widths (≥600dp, the Material window-size-class boundary) get
  * a navigation rail. The adaptation happens INSIDE the component (F6.2):
  * screens never branch on device type.
@@ -59,8 +59,8 @@ data class SinemaNavItem(
  * that applies statusBarsPadding, or scroll under it deliberately).
  */
 @Composable
-fun SinemaAppScaffold(
-    items: List<SinemaNavItem>,
+fun BigonAppScaffold(
+    items: List<BigonNavItem>,
     selectedId: String,
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -71,7 +71,7 @@ fun SinemaAppScaffold(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .background(SinemaTheme.colors.background),
+            .background(BigonTheme.colors.background),
     ) {
         val useRail = maxWidth >= 600.dp
 
@@ -82,12 +82,12 @@ fun SinemaAppScaffold(
         // full-bleed screen.
         Row(modifier = Modifier.fillMaxSize()) {
             if (useRail && showNavigation) {
-                SinemaNavigationRail(items, selectedId, onSelect)
+                BigonNavigationRail(items, selectedId, onSelect)
             }
             Column(modifier = Modifier.weight(1f)) {
                 Box(modifier = Modifier.weight(1f)) { content() }
                 if (!useRail && showNavigation) {
-                    SinemaBottomBar(items, selectedId, onSelect)
+                    BigonBottomBar(items, selectedId, onSelect)
                 }
             }
         }
@@ -95,20 +95,20 @@ fun SinemaAppScaffold(
 }
 
 @Composable
-private fun SinemaBottomBar(
-    items: List<SinemaNavItem>,
+private fun BigonBottomBar(
+    items: List<BigonNavItem>,
     selectedId: String,
     onSelect: (String) -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(SinemaTheme.colors.surface)
+            .background(BigonTheme.colors.surface)
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal))
             .height(72.dp),
     ) {
         items.forEach { item ->
-            SinemaNavSlot(
+            BigonNavSlot(
                 item = item,
                 selected = item.id == selectedId,
                 onClick = { onSelect(item.id) },
@@ -121,53 +121,53 @@ private fun SinemaBottomBar(
 }
 
 @Composable
-private fun SinemaNavigationRail(
-    items: List<SinemaNavItem>,
+private fun BigonNavigationRail(
+    items: List<BigonNavItem>,
     selectedId: String,
     onSelect: (String) -> Unit,
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(SinemaTheme.spacing.xs),
+        verticalArrangement = Arrangement.spacedBy(BigonTheme.spacing.xs),
         modifier = Modifier
             .fillMaxHeight()
-            .background(SinemaTheme.colors.surface)
+            .background(BigonTheme.colors.surface)
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start + WindowInsetsSides.Vertical))
             .width(80.dp)
             .padding(vertical = 14.dp),
     ) {
         items.forEach { item ->
-            SinemaNavSlot(
+            BigonNavSlot(
                 item = item,
                 selected = item.id == selectedId,
                 onClick = { onSelect(item.id) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = SinemaTheme.spacing.s),
+                    .padding(vertical = BigonTheme.spacing.s),
             )
         }
     }
 }
 
 @Composable
-private fun SinemaNavSlot(
-    item: SinemaNavItem,
+private fun BigonNavSlot(
+    item: BigonNavItem,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = SinemaTheme.colors
+    val colors = BigonTheme.colors
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = modifier
-            .clip(SinemaTheme.shapes.container)
+            .clip(BigonTheme.shapes.container)
             .clickable(onClick = onClick),
     ) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .size(width = 52.dp, height = 28.dp)
-                .clip(SinemaTheme.shapes.pill)
+                .clip(BigonTheme.shapes.pill)
                 .background(if (selected) colors.primaryContainer else Color.Transparent),
         ) {
             Icon(
@@ -179,7 +179,7 @@ private fun SinemaNavSlot(
         }
         Text(
             text = item.label,
-            style = SinemaTheme.typography.caption.copy(
+            style = BigonTheme.typography.caption.copy(
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
             ),
             color = if (selected) colors.textPrimary else colors.textSecondary,
@@ -192,17 +192,17 @@ private fun SinemaNavSlot(
 // ── Previews ────────────────────────────────────────────────────────────────
 
 private val previewNavItems = listOf(
-    SinemaNavItem("home", "Home", SinemaIcons.Home),
-    SinemaNavItem("search", "Search", SinemaIcons.Search),
-    SinemaNavItem("favorites", "Favorites", SinemaIcons.HeartOutline),
-    SinemaNavItem("settings", "Settings", SinemaIcons.Settings),
+    BigonNavItem("home", "Home", BigonIcons.Home),
+    BigonNavItem("search", "Search", BigonIcons.Search),
+    BigonNavItem("favorites", "Favorites", BigonIcons.HeartOutline),
+    BigonNavItem("settings", "Settings", BigonIcons.Settings),
 )
 
 @Composable
 private fun PreviewScaffold(selectedId: String = "home") {
     var selected by remember { mutableStateOf(selectedId) }
-    SinemaTheme {
-        SinemaAppScaffold(
+    BigonTheme {
+        BigonAppScaffold(
             items = previewNavItems,
             selectedId = selected,
             onSelect = { selected = it },
@@ -210,8 +210,8 @@ private fun PreviewScaffold(selectedId: String = "home") {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     text = "Screen content",
-                    style = SinemaTheme.typography.title,
-                    color = SinemaTheme.colors.textSecondary,
+                    style = BigonTheme.typography.title,
+                    color = BigonTheme.colors.textSecondary,
                 )
             }
         }
@@ -221,28 +221,28 @@ private fun PreviewScaffold(selectedId: String = "home") {
 /** Compact width: bottom bar. */
 @Preview(name = "Compact · bottom bar", widthDp = 411, heightDp = 480, showBackground = true)
 @Composable
-private fun SinemaAppScaffoldCompactPreview() = PreviewScaffold()
+private fun BigonAppScaffoldCompactPreview() = PreviewScaffold()
 
 /** Expanded width: the same call renders a navigation rail instead. */
 @Preview(name = "Expanded · rail", widthDp = 840, heightDp = 480, showBackground = true)
 @Composable
-private fun SinemaAppScaffoldExpandedPreview() = PreviewScaffold()
+private fun BigonAppScaffoldExpandedPreview() = PreviewScaffold()
 
 /** The 600dp switch point, one dp either side. */
 @Preview(name = "599dp · bar", widthDp = 599, heightDp = 420, showBackground = true)
 @Preview(name = "600dp · rail", widthDp = 600, heightDp = 420, showBackground = true)
 @Composable
-private fun SinemaAppScaffoldBreakpointPreview() = PreviewScaffold()
+private fun BigonAppScaffoldBreakpointPreview() = PreviewScaffold()
 
 /** A non-first destination selected, to check the indicator moves. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaAppScaffoldSelectionPreview() = PreviewScaffold(selectedId = "favorites")
+private fun BigonAppScaffoldSelectionPreview() = PreviewScaffold(selectedId = "favorites")
 
-@SinemaDevicePreview
+@BigonDevicePreview
 @Composable
-private fun SinemaAppScaffoldDevicePreview() = PreviewScaffold()
+private fun BigonAppScaffoldDevicePreview() = PreviewScaffold()
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaAppScaffoldThemePreview() = PreviewScaffold()
+private fun BigonAppScaffoldThemePreview() = PreviewScaffold()

@@ -37,14 +37,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.bigon.tmdb.ui.SinemaMovieCard
-import com.bigon.tmdb.ui.SinemaPosterPlaceholder
-import com.bigon.core.designsystem.components.SinemaSectionHeader
-import com.bigon.core.designsystem.components.SinemaShimmerBox
-import com.bigon.tmdb.ui.SinemaShimmerCard
-import com.bigon.core.designsystem.components.SinemaSnackbar
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.tmdb.ui.BigonMovieCard
+import com.bigon.tmdb.ui.BigonPosterPlaceholder
+import com.bigon.core.designsystem.components.BigonSectionHeader
+import com.bigon.core.designsystem.components.BigonShimmerBox
+import com.bigon.tmdb.ui.BigonShimmerCard
+import com.bigon.core.designsystem.components.BigonSnackbar
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.theme.BigonTheme
 import com.bigon.tmdb.model.Credit
 import com.bigon.tmdb.model.PersonDetail
 import com.bigon.core.ui.asString
@@ -81,8 +81,8 @@ fun PersonScreen(
     onMovieClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val spacing = SinemaTheme.spacing
-    val colors = SinemaTheme.colors
+    val spacing = BigonTheme.spacing
+    val colors = BigonTheme.colors
 
     Box(modifier = modifier.fillMaxSize().background(colors.background)) {
         if (state.showSkeleton) {
@@ -103,7 +103,7 @@ fun PersonScreen(
                     Column {
                         state.person?.let { PersonHeader(it) }
                         state.error?.let { error ->
-                            SinemaSnackbar(
+                            BigonSnackbar(
                                 message = error.asString(),
                                 actionLabel = "RETRY",
                                 onAction = { onIntent(PersonIntent.Retry) },
@@ -111,7 +111,7 @@ fun PersonScreen(
                             )
                         }
                         if (!state.person?.filmography.isNullOrEmpty()) {
-                            SinemaSectionHeader(
+                            BigonSectionHeader(
                                 title = "Filmography",
                                 modifier = Modifier.padding(top = spacing.xl, bottom = spacing.s),
                             )
@@ -131,8 +131,8 @@ fun PersonScreen(
 
 @Composable
 private fun PersonHeader(person: PersonDetail) {
-    val spacing = SinemaTheme.spacing
-    val colors = SinemaTheme.colors
+    val spacing = BigonTheme.spacing
+    val colors = BigonTheme.colors
     // Biographies run to several hundred words; showing all of it pushes the
     // filmography off-screen, so it collapses until asked for.
     var expanded by remember { mutableStateOf(false) }
@@ -143,7 +143,7 @@ private fun PersonHeader(person: PersonDetail) {
             modifier = Modifier
                 .width(120.dp)
                 .aspectRatio(2f / 3f)
-                .clip(SinemaTheme.shapes.card)
+                .clip(BigonTheme.shapes.card)
                 .background(colors.surfaceVariant),
         ) {
             person.profileUrl?.let { url ->
@@ -154,7 +154,7 @@ private fun PersonHeader(person: PersonDetail) {
                     modifier = Modifier.fillMaxSize(),
                 )
             } ?: Icon(
-                imageVector = SinemaIcons.Person,
+                imageVector = BigonIcons.Person,
                 contentDescription = null,
                 tint = colors.textSecondary,
                 modifier = Modifier.size(36.dp).align(Alignment.Center),
@@ -164,7 +164,7 @@ private fun PersonHeader(person: PersonDetail) {
         Column(modifier = Modifier.padding(start = spacing.m)) {
             Text(
                 text = person.name,
-                style = SinemaTheme.typography.title,
+                style = BigonTheme.typography.title,
                 color = colors.textPrimary,
             )
             listOfNotNull(person.knownForDepartment, person.lifespan)
@@ -172,7 +172,7 @@ private fun PersonHeader(person: PersonDetail) {
                 ?.let {
                     Text(
                         text = it.joinToString(" · "),
-                        style = SinemaTheme.typography.caption,
+                        style = BigonTheme.typography.caption,
                         color = colors.textSecondary,
                         modifier = Modifier.padding(top = spacing.xs),
                     )
@@ -180,7 +180,7 @@ private fun PersonHeader(person: PersonDetail) {
             person.placeOfBirth?.let {
                 Text(
                     text = it,
-                    style = SinemaTheme.typography.caption,
+                    style = BigonTheme.typography.caption,
                     color = colors.textSecondary,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -197,7 +197,7 @@ private fun PersonHeader(person: PersonDetail) {
         var clipped by remember(bio) { mutableStateOf(false) }
         Text(
             text = bio,
-            style = SinemaTheme.typography.body,
+            style = BigonTheme.typography.body,
             color = colors.textSecondary,
             maxLines = if (expanded) Int.MAX_VALUE else 5,
             overflow = TextOverflow.Ellipsis,
@@ -211,11 +211,11 @@ private fun PersonHeader(person: PersonDetail) {
         if (clipped) {
             Text(
                 text = if (expanded) "Show less" else "Read more",
-                style = SinemaTheme.typography.caption,
+                style = BigonTheme.typography.caption,
                 color = colors.primary,
                 modifier = Modifier
                     .padding(top = spacing.xs)
-                    .clip(SinemaTheme.shapes.pill)
+                    .clip(BigonTheme.shapes.pill)
                     .clickable { expanded = !expanded },
             )
         }
@@ -224,7 +224,7 @@ private fun PersonHeader(person: PersonDetail) {
 
 @Composable
 private fun CreditCard(credit: Credit, onClick: () -> Unit) {
-    SinemaMovieCard(
+    BigonMovieCard(
         title = credit.movie.title,
         // The role is what distinguishes two credits on the same screen, so it
         // wins the meta line over the genre the card usually shows.
@@ -241,27 +241,27 @@ private fun CreditCard(credit: Credit, onClick: () -> Unit) {
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
                 )
-            } ?: SinemaPosterPlaceholder()
+            } ?: BigonPosterPlaceholder()
         },
     )
 }
 
 @Composable
 private fun BoxScope.BackButton(onBack: () -> Unit) {
-    val colors = SinemaTheme.colors
+    val colors = BigonTheme.colors
     Box(
         modifier = Modifier
             .align(Alignment.TopStart)
             .statusBarsPadding()
-            .padding(SinemaTheme.spacing.m)
+            .padding(BigonTheme.spacing.m)
             .size(40.dp)
-            .clip(SinemaTheme.shapes.pill)
+            .clip(BigonTheme.shapes.pill)
             .background(colors.surface.copy(alpha = 0.85f))
             .clickable(onClick = onBack),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            imageVector = SinemaIcons.Back,
+            imageVector = BigonIcons.Back,
             contentDescription = "Back",
             tint = colors.textPrimary,
             modifier = Modifier.size(20.dp),
@@ -271,25 +271,25 @@ private fun BoxScope.BackButton(onBack: () -> Unit) {
 
 @Composable
 private fun PersonSkeleton() {
-    val spacing = SinemaTheme.spacing
+    val spacing = BigonTheme.spacing
     Column(modifier = Modifier.fillMaxSize().statusBarsPadding().padding(spacing.l)) {
         // Same clearance as the loaded header, so nothing shifts on arrival.
         Row(modifier = Modifier.padding(top = spacing.xxl + spacing.l)) {
-            SinemaShimmerBox(modifier = Modifier.width(120.dp).aspectRatio(2f / 3f))
+            BigonShimmerBox(modifier = Modifier.width(120.dp).aspectRatio(2f / 3f))
             Column(modifier = Modifier.padding(start = spacing.m)) {
-                SinemaShimmerBox(
-                    shape = SinemaTheme.shapes.pill,
+                BigonShimmerBox(
+                    shape = BigonTheme.shapes.pill,
                     modifier = Modifier.width(160.dp).height(22.dp),
                 )
-                SinemaShimmerBox(
-                    shape = SinemaTheme.shapes.pill,
+                BigonShimmerBox(
+                    shape = BigonTheme.shapes.pill,
                     modifier = Modifier.padding(top = spacing.s).width(110.dp).height(14.dp),
                 )
             }
         }
         repeat(3) {
-            SinemaShimmerBox(
-                shape = SinemaTheme.shapes.pill,
+            BigonShimmerBox(
+                shape = BigonTheme.shapes.pill,
                 modifier = Modifier
                     .padding(top = if (it == 0) spacing.l else spacing.s)
                     .fillMaxWidth(if (it == 2) 0.6f else 1f)
@@ -300,7 +300,7 @@ private fun PersonSkeleton() {
             horizontalArrangement = Arrangement.spacedBy(spacing.l),
             modifier = Modifier.padding(top = spacing.xl),
         ) {
-            repeat(3) { SinemaShimmerCard(width = 120.dp) }
+            repeat(3) { BigonShimmerCard(width = 120.dp) }
         }
     }
 }

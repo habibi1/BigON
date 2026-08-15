@@ -28,50 +28,50 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.preview.SinemaFontScalePreview
-import com.bigon.core.designsystem.preview.SinemaPreview
-import com.bigon.core.designsystem.preview.SinemaPreviewSurface
-import com.bigon.core.designsystem.preview.SinemaThemePreview
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.preview.BigonFontScalePreview
+import com.bigon.core.designsystem.preview.BigonPreview
+import com.bigon.core.designsystem.preview.BigonPreviewSurface
+import com.bigon.core.designsystem.preview.BigonThemePreview
+import com.bigon.core.designsystem.theme.BigonTheme
 
 /**
- * SinemaPrimaryButton — high-emphasis pill action, min height 48dp (N3.4)
+ * BigonPrimaryButton — high-emphasis pill action, min height 48dp (N3.4)
  * (component gallery §Input).
  */
 @Composable
-fun SinemaPrimaryButton(
+fun BigonPrimaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     leadingIcon: ImageVector? = null,
 ) {
-    SinemaButtonImpl(
+    BigonButtonImpl(
         text = text,
         onClick = onClick,
-        container = SinemaTheme.colors.primary,
-        contentColor = SinemaTheme.colors.onPrimary,
+        container = BigonTheme.colors.primary,
+        contentColor = BigonTheme.colors.onPrimary,
         modifier = modifier,
         enabled = enabled,
         leadingIcon = leadingIcon,
     )
 }
 
-/** SinemaTonalButton — medium-emphasis pill action (component gallery §Input). */
+/** BigonTonalButton — medium-emphasis pill action (component gallery §Input). */
 @Composable
-fun SinemaTonalButton(
+fun BigonTonalButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     leadingIcon: ImageVector? = null,
 ) {
-    SinemaButtonImpl(
+    BigonButtonImpl(
         text = text,
         onClick = onClick,
-        container = SinemaTheme.colors.surfaceHigh,
-        contentColor = SinemaTheme.colors.textPrimary,
+        container = BigonTheme.colors.surfaceHigh,
+        contentColor = BigonTheme.colors.textPrimary,
         modifier = modifier,
         enabled = enabled,
         leadingIcon = leadingIcon,
@@ -79,7 +79,7 @@ fun SinemaTonalButton(
 }
 
 @Composable
-private fun SinemaButtonImpl(
+private fun BigonButtonImpl(
     text: String,
     onClick: () -> Unit,
     container: Color,
@@ -90,11 +90,11 @@ private fun SinemaButtonImpl(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(SinemaTheme.spacing.s),
+        horizontalArrangement = Arrangement.spacedBy(BigonTheme.spacing.s),
         modifier = modifier
             .height(48.dp)
             .alpha(if (enabled) 1f else 0.4f)
-            .clip(SinemaTheme.shapes.pill)
+            .clip(BigonTheme.shapes.pill)
             .background(container)
             .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = 26.dp),
@@ -109,30 +109,30 @@ private fun SinemaButtonImpl(
         }
         Text(
             text = text,
-            style = SinemaTheme.typography.label.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
+            style = BigonTheme.typography.label.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold),
             color = contentColor,
         )
     }
 }
 
-/** SinemaFavoriteToggle — 48dp heart toggle, off / on (component gallery §Input). */
+/** BigonFavoriteToggle — 48dp heart toggle, off / on (component gallery §Input). */
 @Composable
-fun SinemaFavoriteToggle(
+fun BigonFavoriteToggle(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = SinemaTheme.colors
+    val colors = BigonTheme.colors
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .size(48.dp)
-            .clip(SinemaTheme.shapes.pill)
+            .clip(BigonTheme.shapes.pill)
             .background(if (checked) colors.primaryContainer else colors.surfaceHigh)
             .clickable { onCheckedChange(!checked) },
     ) {
         Icon(
-            imageVector = if (checked) SinemaIcons.Heart else SinemaIcons.HeartOutline,
+            imageVector = if (checked) BigonIcons.Heart else BigonIcons.HeartOutline,
             contentDescription = if (checked) "Remove from favorites" else "Add to favorites",
             tint = if (checked) colors.favoriteActive else colors.textPrimary,
             modifier = Modifier.size(20.dp),
@@ -141,22 +141,22 @@ fun SinemaFavoriteToggle(
 }
 
 /**
- * SinemaSegmentedControl — single-choice segments, e.g. the Settings theme picker
+ * BigonSegmentedControl — single-choice segments, e.g. the Settings theme picker
  * (F5.1) (component gallery §Input).
  */
 @Composable
-fun SinemaSegmentedControl(
+fun BigonSegmentedControl(
     options: List<String>,
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = SinemaTheme.colors
+    val colors = BigonTheme.colors
     Row(
         modifier = modifier
-            .clip(SinemaTheme.shapes.pill)
+            .clip(BigonTheme.shapes.pill)
             .background(colors.surfaceVariant)
-            .padding(SinemaTheme.spacing.xs),
+            .padding(BigonTheme.spacing.xs),
     ) {
         options.forEachIndexed { index, option ->
             val selected = index == selectedIndex
@@ -164,14 +164,14 @@ fun SinemaSegmentedControl(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .weight(1f)
-                    .clip(SinemaTheme.shapes.pill)
+                    .clip(BigonTheme.shapes.pill)
                     .background(if (selected) colors.primaryContainer else Color.Transparent)
                     .clickable { onSelect(index) }
                     .padding(vertical = 9.dp),
             ) {
                 Text(
                     text = option,
-                    style = SinemaTheme.typography.label.copy(
+                    style = BigonTheme.typography.label.copy(
                         fontSize = 12.5.sp,
                         fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                     ),
@@ -184,119 +184,119 @@ fun SinemaSegmentedControl(
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaPrimaryButtonPreview() {
-    SinemaPreviewSurface {
-        SinemaPrimaryButton(text = "Watch trailer", leadingIcon = SinemaIcons.Play, onClick = {})
+private fun BigonPrimaryButtonPreview() {
+    BigonPreviewSurface {
+        BigonPrimaryButton(text = "Watch trailer", leadingIcon = BigonIcons.Play, onClick = {})
     }
 }
 
 /** Without the icon slot. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaPrimaryButtonNoIconPreview() {
-    SinemaPreviewSurface {
-        SinemaPrimaryButton(text = "Retry", onClick = {})
+private fun BigonPrimaryButtonNoIconPreview() {
+    BigonPreviewSurface {
+        BigonPrimaryButton(text = "Retry", onClick = {})
     }
 }
 
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaPrimaryButtonDisabledPreview() {
-    SinemaPreviewSurface {
-        SinemaPrimaryButton(
+private fun BigonPrimaryButtonDisabledPreview() {
+    BigonPreviewSurface {
+        BigonPrimaryButton(
             text = "Watch trailer",
-            leadingIcon = SinemaIcons.Play,
+            leadingIcon = BigonIcons.Play,
             enabled = false,
             onClick = {},
         )
     }
 }
 
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaPrimaryButtonFullWidthPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(300.dp)) {
-        SinemaPrimaryButton(text = "Continue", onClick = {}, modifier = Modifier.fillMaxWidth())
+private fun BigonPrimaryButtonFullWidthPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(300.dp)) {
+        BigonPrimaryButton(text = "Continue", onClick = {}, modifier = Modifier.fillMaxWidth())
     }
 }
 
-@SinemaFontScalePreview
+@BigonFontScalePreview
 @Composable
-private fun SinemaPrimaryButtonFontScalePreview() {
-    SinemaPreviewSurface {
-        SinemaPrimaryButton(text = "Watch trailer", leadingIcon = SinemaIcons.Play, onClick = {})
+private fun BigonPrimaryButtonFontScalePreview() {
+    BigonPreviewSurface {
+        BigonPrimaryButton(text = "Watch trailer", leadingIcon = BigonIcons.Play, onClick = {})
     }
 }
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaTonalButtonPreview() {
-    SinemaPreviewSurface {
-        SinemaTonalButton(text = "Browse trending", onClick = {})
+private fun BigonTonalButtonPreview() {
+    BigonPreviewSurface {
+        BigonTonalButton(text = "Browse trending", onClick = {})
     }
 }
 
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaTonalButtonWithIconPreview() {
-    SinemaPreviewSurface {
-        SinemaTonalButton(text = "Add to list", leadingIcon = SinemaIcons.HeartOutline, onClick = {})
+private fun BigonTonalButtonWithIconPreview() {
+    BigonPreviewSurface {
+        BigonTonalButton(text = "Add to list", leadingIcon = BigonIcons.HeartOutline, onClick = {})
     }
 }
 
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaTonalButtonDisabledPreview() {
-    SinemaPreviewSurface {
-        SinemaTonalButton(text = "Browse trending", enabled = false, onClick = {})
+private fun BigonTonalButtonDisabledPreview() {
+    BigonPreviewSurface {
+        BigonTonalButton(text = "Browse trending", enabled = false, onClick = {})
     }
 }
 
 /** Emphasis pair as a detail screen uses them. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaButtonEmphasisPreview() {
-    SinemaPreviewSurface {
+private fun BigonButtonEmphasisPreview() {
+    BigonPreviewSurface {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SinemaPrimaryButton(text = "Watch trailer", leadingIcon = SinemaIcons.Play, onClick = {})
-            SinemaTonalButton(text = "Retry", onClick = {})
+            BigonPrimaryButton(text = "Watch trailer", leadingIcon = BigonIcons.Play, onClick = {})
+            BigonTonalButton(text = "Retry", onClick = {})
         }
     }
 }
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaFavoriteTogglePreview() {
-    SinemaPreviewSurface {
-        SinemaFavoriteToggle(checked = false, onCheckedChange = {})
+private fun BigonFavoriteTogglePreview() {
+    BigonPreviewSurface {
+        BigonFavoriteToggle(checked = false, onCheckedChange = {})
     }
 }
 
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaFavoriteToggleCheckedPreview() {
-    SinemaPreviewSurface {
-        SinemaFavoriteToggle(checked = true, onCheckedChange = {})
+private fun BigonFavoriteToggleCheckedPreview() {
+    BigonPreviewSurface {
+        BigonFavoriteToggle(checked = true, onCheckedChange = {})
     }
 }
 
 /** Interactive: tap to toggle the heart. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaFavoriteToggleInteractivePreview() {
+private fun BigonFavoriteToggleInteractivePreview() {
     var favorite by remember { mutableStateOf(false) }
-    SinemaPreviewSurface {
-        SinemaFavoriteToggle(checked = favorite, onCheckedChange = { favorite = it })
+    BigonPreviewSurface {
+        BigonFavoriteToggle(checked = favorite, onCheckedChange = { favorite = it })
     }
 }
 
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaSegmentedControlPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(300.dp)) {
-        SinemaSegmentedControl(
+private fun BigonSegmentedControlPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(300.dp)) {
+        BigonSegmentedControl(
             options = listOf("System", "Dark", "Light"),
             selectedIndex = 1,
             onSelect = {},
@@ -305,11 +305,11 @@ private fun SinemaSegmentedControlPreview() {
     }
 }
 
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaSegmentedControlTwoOptionsPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(300.dp)) {
-        SinemaSegmentedControl(
+private fun BigonSegmentedControlTwoOptionsPreview() {
+    BigonPreviewSurface(modifier = Modifier.width(300.dp)) {
+        BigonSegmentedControl(
             options = listOf("Movies", "TV"),
             selectedIndex = 0,
             onSelect = {},
@@ -319,12 +319,12 @@ private fun SinemaSegmentedControlTwoOptionsPreview() {
 }
 
 /** Four segments — the point where labels start to crowd. */
-@SinemaPreview
+@BigonPreview
 @Composable
-private fun SinemaSegmentedControlFourOptionsPreview() {
+private fun BigonSegmentedControlFourOptionsPreview() {
     var selected by remember { mutableIntStateOf(2) }
-    SinemaPreviewSurface(modifier = Modifier.width(300.dp)) {
-        SinemaSegmentedControl(
+    BigonPreviewSurface(modifier = Modifier.width(300.dp)) {
+        BigonSegmentedControl(
             options = listOf("Day", "Week", "Month", "Year"),
             selectedIndex = selected,
             onSelect = { selected = it },

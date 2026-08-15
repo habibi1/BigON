@@ -17,7 +17,7 @@ class ArchitectureTest {
         "com.bigon.core.network",
         "com.bigon.core.tracker",
         "com.bigon.core.config",
-        "com.bigon.core.navigation",
+        "com.bigon.sinema.navigation",
         "com.bigon.tmdb.domain",
     )
 
@@ -102,7 +102,7 @@ class ArchitectureTest {
                 file.imports.any { it.name.startsWith("androidx.navigation.") }
             }
             .assertTrue { file ->
-                file.packagee?.name == "com.bigon.sinema.ui"
+                file.packagee?.name in setOf("com.bigon.sinema.ui", "com.bigon.sinema.navigation")
             }
     }
 

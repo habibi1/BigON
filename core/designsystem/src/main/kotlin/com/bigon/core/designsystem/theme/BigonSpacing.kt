@@ -18,15 +18,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.bigon.core.designsystem.preview.SinemaPreviewSurface
-import com.bigon.core.designsystem.preview.SinemaThemePreview
+import com.bigon.core.designsystem.preview.BigonPreviewSurface
+import com.bigon.core.designsystem.preview.BigonThemePreview
 
 /**
- * Level 0 token — SinemaSpacing: "the only dp values features may use"
+ * Level 0 token — BigonSpacing: "the only dp values features may use"
  * (component gallery §Tokens).
  */
 @Immutable
-data class SinemaSpacing(
+data class BigonSpacing(
     val xs: Dp = 4.dp,
     val s: Dp = 8.dp,
     val m: Dp = 12.dp,
@@ -35,17 +35,17 @@ data class SinemaSpacing(
     val xxl: Dp = 24.dp,
 )
 
-internal val LocalSinemaSpacing = staticCompositionLocalOf { SinemaSpacing() }
+internal val LocalSinemaSpacing = staticCompositionLocalOf { BigonSpacing() }
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
 /** The spacing scale — the only dp values features may use. */
-@SinemaThemePreview
+@BigonThemePreview
 @Composable
-private fun SinemaSpacingPreview() {
-    val s = SinemaTheme.spacing
+private fun BigonSpacingPreview() {
+    val s = BigonTheme.spacing
     val steps = listOf("xs" to s.xs, "s" to s.s, "m" to s.m, "l" to s.l, "xl" to s.xl, "xxl" to s.xxl)
-    SinemaPreviewSurface {
+    BigonPreviewSurface {
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.Bottom,
@@ -58,12 +58,12 @@ private fun SinemaSpacingPreview() {
                     Box(
                         modifier = Modifier
                             .size(value)
-                            .background(SinemaTheme.colors.primaryContainer),
+                            .background(BigonTheme.colors.primaryContainer),
                     )
                     Text(
                         text = "$name ${value.value.toInt()}",
-                        style = SinemaTheme.typography.caption,
-                        color = SinemaTheme.colors.textSecondary,
+                        style = BigonTheme.typography.caption,
+                        color = BigonTheme.colors.textSecondary,
                     )
                 }
             }
