@@ -135,4 +135,40 @@ class ArchitectureTest {
             }
         }
     }
+
+    /**
+     * The reason core/ exists: a module in it must be usable by an app that has
+     * never heard of Sinema or TMDB. That is not a property review can hold —
+     * one convenient import of a Movie, and "core" quietly becomes "Sinema's
+     * shared code", which is what it had already become before this rule.
+     *
+     * Three tiers, and dependencies only ever point up:
+     *   core/  domain-agnostic   — any app
+     *   tmdb/  the TMDB domain   — any movie app
+     *   app    everything else
+     */
+    @Test
+    fun `core modules know nothing about the app or its domain`() {
+        productionFiles()
+            .filter { it.packagee?.name?.startsWith("com.bigon.core") == true }
+            .assertFalse { file ->
+                file.imports.any { import ->
+                    import.name.startsWith("com.bigon.tmdb") ||
+                        import.name.startsWith("com.bigon.sinema")
+                } || file.name.contains("Sinema")
+            }
+    }
+
+    /**
+     * The tmdb/ tier may use core/, but never the app: a second movie app has
+     * its own screens and must be able to take this layer without them.
+     */
+    @Test
+    fun `the tmdb layer does not depend on the app`() {
+        productionFiles()
+            .filter { it.packagee?.name?.startsWith("com.bigon.tmdb") == true }
+            .assertFalse { file ->
+                file.imports.any { it.name.startsWith("com.bigon.sinema") }
+            }
+    }
 }
