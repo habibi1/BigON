@@ -8,7 +8,7 @@ import com.bigon.core.config.StaticFeatureFlagDataSource
 import com.bigon.core.network.NetworkConfig
 import com.bigon.core.network.OkHttpClientFactory
 import com.bigon.core.network.RetrofitFactory
-import com.bigon.core.network.TmdbCredentials
+import com.bigon.tmdb.data.TmdbCredentials
 import com.bigon.core.tracker.AnalyticsSink
 import com.bigon.core.tracker.AnalyticsTracker
 import com.bigon.core.tracker.CompositeAnalyticsTracker
@@ -59,10 +59,10 @@ object AppModule {
     fun provideNetworkConfig(): NetworkConfig = NetworkConfig(
         baseUrl = "https://api.themoviedb.org/3/",
         // Values originate in local.properties; the v4 token wins when present.
-        credentials = TmdbCredentials(
+        auth = TmdbCredentials(
             readAccessToken = BuildConfig.TMDB_READ_ACCESS_TOKEN,
             apiKey = BuildConfig.TMDB_API_KEY,
-        ),
+        ).authScheme,
         enableLogging = BuildConfig.DEBUG,
     )
 

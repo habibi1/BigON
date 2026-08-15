@@ -1,4 +1,6 @@
-package com.bigon.core.network
+package com.bigon.tmdb.data
+
+import com.bigon.core.network.AuthScheme
 
 /**
  * TMDB accepts two interchangeable credentials. Both are modelled so the app
@@ -13,23 +15,25 @@ package com.bigon.core.network
  *
  * When both are present the token wins. Neither is ever hardcoded: values come
  * from `local.properties` via `BuildConfig` and are injected by the composition
- * root, so no module below `:sinema` knows how the app is credentialed.
+ * root, so no module below the app knows how it is credentialed.
  */
 data class TmdbCredentials(
     val readAccessToken: String = "",
     val apiKey: String = "",
 ) {
-    /** The scheme that will actually be used, given what is configured. */
-    val scheme: Scheme = when {
-        readAccessToken.isNotBlank() -> Scheme.BearerToken
-        apiKey.isNotBlank() -> Scheme.ApiKeyQueryParam
-        else -> Scheme.None
+    /**
+     * Resolves to the shape :core:network understands. Which of TMDB's two
+     * credentials this is stays here, in the module that knows what TMDB is;
+     * the network layer receives only "header" or "query parameter".
+     */
+    val authScheme: AuthScheme = when {
+        readAccessToken.isNotBlank() -> AuthScheme.BearerToken(readAccessToken)
+        apiKey.isNotBlank() -> AuthScheme.QueryParam(API_KEY_QUERY_PARAM, apiKey)
+        else -> AuthScheme.None
     }
 
-    enum class Scheme { BearerToken, ApiKeyQueryParam, None }
-
     /** Never let a credential reach a log or a crash report by accident. */
-    override fun toString(): String = "TmdbCredentials(scheme=$scheme)"
+    override fun toString(): String = "TmdbCredentials(scheme=${authScheme::class.simpleName})"
 
     companion object {
         /** Query parameter TMDB expects for the v3 key — also the name to redact in logs. */

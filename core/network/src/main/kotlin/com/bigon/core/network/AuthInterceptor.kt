@@ -4,13 +4,14 @@ import okhttp3.Interceptor
 import okhttp3.Response
 
 /**
- * Attaches TMDB credentials to every request, using whichever scheme is
- * configured (see [TmdbCredentials]). Centralised here so no service interface,
- * repository or call site ever handles a credential — and so switching from the
- * v3 key to the v4 token is a configuration change, not a code change.
+ * Attaches the configured credential to every request bound for the API host.
+ *
+ * Centralised here so no service interface, repository or call site ever handles
+ * a credential — and so changing scheme is a configuration change rather than a
+ * code change.
  */
 class AuthInterceptor(
-    private val credentials: TmdbCredentials,
+    private val auth: AuthScheme,
     private val apiHost: String,
 ) : Interceptor {
 
@@ -18,33 +19,28 @@ class AuthInterceptor(
         val request = chain.request()
 
         // Credentials belong to the API host only. Image requests go to a
-        // different TMDB host through the same client, and must never carry
-        // them — a token in an image URL would leak into CDN logs.
+        // different host through the same client, and must never carry them —
+        // a token in an image URL would leak into CDN logs.
         if (!request.url.host.equals(apiHost, ignoreCase = true)) {
             return chain.proceed(request)
         }
 
-        val authenticated = when (credentials.scheme) {
-            TmdbCredentials.Scheme.BearerToken ->
+        val authenticated = when (auth) {
+            is AuthScheme.BearerToken ->
                 request.newBuilder()
-                    .header("Authorization", "Bearer ${credentials.readAccessToken}")
+                    .header("Authorization", "Bearer ${auth.token}")
                     .build()
 
-            TmdbCredentials.Scheme.ApiKeyQueryParam ->
+            is AuthScheme.QueryParam ->
                 request.newBuilder()
                     .url(
                         request.url.newBuilder()
-                            .setQueryParameter(
-                                TmdbCredentials.API_KEY_QUERY_PARAM,
-                                credentials.apiKey,
-                            )
+                            .setQueryParameter(auth.name, auth.value)
                             .build(),
                     )
                     .build()
 
-            // Unauthenticated: let the request through so the 401 surfaces as a
-            // normal AppError.Network.Http rather than a silent local failure.
-            TmdbCredentials.Scheme.None -> request
+            AuthScheme.None -> request
         }
 
         return chain.proceed(authenticated)

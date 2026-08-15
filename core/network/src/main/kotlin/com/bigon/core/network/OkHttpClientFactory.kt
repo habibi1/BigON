@@ -20,16 +20,16 @@ class OkHttpClientFactory(
         .connectTimeout(config.connectTimeoutMillis, TimeUnit.MILLISECONDS)
         .readTimeout(config.socketTimeoutMillis, TimeUnit.MILLISECONDS)
         .callTimeout(config.requestTimeoutMillis, TimeUnit.MILLISECONDS)
-        .addInterceptor(AuthInterceptor(config.credentials, apiHost = config.apiHost()))
+        .addInterceptor(AuthInterceptor(config.auth, apiHost = config.apiHost()))
         .apply {
             if (config.enableLogging && logger != null) {
                 addInterceptor(
                     HttpLoggingInterceptor(logger).apply {
                         level = HttpLoggingInterceptor.Level.BASIC
-                        // Credentials must never reach logcat, in either scheme:
-                        // the v4 token rides a header, the v3 key rides the URL.
+                        // Credentials must never reach logcat, in either shape:
+                        // a token rides a header, a key rides the URL.
                         redactHeader("Authorization")
-                        redactQueryParams(TmdbCredentials.API_KEY_QUERY_PARAM)
+                        config.auth.redactedQueryParam?.let { redactQueryParams(it) }
                     },
                 )
             }
