@@ -1,4 +1,4 @@
-package com.bigon.core.designsystem.components
+package com.bigon.tmdb.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

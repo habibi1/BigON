@@ -69,6 +69,7 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":core:update"))
     implementation(project(":core:designsystem"))
+    implementation(project(":tmdb:ui"))
     implementation(project(":core:ui"))
     implementation(project(":tmdb:data"))
     implementation(project(":tmdb:domain"))

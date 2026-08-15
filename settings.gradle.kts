@@ -44,3 +44,4 @@ include(":core:ui")
 // Clean architecture layers
 include(":tmdb:domain")
 include(":tmdb:data")
+include(":tmdb:ui")

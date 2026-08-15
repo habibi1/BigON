@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.bigon.core.designsystem.components.SinemaCastCard
+import com.bigon.tmdb.ui.SinemaCastCard
 import com.bigon.core.designsystem.components.SinemaChip
 import com.bigon.core.designsystem.components.SinemaLoadingIndicator
 import com.bigon.core.designsystem.components.SinemaSectionHeader

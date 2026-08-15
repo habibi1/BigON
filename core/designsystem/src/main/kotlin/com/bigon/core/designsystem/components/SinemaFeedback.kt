@@ -170,41 +170,6 @@ fun SinemaEmptyState(
     }
 }
 
-/**
- * SinemaAttributionFooter — TMDB's required notice: their mark plus the exact
- * wording they mandate, defined exactly once (N4.3) so no screen can paraphrase
- * it (component gallery §Scaffolding & feedback).
- *
- * The bundled mark is a monochrome silhouette, so it is tinted to the caption
- * colour rather than drawn as-is. Untinted it is pure black, which scores 1.14:1
- * against the dark background — an attribution nobody can see is not an
- * attribution, so the tint is a compliance requirement, not styling.
- */
-@Composable
-fun SinemaAttributionFooter(
-    versionLabel: String,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(SinemaTheme.spacing.m),
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_tmdb_logo),
-            contentDescription = "The Movie Database (TMDB)",
-            colorFilter = ColorFilter.tint(SinemaTheme.colors.textSecondary),
-            modifier = Modifier.width(72.dp),
-        )
-        Text(
-            text = "$versionLabel · This product uses the TMDB API but is not endorsed or certified by TMDB.",
-            style = SinemaTheme.typography.caption.copy(fontSize = 10.5.sp, lineHeight = 16.sp),
-            color = SinemaTheme.colors.textSecondary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-}
 
 // ── Previews ────────────────────────────────────────────────────────────────
 
@@ -336,10 +301,3 @@ private fun SinemaEmptyStateFontScalePreview() {
     }
 }
 
-@SinemaThemePreview
-@Composable
-private fun SinemaAttributionFooterPreview() {
-    SinemaPreviewSurface(modifier = Modifier.width(320.dp)) {
-        SinemaAttributionFooter(versionLabel = "Sinema v0.0.1")
-    }
-}

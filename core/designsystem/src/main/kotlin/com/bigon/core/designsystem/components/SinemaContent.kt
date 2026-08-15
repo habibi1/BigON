@@ -68,57 +68,7 @@ fun SinemaSectionHeader(
     }
 }
 
-/** SinemaCastCard — avatar + actor + role (component gallery §Content). */
-@Composable
-fun SinemaCastCard(
-    name: String,
-    role: String,
-    modifier: Modifier = Modifier,
-    avatar: @Composable BoxScope.() -> Unit = { SinemaAvatarPlaceholder() },
-) {
-    Column(
-        modifier = modifier.width(72.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(64.dp)
-                .clip(SinemaTheme.shapes.pill)
-                .background(SinemaTheme.colors.surfaceHigh),
-        ) {
-            avatar()
-        }
-        Text(
-            text = name,
-            style = SinemaTheme.typography.caption.copy(fontWeight = FontWeight.SemiBold),
-            color = SinemaTheme.colors.textPrimary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = SinemaTheme.spacing.xs),
-        )
-        Text(
-            text = role,
-            style = SinemaTheme.typography.caption,
-            color = SinemaTheme.colors.textSecondary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-        )
-    }
-}
 
-@Composable
-private fun BoxScope.SinemaAvatarPlaceholder() {
-    Icon(
-        imageVector = SinemaIcons.Person,
-        contentDescription = null,
-        tint = SinemaTheme.colors.textSecondary,
-        modifier = Modifier
-            .size(28.dp)
-            .align(Alignment.Center),
-    )
-}
 
 /**
  * SinemaListItem — tablet list pane row, default / selected
@@ -131,7 +81,10 @@ fun SinemaListItem(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    thumbnail: @Composable BoxScope.() -> Unit = { SinemaPosterPlaceholder() },
+    // No default: the placeholder used to be a film poster, which quietly made
+    // this component about films. Callers say what a missing thumbnail looks
+    // like in their domain.
+    thumbnail: @Composable BoxScope.() -> Unit,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -206,25 +159,7 @@ private fun SinemaSectionHeaderRtlPreview() {
     }
 }
 
-@SinemaThemePreview
-@Composable
-private fun SinemaCastCardPreview() {
-    SinemaPreviewSurface {
-        SinemaCastCard(name = "Zendaya", role = "Chani")
-    }
-}
 
-/** Names and roles longer than the 72dp column must ellipsize, not wrap. */
-@SinemaPreview
-@Composable
-private fun SinemaCastCardLongNamePreview() {
-    SinemaPreviewSurface {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            SinemaCastCard(name = "T. Chalamet", role = "Paul Atreides")
-            SinemaCastCard(name = "Rebecca Ferguson", role = "Lady Jessica Atreides")
-        }
-    }
-}
 
 @SinemaThemePreview
 @Composable
@@ -235,6 +170,7 @@ private fun SinemaListItemPreview() {
             subtitle = "2026 · ★ 7.9 · Crime",
             selected = false,
             onClick = {},
+            thumbnail = { SinemaShimmerBox(modifier = Modifier.matchParentSize()) },
         )
     }
 }
@@ -249,6 +185,7 @@ private fun SinemaListItemSelectedPreview() {
             subtitle = "2026 · ★ 8.4 · Sci-Fi",
             selected = true,
             onClick = {},
+            thumbnail = { SinemaShimmerBox(modifier = Modifier.matchParentSize()) },
         )
     }
 }
@@ -262,6 +199,7 @@ private fun SinemaListItemLongTextPreview() {
             subtitle = "2026 · ★ 8.4 · Science Fiction · Adventure · Drama",
             selected = false,
             onClick = {},
+            thumbnail = { SinemaShimmerBox(modifier = Modifier.matchParentSize()) },
         )
     }
 }
@@ -275,6 +213,7 @@ private fun SinemaListItemFontScalePreview() {
             subtitle = "2026 · ★ 8.4 · Sci-Fi",
             selected = true,
             onClick = {},
+            thumbnail = { SinemaShimmerBox(modifier = Modifier.matchParentSize()) },
         )
     }
 }

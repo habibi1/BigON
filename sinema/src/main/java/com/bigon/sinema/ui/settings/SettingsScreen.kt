@@ -13,7 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.bigon.core.designsystem.components.SinemaAttributionFooter
+import com.bigon.tmdb.ui.SinemaAttributionFooter
 import com.bigon.core.designsystem.components.SinemaSegmentedControl
 import com.bigon.core.designsystem.components.SinemaSettingRow
 import com.bigon.core.designsystem.icons.SinemaIcons

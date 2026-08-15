@@ -22,21 +22,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.bigon.core.designsystem.components.SinemaAttributionFooter
-import com.bigon.core.designsystem.components.SinemaCastCard
 import com.bigon.core.designsystem.components.SinemaChip
+import com.bigon.core.designsystem.components.SinemaShimmerBox
 import com.bigon.core.designsystem.components.SinemaEmptyState
 import com.bigon.core.designsystem.components.SinemaFavoriteToggle
 import com.bigon.core.designsystem.components.SinemaListItem
 import com.bigon.core.designsystem.components.SinemaLoadingIndicator
-import com.bigon.core.designsystem.components.SinemaMovieCard
 import com.bigon.core.designsystem.components.SinemaOfflineBanner
 import com.bigon.core.designsystem.components.SinemaPrimaryButton
 import com.bigon.core.designsystem.components.SinemaSearchBar
 import com.bigon.core.designsystem.components.SinemaSectionHeader
 import com.bigon.core.designsystem.components.SinemaSegmentedControl
 import com.bigon.core.designsystem.components.SinemaSettingRow
-import com.bigon.core.designsystem.components.SinemaShimmerCard
 import com.bigon.core.designsystem.components.SinemaSnackbar
 import com.bigon.core.designsystem.components.SinemaTonalButton
 import com.bigon.core.designsystem.icons.SinemaIcons
@@ -65,29 +62,24 @@ private fun SinemaComponentGalleryPreview() {
             TypographyTokens()
             SpacingAndShapeTokens()
 
+            // Domain-shaped components — the movie card, cast card, poster
+            // shimmer and TMDB attribution — have their own gallery in
+            // :tmdb:ui. This one shows only what any app can use.
             GalleryHeading("Level 2 · Content")
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                SinemaMovieCard(title = "Midnight Reel", meta = "2026 · Thriller", rating = 8.4, onClick = {})
-                SinemaMovieCard(title = "No rating variant", meta = "2023 · Documentary", rating = null, onClick = {})
-                SinemaShimmerCard()
-            }
             SinemaSectionHeader(title = "Trending today", onSeeAll = {})
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                SinemaSampleData.cast.take(2).forEach { (name, role) ->
-                    SinemaCastCard(name = name, role = role)
-                }
-            }
             SinemaListItem(
                 title = "The Batman II",
                 subtitle = "2026 · ★ 7.9 · Crime",
                 selected = false,
                 onClick = {},
+                thumbnail = { SinemaShimmerBox(modifier = Modifier.matchParentSize()) },
             )
             SinemaListItem(
                 title = "Dune: Part Three",
                 subtitle = "2026 · ★ 8.4 · Sci-Fi",
                 selected = true,
                 onClick = {},
+                thumbnail = { SinemaShimmerBox(modifier = Modifier.matchParentSize()) },
             )
 
             GalleryHeading("Level 2 · Input & control")
@@ -135,7 +127,6 @@ private fun SinemaComponentGalleryPreview() {
                 action = { SinemaTonalButton(text = "Browse trending", onClick = {}) },
                 modifier = Modifier.fillMaxWidth(),
             )
-            SinemaAttributionFooter(versionLabel = "Sinema v0.0.1")
         }
     }
 }

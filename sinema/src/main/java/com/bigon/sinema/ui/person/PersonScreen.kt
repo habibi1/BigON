@@ -37,11 +37,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.bigon.core.designsystem.components.SinemaMovieCard
-import com.bigon.core.designsystem.components.SinemaPosterPlaceholder
+import com.bigon.tmdb.ui.SinemaMovieCard
+import com.bigon.tmdb.ui.SinemaPosterPlaceholder
 import com.bigon.core.designsystem.components.SinemaSectionHeader
 import com.bigon.core.designsystem.components.SinemaShimmerBox
-import com.bigon.core.designsystem.components.SinemaShimmerCard
+import com.bigon.tmdb.ui.SinemaShimmerCard
 import com.bigon.core.designsystem.components.SinemaSnackbar
 import com.bigon.core.designsystem.icons.SinemaIcons
 import com.bigon.core.designsystem.theme.SinemaTheme
