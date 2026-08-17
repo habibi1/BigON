@@ -69,3 +69,24 @@ annotation class BigonDevicePreview
 @Preview(name = "LTR", group = "direction", showBackground = true, backgroundColor = DARK_GROUND, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Preview(name = "RTL", group = "direction", showBackground = true, backgroundColor = DARK_GROUND, uiMode = Configuration.UI_MODE_NIGHT_YES, locale = "ar")
 annotation class BigonRtlPreview
+
+/**
+ * A 1080p television, 960dp wide, in night mode.
+ *
+ * `uiMode` carries **both** flags deliberately. `UI_MODE_TYPE_TELEVISION` is
+ * what `BigonTheme` reads to switch on the television type scale and overscan,
+ * and `UI_MODE_NIGHT_YES` matches the rest of the preview set — dropping either
+ * gives a preview that renders, and renders the wrong thing.
+ *
+ * Televisions are landscape and effectively one size, so this is a single
+ * preview rather than a set.
+ */
+@Preview(
+    name = "TV · 1080p",
+    group = "device",
+    device = "spec:width=960dp,height=540dp,dpi=213",
+    showBackground = true,
+    backgroundColor = DARK_GROUND,
+    uiMode = Configuration.UI_MODE_TYPE_TELEVISION or Configuration.UI_MODE_NIGHT_YES,
+)
+annotation class BigonTelevisionPreview

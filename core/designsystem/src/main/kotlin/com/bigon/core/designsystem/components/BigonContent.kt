@@ -60,6 +60,7 @@ fun BigonSectionHeader(
                 style = BigonTheme.typography.label,
                 color = BigonTheme.colors.primary,
                 modifier = Modifier
+                    .focusRing(BigonTheme.shapes.badge, width = 2.dp)
                     .clip(BigonTheme.shapes.badge)
                     .clickable(onClick = onSeeAll)
                     .padding(horizontal = BigonTheme.spacing.xs, vertical = BigonTheme.spacing.xs),
@@ -91,6 +92,7 @@ fun BigonListItem(
         horizontalArrangement = Arrangement.spacedBy(BigonTheme.spacing.m),
         modifier = modifier
             .fillMaxWidth()
+            .focusRing(BigonTheme.shapes.card)
             .clip(BigonTheme.shapes.card)
             .background(if (selected) BigonTheme.colors.surfaceVariant else Color.Transparent)
             .clickable(onClick = onClick)

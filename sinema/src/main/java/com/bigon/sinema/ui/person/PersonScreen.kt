@@ -44,6 +44,7 @@ import com.bigon.core.designsystem.components.BigonShimmerBox
 import com.bigon.tmdb.ui.BigonShimmerCard
 import com.bigon.core.designsystem.components.BigonSnackbar
 import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.theme.posterGridMinWidth
 import com.bigon.core.designsystem.theme.BigonTheme
 import com.bigon.tmdb.model.Credit
 import com.bigon.tmdb.model.PersonDetail
@@ -93,7 +94,7 @@ fun PersonScreen(
             // being a separate scrolling container above it — two nested
             // scrollers would fight each other.
             LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 120.dp),
+                columns = GridCells.Adaptive(minSize = posterGridMinWidth),
                 horizontalArrangement = Arrangement.spacedBy(spacing.l),
                 verticalArrangement = Arrangement.spacedBy(spacing.l),
                 contentPadding = PaddingValues(spacing.l),

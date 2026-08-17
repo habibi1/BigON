@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android TV home-screen banner, 320x180 at xhdpi.
+
+    Built from the shipped adaptive-icon layers rather than as a new asset, so
+    the banner and the launcher icon cannot drift apart: the background is the
+    icon's own background, and the mark is its foreground inset to sit on the
+    left third the way TV banners conventionally do.
+
+    A layer-list rather than a PNG because it stays sharp on a 4K panel and
+    costs no binary in the APK. The name is not drawn here — Android TV renders
+    the app label beneath the banner itself, so painting it in would print it
+    twice.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:drawable="@drawable/ic_launcher_background" />
+
+    <item
+        android:width="120dp"
+        android:height="120dp"
+        android:gravity="center_vertical|start"
+        android:start="20dp"
+        android:drawable="@drawable/ic_launcher_foreground" />
+
+</layer-list>

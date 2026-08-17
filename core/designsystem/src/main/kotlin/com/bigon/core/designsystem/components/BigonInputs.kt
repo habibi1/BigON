@@ -122,6 +122,7 @@ fun BigonChip(
     val colors = BigonTheme.colors
     Box(
         modifier = modifier
+            .focusRing(BigonTheme.shapes.pill)
             .clip(BigonTheme.shapes.pill)
             .background(if (selected) colors.primaryContainer else colors.surfaceHigh)
             .then(

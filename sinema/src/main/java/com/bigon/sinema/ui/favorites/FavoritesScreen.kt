@@ -27,6 +27,7 @@ import com.bigon.tmdb.ui.BigonMovieCard
 import com.bigon.tmdb.ui.BigonPosterPlaceholder
 import com.bigon.core.designsystem.components.BigonTonalButton
 import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.theme.posterGridMinWidth
 import com.bigon.core.designsystem.theme.BigonTheme
 import com.bigon.tmdb.model.Movie
 import com.bigon.core.ui.ObserveEffects
@@ -96,7 +97,7 @@ fun FavoritesScreen(
             }
         } else {
             LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 120.dp),
+                columns = GridCells.Adaptive(minSize = posterGridMinWidth),
                 horizontalArrangement = Arrangement.spacedBy(spacing.l),
                 verticalArrangement = Arrangement.spacedBy(spacing.l),
                 contentPadding = PaddingValues(bottom = spacing.l),

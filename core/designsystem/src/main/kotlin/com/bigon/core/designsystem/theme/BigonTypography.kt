@@ -48,6 +48,37 @@ data class BigonTypography(
     val caption: TextStyle = TextStyle(fontSize = 11.sp),
 )
 
+/**
+ * The same scale, re-cut for three metres away.
+ *
+ * A phone is read at roughly 40cm and a television at 3m, so the type has to
+ * grow by something close to that ratio to subtend the same angle. The scale
+ * below is not a uniform multiplier: the small end grows hardest, because
+ * 11sp metadata is what disappears first and a 24sp title was already legible.
+ * The relationships between the steps are preserved so components keep their
+ * hierarchy without being re-laid-out.
+ *
+ * Kept as a separate factory rather than a scale factor on [BigonTypography]
+ * so the values are readable as a set — a multiplier hides which line is the
+ * one that was actually failing.
+ */
+fun televisionTypography(): BigonTypography = BigonTypography(
+    display = TextStyle(fontSize = 34.sp, fontWeight = FontWeight.Bold),
+    title = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
+    cardTitle = TextStyle(
+        fontSize = 18.sp,
+        fontWeight = FontWeight.SemiBold,
+        lineHeight = 23.sp,
+    ),
+    body = TextStyle(fontSize = 18.sp, lineHeight = 27.sp),
+    label = TextStyle(
+        fontSize = 16.sp,
+        fontWeight = FontWeight.SemiBold,
+        letterSpacing = 0.4.sp,
+    ),
+    caption = TextStyle(fontSize = 14.sp),
+)
+
 internal val LocalSinemaTypography = staticCompositionLocalOf { BigonTypography() }
 
 // ── Previews ────────────────────────────────────────────────────────────────

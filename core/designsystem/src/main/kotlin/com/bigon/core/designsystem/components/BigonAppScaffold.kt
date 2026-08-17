@@ -40,6 +40,8 @@ import com.bigon.core.designsystem.preview.BigonDevicePreview
 import com.bigon.core.designsystem.preview.BigonPreview
 import com.bigon.core.designsystem.preview.BigonThemePreview
 import com.bigon.core.designsystem.theme.BigonTheme
+import com.bigon.core.designsystem.theme.overscanPadding
+import com.bigon.core.designsystem.theme.LocalBigonIsTelevision
 
 /** One top-level destination in the app shell. */
 data class BigonNavItem(
@@ -73,7 +75,12 @@ fun BigonAppScaffold(
             .fillMaxSize()
             .background(BigonTheme.colors.background),
     ) {
-        val useRail = maxWidth >= 600.dp
+        // A television is always a rail, regardless of width. The 600dp rule is
+        // about how much room a bottom bar steals from a portrait phone; on a
+        // television the argument is different and stronger — a bottom bar is
+        // reached by pressing DOWN through every row of content above it, so it
+        // is the furthest thing from the thumb rather than the nearest.
+        val useRail = LocalBigonIsTelevision.current || maxWidth >= 600.dp
 
         // One structure for every combination of width and [showNavigation]:
         // content always sits at Row → Column → Box. Swapping content between
@@ -85,7 +92,11 @@ fun BigonAppScaffold(
                 BigonNavigationRail(items, selectedId, onSelect)
             }
             Column(modifier = Modifier.weight(1f)) {
-                Box(modifier = Modifier.weight(1f)) { content() }
+                // Overscan is applied to content only, never to the rail: the
+                // rail is already inset by safeDrawing, and a panel cropping a
+                // few pixels off a navigation bar costs nothing, while cropping
+                // a poster title costs the title.
+                Box(modifier = Modifier.weight(1f).overscanPadding()) { content() }
                 if (!useRail && showNavigation) {
                     BigonBottomBar(items, selectedId, onSelect)
                 }
@@ -160,6 +171,7 @@ private fun BigonNavSlot(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = modifier
+            .focusRing(BigonTheme.shapes.container)
             .clip(BigonTheme.shapes.container)
             .clickable(onClick = onClick),
     ) {

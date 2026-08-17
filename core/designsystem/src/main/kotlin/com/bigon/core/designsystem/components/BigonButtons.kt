@@ -94,6 +94,7 @@ private fun BigonButtonImpl(
         modifier = modifier
             .height(48.dp)
             .alpha(if (enabled) 1f else 0.4f)
+            .focusRing(BigonTheme.shapes.pill)
             .clip(BigonTheme.shapes.pill)
             .background(container)
             .clickable(enabled = enabled, onClick = onClick)

@@ -39,14 +39,23 @@ object BigonTheme {
 @Composable
 fun BigonTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    /**
+     * Defaults to what the configuration reports; a caller may override it to
+     * render a television layout in a preview or a test.
+     */
+    isTelevision: Boolean = isTelevisionConfiguration(),
     content: @Composable () -> Unit,
 ) {
     val colors = if (darkTheme) BigonDarkColors else BigonLightColors
     CompositionLocalProvider(
         LocalSinemaColors provides colors,
-        LocalSinemaTypography provides BigonTypography(),
+        // The palette does not change on a television — the contrast ratios were
+        // measured on device and hold at any distance. Only the type does.
+        LocalSinemaTypography provides
+            if (isTelevision) televisionTypography() else BigonTypography(),
         LocalSinemaSpacing provides BigonSpacing(),
         LocalSinemaShapes provides BigonShapes(),
+        LocalBigonIsTelevision provides isTelevision,
     ) {
         MaterialTheme(
             colorScheme = colors.toMaterialColorScheme(),

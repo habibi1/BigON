@@ -29,6 +29,7 @@ import com.bigon.tmdb.ui.BigonPosterPlaceholder
 import com.bigon.tmdb.ui.BigonShimmerCard
 import com.bigon.core.designsystem.components.BigonSnackbar
 import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.theme.posterGridMinWidth
 import com.bigon.core.designsystem.theme.BigonTheme
 import com.bigon.tmdb.model.Movie
 import com.bigon.tmdb.model.MovieCategory
@@ -144,7 +145,7 @@ fun HomeScreen(
                 }
                 LazyVerticalGrid(
                     state = gridState,
-                    columns = GridCells.Adaptive(minSize = 120.dp),
+                    columns = GridCells.Adaptive(minSize = posterGridMinWidth),
                     horizontalArrangement = Arrangement.spacedBy(spacing.l),
                     verticalArrangement = Arrangement.spacedBy(spacing.l),
                     contentPadding = PaddingValues(bottom = spacing.l),
@@ -227,7 +228,7 @@ private fun MovieGrid(
 ) {
     val spacing = BigonTheme.spacing
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 120.dp),
+        columns = GridCells.Adaptive(minSize = posterGridMinWidth),
         horizontalArrangement = Arrangement.spacedBy(spacing.l),
         verticalArrangement = Arrangement.spacedBy(spacing.l),
         contentPadding = contentPadding,

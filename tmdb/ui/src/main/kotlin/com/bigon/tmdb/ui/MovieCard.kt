@@ -34,6 +34,7 @@ import com.bigon.core.designsystem.preview.BigonPreviewSurface
 import com.bigon.core.designsystem.preview.BigonThemePreview
 import com.bigon.core.designsystem.preview.MoviePreviewParameterProvider
 import com.bigon.core.designsystem.preview.PreviewMovie
+import com.bigon.core.designsystem.components.focusRing
 import com.bigon.core.designsystem.theme.BigonTheme
 import kotlin.math.round
 
@@ -62,6 +63,7 @@ fun BigonMovieCard(
     Column(
         modifier = modifier
             .then(if (width.isSpecified) Modifier.width(width) else Modifier)
+            .focusRing(BigonTheme.shapes.card)
             .clip(BigonTheme.shapes.card)
             .clickable(onClick = onClick),
     ) {

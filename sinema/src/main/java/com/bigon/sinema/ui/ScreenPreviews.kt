@@ -3,6 +3,7 @@ package com.bigon.sinema.ui
 import androidx.compose.runtime.Composable
 import com.bigon.core.designsystem.preview.BigonDevicePreview
 import com.bigon.core.designsystem.preview.BigonFontScalePreview
+import com.bigon.core.designsystem.preview.BigonTelevisionPreview
 import com.bigon.core.designsystem.preview.BigonThemePreview
 import com.bigon.core.designsystem.theme.BigonTheme
 import com.bigon.tmdb.model.Movie
@@ -90,6 +91,32 @@ private fun SearchScreenEmptyPreview() {
     BigonTheme {
         SearchScreen(
             state = SearchUiState(query = "zzzz", isSearching = false),
+            onIntent = {},
+        )
+    }
+}
+
+/**
+ * Home on a television: the rail instead of a bottom bar, the larger type
+ * scale, overscan margins, and a grid that stops at four wide cells rather
+ * than eight small ones. Every one of those comes from the configuration, so
+ * this preview exercises the real switch rather than a parallel TV layout.
+ */
+@BigonTelevisionPreview
+@Composable
+private fun HomeScreenTelevisionPreview() {
+    BigonTheme {
+        HomeScreen(state = HomeUiState(movies = sampleMovies), onIntent = {})
+    }
+}
+
+/** Search on a television — the filter row is where focus lands first. */
+@BigonTelevisionPreview
+@Composable
+private fun SearchScreenTelevisionPreview() {
+    BigonTheme {
+        SearchScreen(
+            state = SearchUiState(results = sampleMovies, isSearching = false),
             onIntent = {},
         )
     }
