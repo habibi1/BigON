@@ -21,19 +21,19 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.bigon.core.designsystem.components.SinemaChipRow
-import com.bigon.core.designsystem.components.SinemaEmptyState
-import com.bigon.core.designsystem.components.SinemaMovieCard
-import com.bigon.core.designsystem.components.SinemaPosterPlaceholder
-import com.bigon.core.designsystem.components.SinemaSearchBar
-import com.bigon.core.designsystem.components.SinemaShimmerCard
-import com.bigon.core.designsystem.components.SinemaSnackbar
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.theme.SinemaTheme
-import com.bigon.core.model.Movie
+import com.bigon.core.designsystem.components.BigonChipRow
+import com.bigon.core.designsystem.components.BigonEmptyState
+import com.bigon.tmdb.ui.BigonMovieCard
+import com.bigon.tmdb.ui.BigonPosterPlaceholder
+import com.bigon.core.designsystem.components.BigonSearchBar
+import com.bigon.tmdb.ui.BigonShimmerCard
+import com.bigon.core.designsystem.components.BigonSnackbar
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.theme.BigonTheme
+import com.bigon.tmdb.model.Movie
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import com.bigon.core.designsystem.components.SinemaLoadingIndicator
+import com.bigon.core.designsystem.components.BigonLoadingIndicator
 import com.bigon.core.ui.LoadMoreEffect
 import com.bigon.core.ui.ObserveEffects
 import com.bigon.core.ui.asString
@@ -46,7 +46,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.graphics.Color
-import com.bigon.core.model.WatchProvider
+import com.bigon.tmdb.model.WatchProvider
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.Text
 import androidx.compose.ui.draw.clip
@@ -56,10 +56,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.Dialog
-import com.bigon.core.designsystem.components.SinemaChip
-import com.bigon.core.designsystem.components.SinemaPrimaryButton
-import com.bigon.domain.movie.DiscoverFilters
-import com.bigon.domain.movie.DiscoverSort
+import com.bigon.core.designsystem.components.BigonChip
+import com.bigon.core.designsystem.components.BigonPrimaryButton
+import com.bigon.tmdb.domain.movie.DiscoverFilters
+import com.bigon.tmdb.domain.movie.DiscoverSort
 
 private const val ALL_CHIP = "All"
 
@@ -93,7 +93,7 @@ fun SearchScreen(
     modifier: Modifier = Modifier,
     transition: PosterTransition? = null,
 ) {
-    val spacing = SinemaTheme.spacing
+    val spacing = BigonTheme.spacing
 
     Column(
         modifier = modifier
@@ -101,14 +101,14 @@ fun SearchScreen(
             .statusBarsPadding()
             .padding(horizontal = spacing.l),
     ) {
-        SinemaSearchBar(
+        BigonSearchBar(
             query = state.query,
             onQueryChange = { onIntent(SearchIntent.QueryChanged(it)) },
             modifier = Modifier.padding(top = spacing.l),
         )
 
         if (state.genres.isNotEmpty()) {
-            SinemaChipRow(
+            BigonChipRow(
                 options = listOf(ALL_CHIP) + state.genres.map { it.name },
                 selectedOption = state.selectedGenreName ?: ALL_CHIP,
                 onOptionSelect = { label ->
@@ -124,7 +124,7 @@ fun SearchScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(top = spacing.s),
             ) {
-                SinemaChip(
+                BigonChip(
                     label = if (state.filters.activeCount > 0) {
                         "Refine (${state.filters.activeCount})"
                     } else {
@@ -136,11 +136,11 @@ fun SearchScreen(
                 if (state.filters.isActive) {
                     Text(
                         text = "Clear",
-                        style = SinemaTheme.typography.caption,
-                        color = SinemaTheme.colors.primary,
+                        style = BigonTheme.typography.caption,
+                        color = BigonTheme.colors.primary,
                         modifier = Modifier
                             .padding(start = spacing.m)
-                            .clip(SinemaTheme.shapes.pill)
+                            .clip(BigonTheme.shapes.pill)
                             .clickable { onIntent(SearchIntent.FiltersChanged(DiscoverFilters())) }
                             .padding(spacing.xs),
                     )
@@ -186,7 +186,7 @@ fun SearchScreen(
         }
 
         state.error?.let { error ->
-            SinemaSnackbar(
+            BigonSnackbar(
                 message = error.asString(),
                 actionLabel = "RETRY",
                 onAction = { onIntent(SearchIntent.Retry) },
@@ -201,8 +201,8 @@ fun SearchScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) {
-                SinemaEmptyState(
-                    icon = SinemaIcons.Search,
+                BigonEmptyState(
+                    icon = BigonIcons.Search,
                     title = "No results",
                     subtitle = if (state.query.isBlank()) {
                         "Nothing to browse right now — try again."
@@ -239,7 +239,7 @@ fun SearchScreen(
                                 modifier = Modifier.fillMaxWidth().padding(spacing.l),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                SinemaLoadingIndicator()
+                                BigonLoadingIndicator()
                             }
                         }
                     }
@@ -252,7 +252,7 @@ fun SearchScreen(
 /** Skeleton grid shown only while there is nothing at all to display. */
 @Composable
 private fun ResultGrid() {
-    val spacing = SinemaTheme.spacing
+    val spacing = BigonTheme.spacing
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 120.dp),
         horizontalArrangement = Arrangement.spacedBy(spacing.l),
@@ -261,14 +261,14 @@ private fun ResultGrid() {
         modifier = Modifier.fillMaxSize().padding(top = spacing.m),
     ) {
         items(List(6) { it }) {
-            SinemaShimmerCard(width = Dp.Unspecified, modifier = Modifier.fillMaxWidth())
+            BigonShimmerCard(width = Dp.Unspecified, modifier = Modifier.fillMaxWidth())
         }
     }
 }
 
 @Composable
 private fun ResultCard(movie: Movie, transition: PosterTransition?, onClick: () -> Unit) {
-    SinemaMovieCard(
+    BigonMovieCard(
         title = movie.title,
         meta = listOfNotNull(movie.releaseYear?.toString(), movie.genres.firstOrNull())
             .joinToString(" · ")
@@ -279,7 +279,7 @@ private fun ResultCard(movie: Movie, transition: PosterTransition?, onClick: () 
         modifier = Modifier.fillMaxWidth(),
         poster = {
             if (movie.posterUrl == null) {
-                SinemaPosterPlaceholder()
+                BigonPosterPlaceholder()
             } else {
                 AsyncImage(
                     model = movie.posterUrl,
@@ -306,16 +306,16 @@ private fun ServiceChip(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val colors = SinemaTheme.colors
+    val colors = BigonTheme.colors
     Box(
         modifier = Modifier
             .size(40.dp)
-            .clip(SinemaTheme.shapes.container)
+            .clip(BigonTheme.shapes.container)
             .background(if (selected) colors.primaryContainer else colors.surfaceVariant)
             .border(
                 width = if (selected) 2.dp else 0.dp,
                 color = if (selected) colors.primary else Color.Transparent,
-                shape = SinemaTheme.shapes.container,
+                shape = BigonTheme.shapes.container,
             )
             .clickable(onClick = onClick)
             .padding(4.dp),
@@ -325,11 +325,11 @@ private fun ServiceChip(
                 model = url,
                 contentDescription = service.name,
                 contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize().clip(SinemaTheme.shapes.container),
+                modifier = Modifier.fillMaxSize().clip(BigonTheme.shapes.container),
             )
         } ?: Text(
             text = service.name.take(2),
-            style = SinemaTheme.typography.caption,
+            style = BigonTheme.typography.caption,
             color = colors.textPrimary,
             modifier = Modifier.align(Alignment.Center),
         )
@@ -354,8 +354,8 @@ private fun RefineSheet(
     filters: DiscoverFilters,
     onDone: (DiscoverFilters) -> Unit,
 ) {
-    val spacing = SinemaTheme.spacing
-    val colors = SinemaTheme.colors
+    val spacing = BigonTheme.spacing
+    val colors = BigonTheme.colors
     val thisYear = remember { java.time.LocalDate.now().year }
     var draft by remember(filters) { mutableStateOf(filters) }
     val commit = { onDone(draft) }
@@ -363,14 +363,14 @@ private fun RefineSheet(
     // Back press and a scrim tap commit too: a sheet whose only exit that keeps
     // your choices is one particular button is a sheet that loses them.
     Dialog(onDismissRequest = commit) {
-        Surface(shape = SinemaTheme.shapes.container, color = colors.surface) {
+        Surface(shape = BigonTheme.shapes.container, color = colors.surface) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
                     .padding(spacing.l),
             ) {
-                Text("Refine", style = SinemaTheme.typography.title, color = colors.textPrimary)
+                Text("Refine", style = BigonTheme.typography.title, color = colors.textPrimary)
 
                 RefineLabel("Sort by")
                 Row(
@@ -378,7 +378,7 @@ private fun RefineSheet(
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                 ) {
                     DiscoverSort.entries.forEach { sort ->
-                        SinemaChip(
+                        BigonChip(
                             label = sort.label,
                             selected = draft.sort == sort,
                             onClick = { draft = draft.copy(sort = sort) },
@@ -391,13 +391,13 @@ private fun RefineSheet(
                     horizontalArrangement = Arrangement.spacedBy(spacing.s),
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                 ) {
-                    SinemaChip(
+                    BigonChip(
                         label = "Any",
                         selected = draft.releaseYear == null,
                         onClick = { draft = draft.copy(releaseYear = null) },
                     )
                     (0..7).map { thisYear - it }.forEach { year ->
-                        SinemaChip(
+                        BigonChip(
                             label = year.toString(),
                             selected = draft.releaseYear == year,
                             onClick = { draft = draft.copy(releaseYear = year) },
@@ -410,13 +410,13 @@ private fun RefineSheet(
                     horizontalArrangement = Arrangement.spacedBy(spacing.s),
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                 ) {
-                    SinemaChip(
+                    BigonChip(
                         label = "Any",
                         selected = draft.minRating == null,
                         onClick = { draft = draft.copy(minRating = null) },
                     )
                     listOf(6.0, 7.0, 8.0).forEach { rating ->
-                        SinemaChip(
+                        BigonChip(
                             label = "★ $rating+",
                             selected = draft.minRating == rating,
                             onClick = { draft = draft.copy(minRating = rating) },
@@ -429,13 +429,13 @@ private fun RefineSheet(
                     horizontalArrangement = Arrangement.spacedBy(spacing.s),
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                 ) {
-                    SinemaChip(
+                    BigonChip(
                         label = "Any",
                         selected = draft.maxRuntimeMinutes == null,
                         onClick = { draft = draft.copy(maxRuntimeMinutes = null) },
                     )
                     listOf(90, 120, 150).forEach { minutes ->
-                        SinemaChip(
+                        BigonChip(
                             label = "under ${minutes / 60}h${(minutes % 60).takeIf { it > 0 } ?: ""}",
                             selected = draft.maxRuntimeMinutes == minutes,
                             onClick = { draft = draft.copy(maxRuntimeMinutes = minutes) },
@@ -443,7 +443,7 @@ private fun RefineSheet(
                     }
                 }
 
-                SinemaPrimaryButton(
+                BigonPrimaryButton(
                     text = "Done",
                     onClick = commit,
                     modifier = Modifier.padding(top = spacing.xl).fillMaxWidth(),
@@ -457,8 +457,8 @@ private fun RefineSheet(
 private fun RefineLabel(text: String) {
     Text(
         text = text,
-        style = SinemaTheme.typography.caption,
-        color = SinemaTheme.colors.textSecondary,
-        modifier = Modifier.padding(top = SinemaTheme.spacing.l, bottom = SinemaTheme.spacing.s),
+        style = BigonTheme.typography.caption,
+        color = BigonTheme.colors.textSecondary,
+        modifier = Modifier.padding(top = BigonTheme.spacing.l, bottom = BigonTheme.spacing.s),
     )
 }

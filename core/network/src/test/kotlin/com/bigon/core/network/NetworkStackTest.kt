@@ -43,7 +43,7 @@ class NetworkStackTest {
 
         val config = NetworkConfig(
             baseUrl = server.url("/").toString(),
-            credentials = TmdbCredentials(readAccessToken = "test-token"),
+            auth = AuthScheme.BearerToken("test-token"),
         )
         val okHttpClient = OkHttpClientFactory(config).create()
         val retrofit = RetrofitFactory(config, okHttpClient, Json { ignoreUnknownKeys = true }).create()
@@ -107,10 +107,10 @@ class NetworkStackTest {
 
     // ── credential schemes ──────────────────────────────────────────────────
 
-    private fun apiFor(credentials: TmdbCredentials): TestApi {
+    private fun apiFor(auth: AuthScheme): TestApi {
         val config = NetworkConfig(
             baseUrl = server.url("/").toString(),
-            credentials = credentials,
+            auth = auth,
         )
         return RetrofitFactory(config, OkHttpClientFactory(config).create(), Json)
             .create()
@@ -122,10 +122,10 @@ class NetworkStackTest {
     )
 
     @Test
-    fun `v3 api key travels as a query parameter, not a header`() = runTest {
+    fun `a query-param credential travels in the URL, not a header`() = runTest {
         enqueueOk()
 
-        apiCaller.execute { apiFor(TmdbCredentials(apiKey = "v3-key")).movie(1) }
+        apiCaller.execute { apiFor(AuthScheme.QueryParam("api_key", "v3-key")).movie(1) }
 
         val recorded = server.takeRequest()
         assertEquals("/movie/1?api_key=v3-key", recorded.target)
@@ -133,11 +133,10 @@ class NetworkStackTest {
     }
 
     @Test
-    fun `read access token wins when both credentials are configured`() = runTest {
+    fun `a bearer credential travels as a header, leaving the URL clean`() = runTest {
         enqueueOk()
 
-        val both = TmdbCredentials(readAccessToken = "v4-token", apiKey = "v3-key")
-        apiCaller.execute { apiFor(both).movie(1) }
+        apiCaller.execute { apiFor(AuthScheme.BearerToken("v4-token")).movie(1) }
 
         val recorded = server.takeRequest()
         assertEquals("Bearer v4-token", recorded.headers["Authorization"])
@@ -148,7 +147,7 @@ class NetworkStackTest {
     fun `no credential sends an unauthenticated request rather than failing locally`() = runTest {
         enqueueOk()
 
-        apiCaller.execute { apiFor(TmdbCredentials()).movie(1) }
+        apiCaller.execute { apiFor(AuthScheme.None).movie(1) }
 
         val recorded = server.takeRequest()
         assertEquals("/movie/1", recorded.target)
@@ -156,10 +155,8 @@ class NetworkStackTest {
     }
 
     @Test
-    fun `credentials never expose their values in toString`() {
-        val rendered = TmdbCredentials(readAccessToken = "v4-token", apiKey = "v3-key").toString()
-
-        assertFalse(rendered.contains("v4-token"))
-        assertFalse(rendered.contains("v3-key"))
+    fun `a scheme never exposes its secret in toString`() {
+        assertFalse(AuthScheme.BearerToken("v4-token").toString().contains("v4-token"))
+        assertFalse(AuthScheme.QueryParam("api_key", "v3-key").toString().contains("v3-key"))
     }
 }

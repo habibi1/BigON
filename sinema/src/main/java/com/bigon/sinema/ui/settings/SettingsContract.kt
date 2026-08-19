@@ -1,6 +1,6 @@
 package com.bigon.sinema.ui.settings
 
-import com.bigon.core.model.Region
+import com.bigon.tmdb.model.Region
 import com.bigon.core.ui.UiText
 import com.bigon.sinema.ui.ThemeMode
 

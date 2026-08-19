@@ -2,7 +2,7 @@ package com.bigon.sinema.di
 
 import android.content.Context
 import coil3.ImageLoader
-import com.bigon.domain.movie.MovieRepository
+import com.bigon.tmdb.domain.movie.MovieRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

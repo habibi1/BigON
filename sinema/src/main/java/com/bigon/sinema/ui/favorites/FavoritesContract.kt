@@ -1,6 +1,6 @@
 package com.bigon.sinema.ui.favorites
 
-import com.bigon.core.model.Movie
+import com.bigon.tmdb.model.Movie
 
 data class FavoritesUiState(
     val favorites: List<Movie> = emptyList(),

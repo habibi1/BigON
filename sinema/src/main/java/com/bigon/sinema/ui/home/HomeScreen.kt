@@ -22,19 +22,19 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.bigon.core.designsystem.components.SinemaChipRow
-import com.bigon.core.designsystem.components.SinemaEmptyState
-import com.bigon.core.designsystem.components.SinemaMovieCard
-import com.bigon.core.designsystem.components.SinemaPosterPlaceholder
-import com.bigon.core.designsystem.components.SinemaShimmerCard
-import com.bigon.core.designsystem.components.SinemaSnackbar
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.theme.SinemaTheme
-import com.bigon.core.model.Movie
-import com.bigon.core.model.MovieCategory
+import com.bigon.core.designsystem.components.BigonChipRow
+import com.bigon.core.designsystem.components.BigonEmptyState
+import com.bigon.tmdb.ui.BigonMovieCard
+import com.bigon.tmdb.ui.BigonPosterPlaceholder
+import com.bigon.tmdb.ui.BigonShimmerCard
+import com.bigon.core.designsystem.components.BigonSnackbar
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.theme.BigonTheme
+import com.bigon.tmdb.model.Movie
+import com.bigon.tmdb.model.MovieCategory
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import com.bigon.core.designsystem.components.SinemaLoadingIndicator
+import com.bigon.core.designsystem.components.BigonLoadingIndicator
 import com.bigon.core.ui.LoadMoreEffect
 import com.bigon.core.ui.ObserveEffects
 import com.bigon.core.ui.asString
@@ -42,8 +42,8 @@ import com.bigon.sinema.ui.PosterTransition
 import com.bigon.sinema.ui.metaLine
 import com.bigon.sinema.ui.posterModifier
 import androidx.compose.foundation.layout.BoxScope
-import com.bigon.core.model.TrendingItem
-import com.bigon.core.model.typeLabel
+import com.bigon.tmdb.model.TrendingItem
+import com.bigon.tmdb.model.typeLabel
 
 /**
  * Stateful entry point: owns nothing but the ViewModel, so the stateless
@@ -83,7 +83,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     transition: PosterTransition? = null,
 ) {
-    val spacing = SinemaTheme.spacing
+    val spacing = BigonTheme.spacing
 
     Column(
         modifier = modifier
@@ -93,15 +93,15 @@ fun HomeScreen(
     ) {
         Text(
             text = "Sinema",
-            style = SinemaTheme.typography.display,
-            color = SinemaTheme.colors.textPrimary,
+            style = BigonTheme.typography.display,
+            color = BigonTheme.colors.textPrimary,
             modifier = Modifier.padding(vertical = spacing.l),
         )
 
         // The mixed feed sits last: it is the widest net, and the movie
         // categories are what most sessions actually start from.
         val feeds = MovieCategory.entries.map { HomeFeed.Category(it) } + HomeFeed.AcrossTypes
-        SinemaChipRow(
+        BigonChipRow(
             options = feeds.map { it.label },
             selectedOption = state.feed.label,
             onOptionSelect = { label ->
@@ -112,7 +112,7 @@ fun HomeScreen(
         // A failed refresh never hides content: the notice sits above whatever
         // is still cached.
         state.error?.let { error ->
-            SinemaSnackbar(
+            BigonSnackbar(
                 message = error.asString(),
                 actionLabel = "RETRY",
                 onAction = { onIntent(HomeIntent.Refresh) },
@@ -124,14 +124,14 @@ fun HomeScreen(
             state.showSkeletons -> MovieGrid(
                 itemCount = 6,
                 contentPadding = PaddingValues(bottom = spacing.l),
-            ) { SinemaShimmerCard(width = Dp.Unspecified, modifier = Modifier.fillMaxWidth()) }
+            ) { BigonShimmerCard(width = Dp.Unspecified, modifier = Modifier.fillMaxWidth()) }
 
             state.showEmptyState -> Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) {
-                SinemaEmptyState(
-                    icon = SinemaIcons.Movie,
+                BigonEmptyState(
+                    icon = BigonIcons.Movie,
                     title = "Nothing to show",
                     subtitle = "Pull a category from TMDB to get started.",
                 )
@@ -182,7 +182,7 @@ fun HomeScreen(
                                 modifier = Modifier.fillMaxWidth().padding(spacing.l),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                SinemaLoadingIndicator()
+                                BigonLoadingIndicator()
                             }
                         }
                     }
@@ -194,7 +194,7 @@ fun HomeScreen(
 
 @Composable
 private fun MovieCard(movie: Movie, transition: PosterTransition?, onClick: () -> Unit) {
-    SinemaMovieCard(
+    BigonMovieCard(
         title = movie.title,
         meta = movie.metaLine(),
         rating = movie.voteAverage,
@@ -203,7 +203,7 @@ private fun MovieCard(movie: Movie, transition: PosterTransition?, onClick: () -
         modifier = Modifier.fillMaxWidth(),
         poster = {
             if (movie.posterUrl == null) {
-                SinemaPosterPlaceholder()
+                BigonPosterPlaceholder()
             } else {
                 AsyncImage(
                     model = movie.posterUrl,
@@ -225,7 +225,7 @@ private fun MovieGrid(
     contentPadding: PaddingValues,
     item: @Composable () -> Unit,
 ) {
-    val spacing = SinemaTheme.spacing
+    val spacing = BigonTheme.spacing
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 120.dp),
         horizontalArrangement = Arrangement.spacedBy(spacing.l),
@@ -255,7 +255,7 @@ private fun TrendingCard(
     when (item) {
         is TrendingItem.Film -> MovieCard(movie = item.movie, transition = transition, onClick = onClick)
 
-        is TrendingItem.Series -> SinemaMovieCard(
+        is TrendingItem.Series -> BigonMovieCard(
             title = item.name,
             meta = listOfNotNull("Series", item.firstAirYear?.toString()).joinToString(" · "),
             rating = item.voteAverage,
@@ -265,7 +265,7 @@ private fun TrendingCard(
             poster = { PosterOrPlaceholder(item.posterUrl) },
         )
 
-        is TrendingItem.Person -> SinemaMovieCard(
+        is TrendingItem.Person -> BigonMovieCard(
             title = item.name,
             meta = listOfNotNull("Person", item.knownForDepartment).joinToString(" · "),
             onClick = onClick,
@@ -285,5 +285,5 @@ private fun BoxScope.PosterOrPlaceholder(url: String?) {
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
         )
-    } ?: SinemaPosterPlaceholder()
+    } ?: BigonPosterPlaceholder()
 }

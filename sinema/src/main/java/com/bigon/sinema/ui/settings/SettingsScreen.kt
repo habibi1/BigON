@@ -13,11 +13,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.bigon.core.designsystem.components.SinemaAttributionFooter
-import com.bigon.core.designsystem.components.SinemaSegmentedControl
-import com.bigon.core.designsystem.components.SinemaSettingRow
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.tmdb.ui.BigonAttributionFooter
+import com.bigon.core.designsystem.components.BigonSegmentedControl
+import com.bigon.core.designsystem.components.BigonSettingRow
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.theme.BigonTheme
 import com.bigon.sinema.BuildConfig
 import com.bigon.sinema.ui.ThemeMode
 import androidx.compose.foundation.clickable
@@ -30,8 +30,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.window.Dialog
-import com.bigon.core.designsystem.components.SinemaLoadingIndicator
-import com.bigon.core.designsystem.components.SinemaSearchBar
+import com.bigon.core.designsystem.components.BigonLoadingIndicator
+import com.bigon.core.designsystem.components.BigonSearchBar
 import com.bigon.core.ui.asString
 
 @Composable
@@ -49,7 +49,7 @@ fun SettingsScreen(
     onIntent: (SettingsIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val spacing = SinemaTheme.spacing
+    val spacing = BigonTheme.spacing
 
     Column(
         modifier = modifier
@@ -60,17 +60,17 @@ fun SettingsScreen(
     ) {
         Text(
             text = "Settings",
-            style = SinemaTheme.typography.display,
-            color = SinemaTheme.colors.textPrimary,
+            style = BigonTheme.typography.display,
+            color = BigonTheme.colors.textPrimary,
             modifier = Modifier.padding(vertical = spacing.l),
         )
 
         Text(
             text = "Theme",
-            style = SinemaTheme.typography.title,
-            color = SinemaTheme.colors.textPrimary,
+            style = BigonTheme.typography.title,
+            color = BigonTheme.colors.textPrimary,
         )
-        SinemaSegmentedControl(
+        BigonSegmentedControl(
             options = ThemeMode.entries.map { it.name },
             selectedIndex = state.themeMode.ordinal,
             onSelect = { onIntent(SettingsIntent.ThemeChanged(ThemeMode.entries[it])) },
@@ -80,30 +80,30 @@ fun SettingsScreen(
         )
 
         Column(modifier = Modifier.padding(top = spacing.xl)) {
-            SinemaSettingRow(
+            BigonSettingRow(
                 title = "Region",
                 subtitle = "Cinema listings, age ratings and streaming services",
                 value = state.regionLabel,
-                icon = SinemaIcons.Search,
+                icon = BigonIcons.Search,
                 onClick = { onIntent(SettingsIntent.RegionPickerOpened) },
             )
-            SinemaSettingRow(
+            BigonSettingRow(
                 title = "Clear cache",
                 subtitle = if (state.isClearingCache) "Clearing…" else "Catalogue and images — favorites kept",
                 value = state.cacheLabel,
-                icon = SinemaIcons.Clear,
+                icon = BigonIcons.Clear,
                 onClick = { onIntent(SettingsIntent.ClearCache) },
             )
-            SinemaSettingRow(
+            BigonSettingRow(
                 title = "App version",
                 subtitle = "Sinema for Android",
                 value = BuildConfig.VERSION_NAME,
-                icon = SinemaIcons.Movie,
+                icon = BigonIcons.Movie,
                 showDivider = false,
             )
         }
 
-        SinemaAttributionFooter(
+        BigonAttributionFooter(
             versionLabel = "Sinema v${BuildConfig.VERSION_NAME}",
             modifier = Modifier.padding(vertical = spacing.xxl),
         )
@@ -128,23 +128,23 @@ private fun RegionPicker(
     state: SettingsUiState,
     onIntent: (SettingsIntent) -> Unit,
 ) {
-    val spacing = SinemaTheme.spacing
-    val colors = SinemaTheme.colors
+    val spacing = BigonTheme.spacing
+    val colors = BigonTheme.colors
 
     Dialog(onDismissRequest = { onIntent(SettingsIntent.RegionPickerDismissed) }) {
         Surface(
-            shape = SinemaTheme.shapes.container,
+            shape = BigonTheme.shapes.container,
             color = colors.surface,
             modifier = Modifier.fillMaxWidth().fillMaxHeight(0.85f),
         ) {
             Column(modifier = Modifier.padding(spacing.l)) {
                 Text(
                     text = "Content region",
-                    style = SinemaTheme.typography.title,
+                    style = BigonTheme.typography.title,
                     color = colors.textPrimary,
                 )
 
-                SinemaSearchBar(
+                BigonSearchBar(
                     query = state.regionQuery,
                     onQueryChange = { onIntent(SettingsIntent.RegionQueryChanged(it)) },
                     placeholder = "Search regions…",
@@ -155,11 +155,11 @@ private fun RegionPicker(
                     state.isLoadingRegions -> Box(
                         modifier = Modifier.fillMaxWidth().padding(spacing.xl),
                         contentAlignment = Alignment.Center,
-                    ) { SinemaLoadingIndicator() }
+                    ) { BigonLoadingIndicator() }
 
                     state.regionError != null -> Text(
                         text = state.regionError.asString(),
-                        style = SinemaTheme.typography.body,
+                        style = BigonTheme.typography.body,
                         color = colors.textSecondary,
                         modifier = Modifier.padding(top = spacing.l),
                     )
@@ -197,26 +197,26 @@ private fun RegionRow(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val spacing = SinemaTheme.spacing
-    val colors = SinemaTheme.colors
+    val spacing = BigonTheme.spacing
+    val colors = BigonTheme.colors
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(SinemaTheme.shapes.container)
+            .clip(BigonTheme.shapes.container)
             .clickable(onClick = onClick)
             .padding(vertical = spacing.m, horizontal = spacing.s),
     ) {
         Text(
             text = label,
-            style = SinemaTheme.typography.body,
+            style = BigonTheme.typography.body,
             color = if (selected) colors.primary else colors.textPrimary,
             modifier = Modifier.weight(1f),
         )
         trailing?.let {
             Text(
                 text = it,
-                style = SinemaTheme.typography.caption,
+                style = BigonTheme.typography.caption,
                 color = colors.textSecondary,
             )
         }

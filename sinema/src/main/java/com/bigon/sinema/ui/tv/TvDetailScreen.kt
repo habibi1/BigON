@@ -31,13 +31,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.bigon.core.designsystem.components.SinemaCastCard
-import com.bigon.core.designsystem.components.SinemaChip
-import com.bigon.core.designsystem.components.SinemaLoadingIndicator
-import com.bigon.core.designsystem.components.SinemaSectionHeader
-import com.bigon.core.designsystem.components.SinemaSnackbar
-import com.bigon.core.designsystem.icons.SinemaIcons
-import com.bigon.core.designsystem.theme.SinemaTheme
+import com.bigon.tmdb.ui.BigonCastCard
+import com.bigon.core.designsystem.components.BigonChip
+import com.bigon.core.designsystem.components.BigonLoadingIndicator
+import com.bigon.core.designsystem.components.BigonSectionHeader
+import com.bigon.core.designsystem.components.BigonSnackbar
+import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.theme.BigonTheme
 import com.bigon.core.ui.asString
 
 /**
@@ -59,8 +59,8 @@ fun TvDetailRoute(
     ) { factory -> factory.create(tvId) },
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val spacing = SinemaTheme.spacing
-    val colors = SinemaTheme.colors
+    val spacing = BigonTheme.spacing
+    val colors = BigonTheme.colors
 
     Box(modifier = modifier.fillMaxSize().background(colors.background)) {
         Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
@@ -86,13 +86,13 @@ fun TvDetailRoute(
                 state.show?.let { show ->
                     Text(
                         text = show.name,
-                        style = SinemaTheme.typography.display,
+                        style = BigonTheme.typography.display,
                         color = colors.textPrimary,
                     )
                     show.tagline?.let {
                         Text(
                             text = it,
-                            style = SinemaTheme.typography.body,
+                            style = BigonTheme.typography.body,
                             color = colors.textSecondary,
                             modifier = Modifier.padding(top = spacing.xs),
                         )
@@ -108,7 +108,7 @@ fun TvDetailRoute(
                             show.voteAverage?.let { "★ %.1f".format(it) },
                             show.status,
                         ).joinToString("  ·  "),
-                        style = SinemaTheme.typography.caption,
+                        style = BigonTheme.typography.caption,
                         color = colors.textSecondary,
                         modifier = Modifier.padding(top = spacing.m),
                     )
@@ -120,23 +120,23 @@ fun TvDetailRoute(
                                 .horizontalScroll(rememberScrollState())
                                 .padding(top = spacing.m),
                         ) {
-                            show.certification?.let { SinemaChip(label = it, selected = true, onClick = {}) }
-                            show.genres.forEach { SinemaChip(label = it, selected = false, onClick = {}) }
+                            show.certification?.let { BigonChip(label = it, selected = true, onClick = {}) }
+                            show.genres.forEach { BigonChip(label = it, selected = false, onClick = {}) }
                         }
                     }
 
                     show.overview.takeIf { it.isNotBlank() }?.let {
-                        SinemaSectionHeader(title = "Overview", modifier = Modifier.padding(top = spacing.xl))
+                        BigonSectionHeader(title = "Overview", modifier = Modifier.padding(top = spacing.xl))
                         Text(
                             text = it,
-                            style = SinemaTheme.typography.body,
+                            style = BigonTheme.typography.body,
                             color = colors.textSecondary,
                             modifier = Modifier.padding(top = spacing.s),
                         )
                     }
 
                     if (show.cast.isNotEmpty()) {
-                        SinemaSectionHeader(title = "Cast", modifier = Modifier.padding(top = spacing.xl))
+                        BigonSectionHeader(title = "Cast", modifier = Modifier.padding(top = spacing.xl))
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(spacing.m),
                             modifier = Modifier
@@ -145,7 +145,7 @@ fun TvDetailRoute(
                         ) {
                             show.cast.forEach { member ->
                                 Box(modifier = Modifier.clickable { onPersonClick(member.id) }) {
-                                    SinemaCastCard(
+                                    BigonCastCard(
                                         name = member.name,
                                         role = member.character,
                                         avatar = {
@@ -157,7 +157,7 @@ fun TvDetailRoute(
                                                     modifier = Modifier.fillMaxSize(),
                                                 )
                                             } ?: Icon(
-                                                imageVector = SinemaIcons.Person,
+                                                imageVector = BigonIcons.Person,
                                                 contentDescription = null,
                                                 tint = colors.textSecondary,
                                                 modifier = Modifier.size(28.dp).align(Alignment.Center),
@@ -171,7 +171,7 @@ fun TvDetailRoute(
                 }
 
                 state.error?.let { error ->
-                    SinemaSnackbar(
+                    BigonSnackbar(
                         message = error.asString(),
                         actionLabel = "RETRY",
                         onAction = { viewModel.retry() },
@@ -185,7 +185,7 @@ fun TvDetailRoute(
 
         if (state.showSkeleton) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                SinemaLoadingIndicator(size = 48.dp)
+                BigonLoadingIndicator(size = 48.dp)
             }
         }
         TvBackButton(onBack)
@@ -194,20 +194,20 @@ fun TvDetailRoute(
 
 @Composable
 private fun BoxScope.TvBackButton(onBack: () -> Unit) {
-    val colors = SinemaTheme.colors
+    val colors = BigonTheme.colors
     Box(
         modifier = Modifier
             .align(Alignment.TopStart)
             .statusBarsPadding()
-            .padding(SinemaTheme.spacing.m)
+            .padding(BigonTheme.spacing.m)
             .size(40.dp)
-            .clip(SinemaTheme.shapes.pill)
+            .clip(BigonTheme.shapes.pill)
             .background(colors.surface.copy(alpha = 0.7f))
             .clickable(onClick = onBack),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            imageVector = SinemaIcons.Back,
+            imageVector = BigonIcons.Back,
             contentDescription = "Back",
             tint = colors.textPrimary,
             modifier = Modifier.size(20.dp),

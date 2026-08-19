@@ -60,18 +60,18 @@ android {
 dependencies {
     // Clean architecture graph — :app is the only composition root (§3.3).
     implementation(project(":core:common"))
-    implementation(project(":core:model"))
+    implementation(project(":tmdb:model"))
     implementation(project(":core:network"))
-    implementation(project(":core:database"))
+    implementation(project(":tmdb:database"))
     implementation(project(":core:datastore"))
     implementation(project(":core:tracker:api"))
     implementation(project(":core:config:api"))
-    implementation(project(":core:navigation"))
     implementation(project(":core:update"))
     implementation(project(":core:designsystem"))
+    implementation(project(":tmdb:ui"))
     implementation(project(":core:ui"))
-    implementation(project(":data"))
-    implementation(project(":domain"))
+    implementation(project(":tmdb:data"))
+    implementation(project(":tmdb:domain"))
 
     // Platform adapters (the only module allowed to know these exist)
     implementation(libs.okhttp.logging.interceptor)

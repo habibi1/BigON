@@ -1,9 +1,9 @@
 package com.bigon.sinema.ui.search
 
-import com.bigon.core.model.Genre
-import com.bigon.core.model.Movie
-import com.bigon.core.model.WatchProvider
-import com.bigon.domain.movie.DiscoverFilters
+import com.bigon.tmdb.model.Genre
+import com.bigon.tmdb.model.Movie
+import com.bigon.tmdb.model.WatchProvider
+import com.bigon.tmdb.domain.movie.DiscoverFilters
 import com.bigon.core.ui.UiText
 
 /**

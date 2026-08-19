@@ -1,6 +1,6 @@
 package com.bigon.sinema.ui
 
-import com.bigon.core.model.Movie
+import com.bigon.tmdb.model.Movie
 
 /**
  * "2026 · Sci-Fi", degrading gracefully when either half is missing.
