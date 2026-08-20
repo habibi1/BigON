@@ -31,6 +31,21 @@ data class HomeUiState(
     val movies: List<Movie> = emptyList(),
     val trendingItems: List<TrendingItem> = emptyList(),
     val isRefreshing: Boolean = false,
+    /**
+     * True only for a refresh the user asked for by pulling.
+     *
+     * Distinct from [isRefreshing], which is also true for the automatic
+     * refresh that follows switching category — and a pull indicator that
+     * appears when nobody pulled reads as the app doing something on its own.
+     */
+    val isPullRefreshing: Boolean = false,
+    /**
+     * Bumped whenever the list is replaced wholesale — a different feed, or a
+     * refresh that rebuilt it from page 1. The screen scrolls to the top on a
+     * change; a counter rather than a flag because two replacements in a row
+     * are two events, and a boolean can only describe the first.
+     */
+    val contentGeneration: Int = 0,
     /** A next page is being appended below the existing content. */
     val isAppending: Boolean = false,
     /** TMDB has no further pages for this category; stop asking until refresh. */

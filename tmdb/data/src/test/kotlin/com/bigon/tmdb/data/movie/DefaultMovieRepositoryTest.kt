@@ -81,21 +81,29 @@ class DefaultMovieRepositoryTest {
         private val onDetail: (Long) -> MovieDetailResponse = { MovieDetailResponse(id = it) },
     ) : MovieApi {
         val requestedPages = mutableListOf<Int>()
-        override suspend fun trending(page: Int) = onList().also { requestedPages += page }
-        override suspend fun trendingWeek(page: Int) = onList().also { requestedPages += page }
-        override suspend fun popular(page: Int, region: String?) = onList().also { requestedPages += page }
-        override suspend fun nowPlaying(page: Int, region: String?) = onList().also { requestedPages += page }
-        override suspend fun topRated(page: Int, region: String?) = onList().also { requestedPages += page }
-        override suspend fun upcoming(page: Int, region: String?) = onList().also { requestedPages += page }
-        override suspend fun genres() = onGenres()
+        override suspend fun trending(page: Int, language: String?) = onList().also { requestedPages += page }
+        override suspend fun trendingWeek(page: Int, language: String?) = onList().also { requestedPages += page }
+        override suspend fun popular(page: Int, region: String?, language: String?) = onList().also { requestedPages += page }
+        override suspend fun nowPlaying(page: Int, region: String?, language: String?) = onList().also { requestedPages += page }
+        override suspend fun topRated(page: Int, region: String?, language: String?) = onList().also { requestedPages += page }
+        override suspend fun upcoming(page: Int, region: String?, language: String?) = onList().also { requestedPages += page }
+        override suspend fun genres(language: String?) = onGenres()
         var detailCalls = 0
-        override suspend fun detail(id: Long, append: String, imageLanguage: String) =
+        override suspend fun detail(id: Long, append: String, imageLanguage: String?, language: String?) =
             onDetail(id).also { detailCalls++ }
-        override suspend fun reviews(id: Long, page: Int) = ReviewListResponse()
+        override suspend fun reviews(id: Long, page: Int, language: String?) = ReviewListResponse()
         var lastSearchQuery: String? = null
         var lastDiscoverGenres: String? = null
         var lastRequestedPage: Int? = null
-        override suspend fun search(query: String, page: Int, includeAdult: Boolean): MovieListResponse {
+        override suspend fun search(
+            query: String,
+            page: Int,
+            includeAdult: Boolean,
+            primaryReleaseYear: Int?,
+            year: Int?,
+            region: String?,
+            language: String?,
+        ): MovieListResponse {
             lastSearchQuery = query; lastRequestedPage = page; return onList()
         }
         var lastWatchProviders: String? = null
@@ -112,23 +120,52 @@ class DefaultMovieRepositoryTest {
             page: Int,
             withWatchProviders: String?,
             watchRegion: String?,
-            releaseYear: Int?,
+            primaryReleaseYear: Int?,
             minRating: Double?,
             minVotes: Int?,
             maxRuntime: Int?,
+            certification: String?,
+            certificationGte: String?,
+            certificationLte: String?,
+            certificationCountry: String?,
+            year: Int?,
+            primaryReleaseDateGte: String?,
+            primaryReleaseDateLte: String?,
+            releaseDateGte: String?,
+            releaseDateLte: String?,
+            withReleaseType: String?,
+            maxRating: Double?,
+            maxVotes: Int?,
+            minRuntime: Int?,
+            withCast: String?,
+            withCrew: String?,
+            withPeople: String?,
+            withCompanies: String?,
+            withoutCompanies: String?,
+            withKeywords: String?,
+            withoutKeywords: String?,
+            withOriginCountry: String?,
+            withOriginalLanguage: String?,
+            withoutGenres: String?,
+            withWatchMonetizationTypes: String?,
+            withoutWatchProviders: String?,
+            includeAdult: Boolean?,
+            includeVideo: Boolean?,
+            region: String?,
+            language: String?,
         ): MovieListResponse {
             lastDiscoverGenres = withGenres; lastRequestedPage = page
             lastWatchProviders = withWatchProviders; lastWatchRegion = watchRegion
-            lastSortBy = sortBy; lastReleaseYear = releaseYear
+            lastSortBy = sortBy; lastReleaseYear = primaryReleaseYear
             lastMinRating = minRating; lastMinVotes = minVotes; lastMaxRuntime = maxRuntime
             return onList()
         }
-        override suspend fun watchProviders(watchRegion: String) = WatchProviderListResponse()
-        override suspend fun trendingAll(page: Int) = TrendingListResponse()
-        override suspend fun regions() = RegionListResponse()
-        override suspend fun collection(id: Long) = CollectionResponse()
-        override suspend fun person(id: Long, append: String) = PersonResponse()
-        override suspend fun tvDetail(id: Long, append: String) = TvDetailResponse()
+        override suspend fun watchProviders(watchRegion: String, language: String?) = WatchProviderListResponse()
+        override suspend fun trendingAll(page: Int, language: String?) = TrendingListResponse()
+        override suspend fun regions(language: String?) = RegionListResponse()
+        override suspend fun collection(id: Long, language: String?) = CollectionResponse()
+        override suspend fun person(id: Long, append: String, language: String?) = PersonResponse()
+        override suspend fun tvDetail(id: Long, append: String, language: String?) = TvDetailResponse()
     }
 
     private fun dispatchers() = object : DispatcherProvider {
@@ -514,44 +551,23 @@ class DefaultMovieRepositoryTest {
 
     @Test
     fun `curated lists carry the region, trending deliberately does not`() = runTest(dispatcher) {
-        val api = object : MovieApi {
+        val api = object : FakeMovieApi() {
             var nowPlayingRegion: String? = "unset"
             var trendingCalled = false
-            override suspend fun nowPlaying(page: Int, region: String?): MovieListResponse {
+
+            override suspend fun nowPlaying(
+                page: Int,
+                region: String?,
+                language: String?,
+            ): MovieListResponse {
                 nowPlayingRegion = region
                 return MovieListResponse()
             }
-            override suspend fun trending(page: Int): MovieListResponse {
+
+            override suspend fun trending(page: Int, language: String?): MovieListResponse {
                 trendingCalled = true
                 return MovieListResponse()
             }
-            override suspend fun trendingWeek(page: Int) = MovieListResponse()
-            override suspend fun popular(page: Int, region: String?) = MovieListResponse()
-            override suspend fun topRated(page: Int, region: String?) = MovieListResponse()
-            override suspend fun upcoming(page: Int, region: String?) = MovieListResponse()
-            override suspend fun genres() = GenreListResponse()
-            override suspend fun detail(id: Long, append: String, imageLanguage: String) =
-                MovieDetailResponse(id = id)
-            override suspend fun reviews(id: Long, page: Int) = ReviewListResponse()
-            override suspend fun search(query: String, page: Int, includeAdult: Boolean) = MovieListResponse()
-            @Suppress("LongParameterList")
-            override suspend fun discover(
-                withGenres: String?,
-                sortBy: String,
-                page: Int,
-                withWatchProviders: String?,
-                watchRegion: String?,
-                releaseYear: Int?,
-                minRating: Double?,
-                minVotes: Int?,
-                maxRuntime: Int?,
-            ) = MovieListResponse()
-            override suspend fun watchProviders(watchRegion: String) = WatchProviderListResponse()
-            override suspend fun trendingAll(page: Int) = TrendingListResponse()
-            override suspend fun collection(id: Long) = CollectionResponse()
-            override suspend fun person(id: Long, append: String) = PersonResponse()
-            override suspend fun tvDetail(id: Long, append: String) = TvDetailResponse()
-            override suspend fun regions() = RegionListResponse()
         }
         val repo = repository(FakeMovieDao(), FakeGenreDao(), api, region = "ID")
 
@@ -589,7 +605,7 @@ class DefaultMovieRepositoryTest {
     @Test
     fun `streaming services come back ordered by display priority`() = runTest(dispatcher) {
         val api = object : MovieApi by FakeApi(onList = { MovieListResponse() }) {
-            override suspend fun watchProviders(watchRegion: String) = WatchProviderListResponse(
+            override suspend fun watchProviders(watchRegion: String, language: String?) = WatchProviderListResponse(
                 results = listOf(
                     ProviderDto(providerId = 2, providerName = "Later", displayPriority = 9, logoPath = "/b.jpg"),
                     ProviderDto(providerId = 1, providerName = "First", displayPriority = 1, logoPath = "/a.jpg"),

@@ -290,7 +290,7 @@ class DefaultMovieRepository @Inject constructor(
                     // Only sent alongside a provider; on its own it would
                     // narrow results for no reason the user asked for.
                     watchRegion = streamingProviderId?.let { regionProvider.region() },
-                    releaseYear = filters.releaseYear,
+                    primaryReleaseYear = filters.releaseYear,
                     minRating = filters.minRating,
                     // Only meaningful alongside a rating floor; sending it alone
                     // would quietly exclude every newly released film.
