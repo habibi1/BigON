@@ -189,6 +189,10 @@ data class VideoDto(
     val site: String = "",
     val type: String = "",
     val official: Boolean = false,
+    val name: String = "",
+    /** Vertical resolution, e.g. 1080. TMDB's own field name, kept as-is. */
+    val size: Int = 0,
+    @SerialName("published_at") val publishedAt: String? = null,
 )
 
 /**

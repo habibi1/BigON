@@ -27,6 +27,7 @@ data class TvDetail(
     val genres: List<String>,
     val cast: List<CastMember>,
     val trailerKey: String?,
+    val videos: List<Video> = emptyList(),
     /** Age rating for the resolved region, from `content_ratings`. */
     val certification: String?,
     val watchProviders: WatchProviders?,

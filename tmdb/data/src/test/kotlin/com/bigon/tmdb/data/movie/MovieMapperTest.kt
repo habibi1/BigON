@@ -704,4 +704,83 @@ class MovieMapperTest {
         val unrated = MovieMapper.toTvDetail(TvDetailResponse(id = 1, name = "S", voteAverage = 0.0, voteCount = 0))
         assertNull(unrated.voteAverage)
     }
+
+    // ── videos ──────────────────────────────────────────────────────────────
+
+    private fun video(
+        key: String,
+        type: String,
+        official: Boolean = true,
+        published: String = "2024-01-01",
+        site: String = "YouTube",
+    ) = VideoDto(key = key, site = site, type = type, official = official, name = key, size = 1080, publishedAt = published)
+
+    @Test
+    fun `an official trailer outranks an official teaser, whatever the dates say`() {
+        // Teasers are cut months earlier and show less of the film. Ordering by
+        // date alone would open a title on its teaser whenever the teaser was
+        // re-published later, which happens.
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(
+                id = 1,
+                videos = VideosDto(listOf(
+                    video("teaser", "Teaser", published = "2025-06-01"),
+                    video("trailer", "Trailer", published = "2024-01-01"),
+                )),
+            ),
+            emptyMap(), "US",
+        )
+
+        assertEquals("trailer", detail.trailerKey)
+        assertEquals(listOf("trailer", "teaser"), detail.videos.map { it.key })
+    }
+
+    @Test
+    fun `official beats unofficial before type is even considered`() {
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(
+                id = 1,
+                videos = VideosDto(listOf(
+                    video("fanTrailer", "Trailer", official = false),
+                    video("officialTeaser", "Teaser", official = true),
+                )),
+            ),
+            emptyMap(), "US",
+        )
+
+        assertEquals("officialTeaser", detail.trailerKey)
+    }
+
+    @Test
+    fun `a video hosted anywhere but YouTube is dropped, not carried`() {
+        // The player can only play YouTube keys, so a Vimeo key would reach it
+        // and fail. TMDB has only ever returned YouTube here; this is the guard
+        // for the day it does not.
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(
+                id = 1,
+                videos = VideosDto(listOf(
+                    video("vimeoOne", "Trailer", site = "Vimeo"),
+                    video("youtubeOne", "Clip"),
+                )),
+            ),
+            emptyMap(), "US",
+        )
+
+        assertEquals(listOf("youtubeOne"), detail.videos.map { it.key })
+        // Carried as a video, but a clip is not what a "Watch trailer" button
+        // should play — see pickTrailerKey.
+        assertNull(detail.trailerKey)
+    }
+
+    @Test
+    fun `a video with no key is dropped`() {
+        val detail = MovieMapper.toDetail(
+            MovieDetailResponse(id = 1, videos = VideosDto(listOf(video("", "Trailer")))),
+            emptyMap(), "US",
+        )
+
+        assertEquals(emptyList(), detail.videos)
+        assertEquals(null, detail.trailerKey)
+    }
 }

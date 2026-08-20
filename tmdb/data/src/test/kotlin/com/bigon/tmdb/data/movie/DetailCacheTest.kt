@@ -203,4 +203,38 @@ class DetailCacheTest {
         // whose absence looks like the film simply has no collection.
         assertEquals(87359L, fromCache.collection?.id)
     }
+
+
+    @Test
+    fun `videos survive the snapshot round-trip`() = runTest(dispatcher) {
+        // Detail is served from cache when the network fails, so a trailer that
+        // does not round-trip is a button that works online and goes dead the
+        // moment the connection drops.
+        val dao = DefaultMovieRepositoryTest.FakeMovieDetailDao()
+        var offline = false
+        val api = DetailApi { id ->
+            if (offline) throw IOException("offline")
+            else MovieDetailResponse(
+                id = id,
+                videos = VideosDto(listOf(
+                    VideoDto(
+                        key = "abc123", site = "YouTube", type = "Trailer", official = true,
+                        name = "Official Trailer", size = 1080, publishedAt = "2025-01-01",
+                    ),
+                )),
+            )
+        }
+
+        repo(api, dao).detail(1)
+        offline = true
+        val result = repo(api, dao).detail(1)
+
+        val detail = assertIs<AppResult.Success<com.bigon.tmdb.model.MovieDetail>>(result).value
+        assertEquals("abc123", detail.trailerKey)
+        val video = detail.videos.single()
+        assertEquals("Official Trailer", video.name)
+        assertEquals(com.bigon.tmdb.model.VideoType.Trailer, video.type)
+        assertEquals(1080, video.sizePx)
+        assertEquals(true, video.isOfficial)
+    }
 }
