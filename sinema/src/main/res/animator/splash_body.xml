@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 0-360ms. The frame arrives first and does not bounce: it is the surface
+     everything else happens on, and a moving surface makes the rest read as
+     wobble rather than sequence. -->
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <objectAnimator android:propertyName="scaleX" android:valueFrom="0.62" android:valueTo="1.0"
+        android:duration="360" android:interpolator="@android:interpolator/decelerate_quint" />
+    <objectAnimator android:propertyName="scaleY" android:valueFrom="0.62" android:valueTo="1.0"
+        android:duration="360" android:interpolator="@android:interpolator/decelerate_quint" />
+    <objectAnimator android:propertyName="rotation" android:valueFrom="-8" android:valueTo="0"
+        android:duration="420" android:interpolator="@android:interpolator/decelerate_quint" />
+</set>

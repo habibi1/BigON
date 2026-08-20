@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 200-540ms. Opens vertically first, then settles horizontally — a shutter,
+     not a box appearing. The two axes are deliberately out of step. -->
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <objectAnimator android:propertyName="scaleY" android:valueFrom="0.0" android:valueTo="1.0"
+        android:startOffset="200" android:duration="300"
+        android:interpolator="@android:interpolator/decelerate_quint" />
+    <objectAnimator android:propertyName="scaleX" android:valueFrom="0.55" android:valueTo="1.0"
+        android:startOffset="260" android:duration="280"
+        android:interpolator="@android:interpolator/decelerate_quint" />
+</set>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ only — see values-v31/themes.xml. Below API 31 the compat library
+  shows the drawable without animating it, and this one's first frame is an
+  invisible mark, so those versions get the static logo instead.
+
+  The sequence, 0-920ms:
+    body       0-420   scales up and straightens from -8°
+    window     200-540 opens vertically, then widens — a shutter, not a box
+    sprockets  360-760 six holes punch through, top to bottom, left leading
+    play       560-960 arrives last, overshooting, unwinding from -25°
+
+  Ends inside the 1000ms the platform allows, so the system never cuts it off
+  mid-animation.
+-->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_splash_logo">
+
+    <target android:name="frame"      android:animation="@animator/splash_body" />
+    <target android:name="filmBody"   android:animation="@animator/splash_body_fade" />
+
+    <target android:name="window"     android:animation="@animator/splash_window" />
+
+    <target android:name="sprocketL1" android:animation="@animator/splash_sprocket_l1" />
+    <target android:name="sprocketL2" android:animation="@animator/splash_sprocket_l2" />
+    <target android:name="sprocketL3" android:animation="@animator/splash_sprocket_l3" />
+    <target android:name="sprocketR1" android:animation="@animator/splash_sprocket_r1" />
+    <target android:name="sprocketR2" android:animation="@animator/splash_sprocket_r2" />
+    <target android:name="sprocketR3" android:animation="@animator/splash_sprocket_r3" />
+
+    <target android:name="play"         android:animation="@animator/splash_play" />
+    <target android:name="playTriangle" android:animation="@animator/splash_play_fade" />
+</animated-vector>

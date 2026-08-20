@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 560-920ms. Last in, and the only element allowed to overshoot noticeably —
+     it is the one thing on screen that means "press me". -->
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <objectAnimator android:propertyName="scaleX" android:valueFrom="0.2" android:valueTo="1.0"
+        android:startOffset="560" android:duration="360"
+        android:interpolator="@android:interpolator/overshoot" />
+    <objectAnimator android:propertyName="scaleY" android:valueFrom="0.2" android:valueTo="1.0"
+        android:startOffset="560" android:duration="360"
+        android:interpolator="@android:interpolator/overshoot" />
+    <objectAnimator android:propertyName="rotation" android:valueFrom="-25" android:valueTo="0"
+        android:startOffset="560" android:duration="400"
+        android:interpolator="@android:interpolator/decelerate_quint" />
+</set>
