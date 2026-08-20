@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      The splash field. Night900 from BigonColors, and the same colour the
+      adaptive icon's own background settles to — the icon was drawn for this
+      field, and its amber (#FFB648) reaches 1.9:1 on white, which is why the
+      splash does not follow the system light theme.
+    -->
+    <color name="splash_background">#0D1115</color>
+</resources>
