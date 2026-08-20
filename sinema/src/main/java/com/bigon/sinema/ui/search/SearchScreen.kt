@@ -43,6 +43,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.graphics.Color
@@ -107,42 +113,35 @@ fun SearchScreen(
             modifier = Modifier.padding(top = spacing.l),
         )
 
-        if (state.genres.isNotEmpty()) {
-            BigonChipRow(
-                options = listOf(ALL_CHIP) + state.genres.map { it.name },
-                selectedOption = state.selectedGenreName ?: ALL_CHIP,
-                onOptionSelect = { label ->
-                    val genreId = state.genres.firstOrNull { it.name == label }?.id
-                    onIntent(SearchIntent.GenreSelected(genreId))
-                },
-                modifier = Modifier.padding(top = spacing.m),
-            )
-        }
-
-        if (state.showFilters) {
+        // Genres scroll; the filter button does not. The genre list is long
+        // enough to push a trailing chip out of reach, and a control that
+        // decides what the whole grid contains should not be something you have
+        // to go looking for — so it is pinned rather than carried along.
+        if (state.genres.isNotEmpty() || state.showFilters) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(top = spacing.s),
+                modifier = Modifier.padding(top = spacing.m),
             ) {
-                BigonChip(
-                    label = if (state.filters.activeCount > 0) {
-                        "Refine (${state.filters.activeCount})"
-                    } else {
-                        "Refine"
-                    },
-                    selected = state.filters.isActive,
-                    onClick = { onIntent(SearchIntent.FilterSheetOpened) },
-                )
-                if (state.filters.isActive) {
-                    Text(
-                        text = "Clear",
-                        style = BigonTheme.typography.caption,
-                        color = BigonTheme.colors.primary,
-                        modifier = Modifier
-                            .padding(start = spacing.m)
-                            .clip(BigonTheme.shapes.pill)
-                            .clickable { onIntent(SearchIntent.FiltersChanged(DiscoverFilters())) }
-                            .padding(spacing.xs),
+                if (state.genres.isNotEmpty()) {
+                    BigonChipRow(
+                        options = listOf(ALL_CHIP) + state.genres.map { it.name },
+                        selectedOption = state.selectedGenreName ?: ALL_CHIP,
+                        onOptionSelect = { label ->
+                            val genreId = state.genres.firstOrNull { it.name == label }?.id
+                            onIntent(SearchIntent.GenreSelected(genreId))
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                } else {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+
+                // Still hidden for a typed query: /search/movie honours none of
+                // these, so offering them there would be a lie.
+                if (state.showFilters) {
+                    FilterAction(
+                        activeCount = state.filters.activeCount,
+                        onClick = { onIntent(SearchIntent.FilterSheetOpened) },
                     )
                 }
             }
@@ -176,7 +175,7 @@ fun SearchScreen(
         }
 
         if (state.isFilterSheetOpen) {
-            RefineSheet(
+            FilterSheet(
                 filters = state.filters,
                 onDone = {
                     onIntent(SearchIntent.FiltersChanged(it))
@@ -337,7 +336,7 @@ private fun ServiceChip(
 }
 
 /**
- * The refine sheet.
+ * The filter sheet.
  *
  * Deliberately four controls, not the thirty TMDB's discover endpoint accepts.
  * The rest — language, cast, keyword, company — are either already covered by
@@ -346,11 +345,11 @@ private fun ServiceChip(
  *
  * Selections are held as a local draft and committed once, on the way out.
  * Applying each tap live would mean four discover requests to set four
- * refinements, and the results are behind the sheet where nobody can see them
+ * filters, and the results are behind the sheet where nobody can see them
  * anyway.
  */
 @Composable
-private fun RefineSheet(
+private fun FilterSheet(
     filters: DiscoverFilters,
     onDone: (DiscoverFilters) -> Unit,
 ) {
@@ -370,9 +369,34 @@ private fun RefineSheet(
                     .verticalScroll(rememberScrollState())
                     .padding(spacing.l),
             ) {
-                Text("Refine", style = BigonTheme.typography.title, color = colors.textPrimary)
+                // "Clear all" lives here now. It used to sit beside the old
+                // filter chip, and that was the only way to unset a filter —
+                // replacing that chip with an icon would have removed the
+                // capability, not just moved it.
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        "Filters",
+                        style = BigonTheme.typography.title,
+                        color = colors.textPrimary,
+                        modifier = Modifier.weight(1f),
+                    )
+                    if (draft.isActive) {
+                        Text(
+                            text = "Clear all",
+                            style = BigonTheme.typography.caption,
+                            color = colors.primary,
+                            modifier = Modifier
+                                .clip(BigonTheme.shapes.pill)
+                                .clickable { draft = DiscoverFilters() }
+                                .padding(horizontal = spacing.s, vertical = spacing.xs),
+                        )
+                    }
+                }
 
-                RefineLabel("Sort by")
+                FilterLabel("Sort by")
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(spacing.s),
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
@@ -386,7 +410,7 @@ private fun RefineSheet(
                     }
                 }
 
-                RefineLabel("Release year")
+                FilterLabel("Release year")
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(spacing.s),
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
@@ -405,7 +429,7 @@ private fun RefineSheet(
                     }
                 }
 
-                RefineLabel("Minimum rating")
+                FilterLabel("Minimum rating")
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(spacing.s),
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
@@ -424,7 +448,7 @@ private fun RefineSheet(
                     }
                 }
 
-                RefineLabel("Maximum runtime")
+                FilterLabel("Maximum runtime")
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(spacing.s),
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
@@ -454,11 +478,82 @@ private fun RefineSheet(
 }
 
 @Composable
-private fun RefineLabel(text: String) {
+private fun FilterLabel(text: String) {
     Text(
         text = text,
         style = BigonTheme.typography.caption,
         color = BigonTheme.colors.textSecondary,
         modifier = Modifier.padding(top = BigonTheme.spacing.l, bottom = BigonTheme.spacing.s),
     )
+}
+
+/**
+ * The filter control: an icon, plus a count when filters are on.
+ *
+ * A badge rather than a label because the row it lives in is already competing
+ * for width with the genre chips, and "Filters (2)" spends that width saying
+ * what "2" says. The count matters more than the word — an icon alone cannot
+ * tell you the grid is already narrowed, which is the state people forget they
+ * are in and then wonder where the films went.
+ */
+@Composable
+private fun FilterAction(activeCount: Int, onClick: () -> Unit) {
+    val colors = BigonTheme.colors
+    val spacing = BigonTheme.spacing
+    val active = activeCount > 0
+
+    // Two boxes, not one. The badge deliberately sits outside the circle, and a
+    // clip on the parent applies to children — so clipping the button and
+    // hosting the badge in the same box cuts the count in half. The outer box
+    // is unclipped and only positions; the inner one is the button surface.
+    Box(
+        modifier = Modifier
+            .padding(start = spacing.s)
+            // One node for the whole control, so the count is part of the
+            // button's label rather than a stray number beside it.
+            .semantics(mergeDescendants = true) {
+                contentDescription = if (active) {
+                    "Filters, $activeCount applied"
+                } else {
+                    "Filters"
+                }
+            },
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(BigonTheme.shapes.pill)
+                .background(if (active) colors.primaryContainer else colors.surfaceVariant)
+                .clickable(onClick = onClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = BigonIcons.Tune,
+                contentDescription = null,
+                tint = if (active) colors.primary else colors.textSecondary,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+
+        if (active) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    // Sized to its digits rather than fixed, so a two-digit
+                    // count widens the pill instead of being clipped by it.
+                    .defaultMinSize(minWidth = 18.dp, minHeight = 18.dp)
+                    .clip(BigonTheme.shapes.pill)
+                    .background(colors.primary)
+                    .padding(horizontal = 5.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = activeCount.toString(),
+                    style = BigonTheme.typography.caption,
+                    color = colors.onPrimary,
+                    maxLines = 1,
+                )
+            }
+        }
+    }
 }
