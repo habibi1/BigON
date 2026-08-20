@@ -54,13 +54,31 @@ data class SearchUiState(
     val showServiceFilter: Boolean get() = query.isBlank() && services.isNotEmpty()
 
     /**
-     * Refinements are discover-only for the same reason the service row is:
-     * `/search/movie` accepts no sort, year, rating or runtime parameter, so
-     * offering them beside a typed query would be a control that does nothing.
+     * Filters are discover-only because `/search/movie` accepts no `sort_by`,
+     * `vote_average.gte` or `with_runtime.lte` — offering them beside a typed
+     * query would be a control that does nothing.
+     *
+     * One exception, recorded rather than acted on: search *does* accept
+     * `primary_release_year`, verified against both the reference and the live
+     * API (505 results for "spider", 12 once a year is added). So the release
+     * year row could work here; it is hidden only because the whole sheet is.
+     * An earlier version of this comment claimed the endpoint rejected year
+     * too, which was never true.
      */
     val showFilters: Boolean get() = query.isBlank()
 
-    /** Genre filter applied client-side when a typed search is active. */
+    /**
+     * Genre is applied client-side once a query is typed, because
+     * `/search/movie` does not accept `with_genres` — it takes the parameter
+     * without complaint and returns the identical result set, so this is the
+     * only way to honour the chip. `/discover/movie` does support it, which is
+     * why browse mode filters server-side instead.
+     *
+     * The cost is real and worth knowing before "optimising" it: each page
+     * arrives in full and most of it is discarded. Measured on "spider" +
+     * Drama, four requests yielded 19 films from 80 fetched, and the true match
+     * count is unknowable without walking all 26 pages.
+     */
     val visibleResults: List<Movie>
         get() = if (query.isBlank() || selectedGenreName == null) {
             results

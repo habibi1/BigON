@@ -5,20 +5,49 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 /**
- * TMDB endpoint contract. Lives beside its DTOs in :data because Retrofit
+ * TMDB endpoint contract. Lives beside its DTOs in :tmdb:data because Retrofit
  * services are wire-shaped, not domain-shaped — each feature owns its own.
+ *
+ * Every parameter TMDB accepts is declared, not only the ones Sinema currently
+ * sends, because this module is meant to be usable by a second movie app that
+ * wants different ones. All of them default to `null`, and Retrofit omits a
+ * null query parameter entirely — so an unused parameter costs nothing on the
+ * wire and changes no existing behaviour.
+ *
+ * Two of these are absent from TMDB's published reference and verified against
+ * the live API instead; both are marked where they appear. The reference is
+ * incomplete rather than wrong, so neither source is sufficient alone.
  */
 interface MovieApi {
 
+    // ── Trending ────────────────────────────────────────────────────────────
+
+    /**
+     * `page` is **not** in TMDB's reference for this endpoint, and works:
+     * page 2 returns twenty entirely different films, echoes `"page": 2`, and
+     * reports `total_pages: 500`. Verified against the live API — removing it
+     * on the strength of the documentation would silently break pagination.
+     */
     @GET("trending/movie/day")
-    suspend fun trending(@Query("page") page: Int = 1): MovieListResponse
+    suspend fun trending(
+        @Query("page") page: Int = 1,
+        @Query("language") language: String? = null,
+    ): MovieListResponse
 
     @GET("trending/movie/week")
-    suspend fun trendingWeek(@Query("page") page: Int = 1): MovieListResponse
+    suspend fun trendingWeek(
+        @Query("page") page: Int = 1,
+        @Query("language") language: String? = null,
+    ): MovieListResponse
 
     /** Films, series and people interleaved, keyed by `media_type`. */
     @GET("trending/all/week")
-    suspend fun trendingAll(@Query("page") page: Int = 1): TrendingListResponse
+    suspend fun trendingAll(
+        @Query("page") page: Int = 1,
+        @Query("language") language: String? = null,
+    ): TrendingListResponse
+
+    // ── Curated lists ───────────────────────────────────────────────────────
 
     /**
      * [region] localises these four lists — `now_playing` in particular becomes
@@ -29,59 +58,132 @@ interface MovieApi {
     suspend fun popular(
         @Query("page") page: Int = 1,
         @Query("region") region: String? = null,
+        @Query("language") language: String? = null,
     ): MovieListResponse
 
     @GET("movie/now_playing")
     suspend fun nowPlaying(
         @Query("page") page: Int = 1,
         @Query("region") region: String? = null,
+        @Query("language") language: String? = null,
     ): MovieListResponse
 
     @GET("movie/top_rated")
     suspend fun topRated(
         @Query("page") page: Int = 1,
         @Query("region") region: String? = null,
+        @Query("language") language: String? = null,
     ): MovieListResponse
 
     @GET("movie/upcoming")
     suspend fun upcoming(
         @Query("page") page: Int = 1,
         @Query("region") region: String? = null,
+        @Query("language") language: String? = null,
     ): MovieListResponse
 
+    // ── Search ──────────────────────────────────────────────────────────────
+
     /**
-     * Free-text title search. TMDB's search endpoint takes no genre filter —
-     * genre browsing is [discover]'s job.
+     * Free-text title search, and the full set TMDB accepts here.
+     *
+     * Note what is *not* on this list: `with_genres`. TMDB takes the parameter
+     * without complaint and returns the identical result set — verified by
+     * comparing titles, not just counts — so genre alongside a query has to be
+     * applied client-side. [discover] is where genre filtering actually works.
+     *
+     * [primaryReleaseYear] and [year] *are* accepted, which is easy to miss:
+     * "spider" returns 505 results, and 12 once a year is added. So a
+     * year filter beside a typed query would work, unlike sort, rating or
+     * runtime.
      */
     @GET("search/movie")
     suspend fun search(
         @Query("query") query: String,
         @Query("page") page: Int = 1,
         @Query("include_adult") includeAdult: Boolean = false,
+        @Query("primary_release_year") primaryReleaseYear: Int? = null,
+        @Query("year") year: Int? = null,
+        @Query("region") region: String? = null,
+        @Query("language") language: String? = null,
     ): MovieListResponse
 
+    // ── Discover ────────────────────────────────────────────────────────────
+
     /**
-     * Filtered browsing; drives the Search tab's idle state, its genre and
-     * service chips, and the Tier 3 refine sheet.
+     * Filtered browsing — one endpoint with the widest parameter surface TMDB
+     * offers, and the only place genre, provider, rating and runtime filters
+     * actually apply.
      *
      * Two pairings TMDB enforces implicitly. [withWatchProviders] must travel
      * with [watchRegion] — a provider filter with no region to resolve it
      * against is silently ignored, which reads as "the filter does nothing"
      * rather than as an error. [minRating] must travel with [minVotes], or a
      * single 10/10 vote outranks a film with a thousand good ones.
+     *
+     * Sinema uses nine of these. The rest are declared for the same reason the
+     * module exists: a second app should not have to edit this file to ask a
+     * question TMDB already answers.
      */
+    @Suppress("LongParameterList")
     @GET("discover/movie")
     suspend fun discover(
+        // — the nine Sinema sends —
         @Query("with_genres") withGenres: String? = null,
         @Query("sort_by") sortBy: String = "popularity.desc",
         @Query("page") page: Int = 1,
         @Query("with_watch_providers") withWatchProviders: String? = null,
         @Query("watch_region") watchRegion: String? = null,
-        @Query("primary_release_year") releaseYear: Int? = null,
+        @Query("primary_release_year") primaryReleaseYear: Int? = null,
         @Query("vote_average.gte") minRating: Double? = null,
         @Query("vote_count.gte") minVotes: Int? = null,
         @Query("with_runtime.lte") maxRuntime: Int? = null,
+
+        // — certification —
+        @Query("certification") certification: String? = null,
+        @Query("certification.gte") certificationGte: String? = null,
+        @Query("certification.lte") certificationLte: String? = null,
+        @Query("certification_country") certificationCountry: String? = null,
+
+        // — dates —
+        @Query("year") year: Int? = null,
+        @Query("primary_release_date.gte") primaryReleaseDateGte: String? = null,
+        @Query("primary_release_date.lte") primaryReleaseDateLte: String? = null,
+        @Query("release_date.gte") releaseDateGte: String? = null,
+        @Query("release_date.lte") releaseDateLte: String? = null,
+        @Query("with_release_type") withReleaseType: String? = null,
+
+        // — ratings and runtime, the other ends of the ranges —
+        @Query("vote_average.lte") maxRating: Double? = null,
+        @Query("vote_count.lte") maxVotes: Int? = null,
+        @Query("with_runtime.gte") minRuntime: Int? = null,
+
+        // — people and companies —
+        @Query("with_cast") withCast: String? = null,
+        @Query("with_crew") withCrew: String? = null,
+        @Query("with_people") withPeople: String? = null,
+        @Query("with_companies") withCompanies: String? = null,
+        @Query("without_companies") withoutCompanies: String? = null,
+
+        // — keywords, language, origin —
+        @Query("with_keywords") withKeywords: String? = null,
+        @Query("without_keywords") withoutKeywords: String? = null,
+        @Query("with_origin_country") withOriginCountry: String? = null,
+        @Query("with_original_language") withOriginalLanguage: String? = null,
+        @Query("without_genres") withoutGenres: String? = null,
+
+        // — availability —
+        @Query("with_watch_monetization_types") withWatchMonetizationTypes: String? = null,
+        @Query("without_watch_providers") withoutWatchProviders: String? = null,
+
+        // — response shaping —
+        @Query("include_adult") includeAdult: Boolean? = null,
+        @Query("include_video") includeVideo: Boolean? = null,
+        @Query("region") region: String? = null,
+        @Query("language") language: String? = null,
     ): MovieListResponse
+
+    // ── Detail ──────────────────────────────────────────────────────────────
 
     /**
      * Detail costs one request rather than eight, because TMDB appends related
@@ -89,26 +191,23 @@ interface MovieApi {
      *
      * The block list is a byte budget, not a wish list. Measured against the
      * live API for one title: `credits,videos` is ~119 KB; these eight blocks
-     * are ~224 KB; all Tier 1 blocks would be ~396 KB. Two are deliberately
-     * excluded — `images` (132 KB, every language and size) and `reviews`
-     * (41 KB for a section most users never open).
-     *
-     * Both are now covered, differently. `images` is appended but scoped with
-     * `include_image_language=en`, which is 31 KB rather than 132 KB. `reviews`
-     * has its own endpoint below, so it paginates independently and can fail
-     * without taking detail with it.
+     * are ~224 KB; all Tier 1 blocks would be ~396 KB. `reviews` has its own
+     * endpoint below, so it paginates independently and can fail without taking
+     * detail with it.
      */
     @GET("movie/{id}")
     suspend fun detail(
         @Path("id") id: Long,
         @Query("append_to_response") append: String = DETAIL_BLOCKS,
         /**
-         * Scopes the appended `images` block. Without it TMDB returns every
-         * language and every textless variant — 118 KB rather than 31 KB, for
-         * one title logo. `en` alone beats `en,null` because `null` is what
-         * the textless backdrops are tagged with.
+         * Scopes the appended `images` block, and is **not** in TMDB's
+         * reference for this endpoint. It works, and does real work: measured
+         * on one title, 122.8 KB and 744 images without it, 33.6 KB and 196
+         * with it. `en` alone beats `en,null` because `null` is what the
+         * textless backdrops are tagged with.
          */
-        @Query("include_image_language") imageLanguage: String = "en",
+        @Query("include_image_language") imageLanguage: String? = "en",
+        @Query("language") language: String? = null,
     ): MovieDetailResponse
 
     /**
@@ -121,14 +220,20 @@ interface MovieApi {
     suspend fun reviews(
         @Path("id") id: Long,
         @Query("page") page: Int = 1,
+        @Query("language") language: String? = null,
     ): ReviewListResponse
 
     @GET("genre/movie/list")
-    suspend fun genres(): GenreListResponse
+    suspend fun genres(
+        @Query("language") language: String? = null,
+    ): GenreListResponse
 
     /** A franchise and its parts. Small: parts use the list shape. */
     @GET("collection/{id}")
-    suspend fun collection(@Path("id") id: Long): CollectionResponse
+    suspend fun collection(
+        @Path("id") id: Long,
+        @Query("language") language: String? = null,
+    ): CollectionResponse
 
     /**
      * A person and their film credits. `movie_credits` is nearly all of the
@@ -139,6 +244,7 @@ interface MovieApi {
     suspend fun person(
         @Path("id") id: Long,
         @Query("append_to_response") append: String = "movie_credits",
+        @Query("language") language: String? = null,
     ): PersonResponse
 
     /**
@@ -149,16 +255,22 @@ interface MovieApi {
     suspend fun tvDetail(
         @Path("id") id: Long,
         @Query("append_to_response") append: String = TV_BLOCKS,
+        @Query("language") language: String? = null,
     ): TvDetailResponse
+
+    // ── Availability ────────────────────────────────────────────────────────
 
     /** The regions TMDB holds availability data for. */
     @GET("watch/providers/regions")
-    suspend fun regions(): RegionListResponse
+    suspend fun regions(
+        @Query("language") language: String? = null,
+    ): RegionListResponse
 
     /** Services carrying films in [watchRegion], for the browse filter. */
     @GET("watch/providers/movie")
     suspend fun watchProviders(
         @Query("watch_region") watchRegion: String,
+        @Query("language") language: String? = null,
     ): WatchProviderListResponse
 
     companion object {

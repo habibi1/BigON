@@ -52,37 +52,15 @@ class DetailCacheTest {
 
     private class DetailApi(
         private val response: (Long) -> MovieDetailResponse,
-    ) : MovieApi {
+    ) : FakeMovieApi() {
         var calls = 0
-        override suspend fun detail(id: Long, append: String, imageLanguage: String) =
-            response(id).also { calls++ }
-        override suspend fun reviews(id: Long, page: Int) = ReviewListResponse()
-        override suspend fun trending(page: Int) = MovieListResponse()
-        override suspend fun trendingWeek(page: Int) = MovieListResponse()
-        override suspend fun popular(page: Int, region: String?) = MovieListResponse()
-        override suspend fun nowPlaying(page: Int, region: String?) = MovieListResponse()
-        override suspend fun topRated(page: Int, region: String?) = MovieListResponse()
-        override suspend fun upcoming(page: Int, region: String?) = MovieListResponse()
-        override suspend fun genres() = GenreListResponse()
-        override suspend fun search(query: String, page: Int, includeAdult: Boolean) = MovieListResponse()
-        @Suppress("LongParameterList")
-        override suspend fun discover(
-            withGenres: String?,
-            sortBy: String,
-            page: Int,
-            withWatchProviders: String?,
-            watchRegion: String?,
-            releaseYear: Int?,
-            minRating: Double?,
-            minVotes: Int?,
-            maxRuntime: Int?,
-        ) = MovieListResponse()
-        override suspend fun watchProviders(watchRegion: String) = WatchProviderListResponse()
-        override suspend fun trendingAll(page: Int) = TrendingListResponse()
-        override suspend fun regions() = RegionListResponse()
-        override suspend fun collection(id: Long) = CollectionResponse()
-        override suspend fun person(id: Long, append: String) = PersonResponse()
-        override suspend fun tvDetail(id: Long, append: String) = TvDetailResponse()
+
+        override suspend fun detail(
+            id: Long,
+            append: String,
+            imageLanguage: String?,
+            language: String?,
+        ) = response(id).also { calls++ }
     }
 
     private fun dispatchers() = object : DispatcherProvider {
