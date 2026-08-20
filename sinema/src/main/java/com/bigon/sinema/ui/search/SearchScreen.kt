@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -213,6 +214,13 @@ fun SearchScreen(
 
             else -> {
                 val gridState = rememberLazyGridState()
+                // Land at the top of the new results rather than mid-way
+                // through them. Keyed on the replacement, not on isSearching,
+                // so the previous films stay where they are while the request
+                // is in flight.
+                LaunchedEffect(state.contentGeneration) {
+                    if (state.contentGeneration > 0) gridState.scrollToItem(0)
+                }
                 gridState.LoadMoreEffect(enabled = state.canLoadMore) {
                     onIntent(SearchIntent.LoadMore)
                 }

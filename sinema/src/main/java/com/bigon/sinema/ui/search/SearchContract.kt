@@ -34,6 +34,12 @@ data class SearchUiState(
     val page: Int = 1,
     val totalPages: Int = 1,
     val error: UiText? = null,
+    /**
+     * Bumped when the results are replaced wholesale — a new query, genre,
+     * service or filter. The screen scrolls to the top on a change. Appended
+     * pages deliberately do not bump it.
+     */
+    val contentGeneration: Int = 0,
 ) {
     val canLoadMore: Boolean
         get() = !isSearching && !isAppending && page < totalPages && results.isNotEmpty()

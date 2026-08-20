@@ -53,6 +53,22 @@ class HomeViewModel @Inject constructor(
     /** Cancelled and replaced whenever the feed changes. */
     private var observeJob: Job? = null
 
+    /**
+     * True between asking for a wholesale replacement — a new feed, or a
+     * refresh that rebuilds from page 1 — and the emission that delivers it.
+     * Only that emission moves the viewport; a page being appended must not,
+     * or scrolling would fight the reader.
+     */
+    private var awaitingContentReplacement = false
+
+    private fun HomeUiState.nextGeneration(): Int =
+        if (awaitingContentReplacement) {
+            awaitingContentReplacement = false
+            contentGeneration + 1
+        } else {
+            contentGeneration
+        }
+
     init {
         tracker.track(AnalyticsEvent.ScreenView("home"))
         selectFeed(HomeFeed.Category(MovieCategory.Default))
@@ -60,7 +76,12 @@ class HomeViewModel @Inject constructor(
 
     fun onIntent(intent: HomeIntent) {
         when (intent) {
-            HomeIntent.Refresh -> refreshCurrent()
+            HomeIntent.Refresh -> {
+                // Only a pull raises the pull indicator; every other refresh
+                // path leaves it alone.
+                _state.update { it.copy(isPullRefreshing = true) }
+                refreshCurrent()
+            }
             HomeIntent.LoadMore -> loadMore()
             is HomeIntent.FeedSelected -> selectFeed(intent.feed)
             is HomeIntent.MovieClicked -> {
@@ -89,36 +110,42 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun selectFeed(feed: HomeFeed) {
-        // Re-selecting the active feed is a manual refresh — the only
-        // affordance needed after Settings clears the catalogue cache.
-        if (observeJob != null && _state.value.feed == feed) {
-            refreshCurrent()
-            return
-        }
+        // Re-selecting the active feed used to mean "refresh". It no longer
+        // reaches here — the screen treats that tap as scroll-to-top — but the
+        // guard stays so a re-selection can never rebuild the observer and
+        // wipe the list as a side effect.
+        if (observeJob != null && _state.value.feed == feed) return
 
+        // The outgoing feed's films stay on screen until the new ones arrive.
+        // Clearing here instead put the grid through an empty frame, which
+        // collapsed the scroll position and flashed skeletons over content that
+        // was about to be replaced anyway.
         _state.update {
             it.copy(
                 feed = feed,
-                movies = emptyList(),
-                trendingItems = emptyList(),
                 error = null,
                 endReached = false,
                 isAppending = false,
             )
         }
+        awaitingContentReplacement = true
 
         observeJob?.cancel()
         when (feed) {
             is HomeFeed.Category -> {
                 observeJob = observeMovies(feed.category)
-                    .onEach { movies -> _state.update { it.copy(movies = movies) } }
+                    .onEach { movies ->
+                        _state.update { it.copy(movies = movies, contentGeneration = it.nextGeneration()) }
+                    }
                     .launchIn(viewModelScope)
                 refresh(feed.category)
             }
 
             HomeFeed.AcrossTypes -> {
                 observeJob = observeTrendingAll()
-                    .onEach { items -> _state.update { it.copy(trendingItems = items) } }
+                    .onEach { items ->
+                        _state.update { it.copy(trendingItems = items, contentGeneration = it.nextGeneration()) }
+                    }
                     .launchIn(viewModelScope)
                 refreshAcrossTypes()
             }
@@ -127,11 +154,13 @@ class HomeViewModel @Inject constructor(
 
     private fun refreshAcrossTypes() {
         viewModelScope.launch {
+            awaitingContentReplacement = true
             _state.update { it.copy(isRefreshing = true, error = null, endReached = true) }
             val result = refreshTrendingAll()
             _state.update { current ->
                 current.copy(
                     isRefreshing = false,
+                    isPullRefreshing = false,
                     error = (result as? AppResult.Failure)?.error?.toUiText(),
                 )
             }
@@ -140,11 +169,13 @@ class HomeViewModel @Inject constructor(
 
     private fun refresh(category: MovieCategory) {
         viewModelScope.launch {
+            awaitingContentReplacement = true
             _state.update { it.copy(isRefreshing = true, error = null, endReached = false) }
             val result = refreshMovies(category)
             _state.update { current ->
                 current.copy(
                     isRefreshing = false,
+                    isPullRefreshing = false,
                     error = (result as? AppResult.Failure)?.error?.toUiText(),
                 )
             }

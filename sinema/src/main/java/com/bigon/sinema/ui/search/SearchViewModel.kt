@@ -107,6 +107,10 @@ class SearchViewModel @Inject constructor(
                             results = result.value.movies,
                             page = result.value.page,
                             totalPages = result.value.totalPages,
+                            // A different set of films, so the viewport should
+                            // not stay at an offset that belonged to the last
+                            // one — 20 results do not have an item 90.
+                            contentGeneration = it.contentGeneration + 1,
                         )
                     }
                     is AppResult.Failure -> _state.update {

@@ -13,6 +13,14 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.key
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,6 +84,7 @@ fun HomeRoute(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     state: HomeUiState,
@@ -84,6 +93,19 @@ fun HomeScreen(
     transition: PosterTransition? = null,
 ) {
     val spacing = BigonTheme.spacing
+    // One scroll position per feed, not one shared by all of them.
+    //
+    // A single LazyGridState meant every chip scrolled the same object: leaving
+    // "Today" at row 40 and coming back put you at whatever "Popular" had left
+    // behind, and the empty frame between the two lists reset it to zero. Each
+    // feed keeps its own, so returning to a chip returns to where you were.
+    //
+    // Hoisted rather than declared inside the grid so the chip row can reach
+    // the current one — re-tapping the active chip is "take me back to the
+    // top", not a reload.
+    val gridStates = remember { mutableMapOf<String, LazyGridState>() }
+    val gridState = gridStates.getOrPut(state.feed.label) { LazyGridState() }
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = modifier
@@ -105,7 +127,18 @@ fun HomeScreen(
             options = feeds.map { it.label },
             selectedOption = state.feed.label,
             onOptionSelect = { label ->
-                feeds.firstOrNull { it.label == label }?.let { onIntent(HomeIntent.FeedSelected(it)) }
+                feeds.firstOrNull { it.label == label }?.let { feed ->
+                    // Two gestures, one job each. Tapping the chip you are
+                    // already on returns you to the top; refreshing is the pull.
+                    // Overloading the chip with both meant a tap that looked
+                    // like navigation silently discarded every page you had
+                    // scrolled.
+                    if (feed == state.feed) {
+                        scope.launch { gridState.animateScrollToItem(0) }
+                    } else {
+                        onIntent(HomeIntent.FeedSelected(feed))
+                    }
+                }
             },
         )
 
@@ -138,10 +171,28 @@ fun HomeScreen(
             }
 
             else -> {
-                val gridState = rememberLazyGridState()
                 gridState.LoadMoreEffect(enabled = state.canLoadMore) {
                     onIntent(HomeIntent.LoadMore)
                 }
+
+                // A pull replaces the list from page 1, so the viewport comes
+                // with it — otherwise the grid stays at its old index over a
+                // much shorter list, lands near the end of it, and load more
+                // fires for a page nobody asked for.
+                //
+                // Keyed on the pull specifically, not on isRefreshing: switching
+                // feed also refreshes, and scrolling to the top there would undo
+                // the position this screen just restored.
+                LaunchedEffect(state.isPullRefreshing) {
+                    if (state.isPullRefreshing) gridState.animateScrollToItem(0)
+                }
+
+                key(state.feed.label) {
+                PullToRefreshBox(
+                    isRefreshing = state.isPullRefreshing,
+                    onRefresh = { onIntent(HomeIntent.Refresh) },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
                 LazyVerticalGrid(
                     state = gridState,
                     columns = GridCells.Adaptive(minSize = 120.dp),
@@ -186,6 +237,8 @@ fun HomeScreen(
                             }
                         }
                     }
+                }
+                }
                 }
             }
         }
