@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Punches through at 480ms. The six are staggered top-to-bottom with the
+     right column trailing the left by 40ms, which reads as film advancing
+     rather than six holes appearing at once. -->
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <objectAnimator android:propertyName="scaleX" android:valueFrom="0.0" android:valueTo="1.0"
+        android:startOffset="480" android:duration="240"
+        android:interpolator="@android:interpolator/overshoot" />
+    <objectAnimator android:propertyName="scaleY" android:valueFrom="0.0" android:valueTo="1.0"
+        android:startOffset="480" android:duration="240"
+        android:interpolator="@android:interpolator/overshoot" />
+</set>

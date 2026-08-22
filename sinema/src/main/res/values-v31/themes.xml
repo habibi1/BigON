@@ -1,0 +1,19 @@
+<resources>
+    <!--
+      Android 12+ only. The animated icon is genuinely animated here; the compat
+      library does not animate on older versions, and this AVD's first frame is
+      an invisible icon — so API 26–30 keeps the static mark in values/themes.xml
+      rather than showing a blank splash.
+
+      windowSplashScreenAnimationDuration tells the system how long to hold the
+      splash. It does not drive the animation — the AVD's own timing does — and
+      the platform caps it at 1000ms, so the animation ends at 620ms with room
+      to spare.
+    -->
+    <style name="Theme.Sinema.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_animated</item>
+        <item name="windowSplashScreenAnimationDuration">960</item>
+        <item name="postSplashScreenTheme">@style/Theme.Sinema</item>
+    </style>
+</resources>

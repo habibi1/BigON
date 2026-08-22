@@ -1,5 +1,25 @@
 <resources>
     <!-- Framework theme only bridges to Compose; all real theming lives in
-         :core:designsystem SinemaTheme. -->
+         :core:designsystem BigonTheme. -->
     <style name="Theme.Sinema" parent="android:Theme.Material.NoActionBar" />
+
+    <!--
+      The launch theme, and the app's declared theme in the manifest.
+
+      Android 12 draws a splash screen whether an app asks for one or not; below
+      that the window is simply blank until the first frame. This theme is what
+      androidx.core:core-splashscreen uses to give API 26–30 the same treatment,
+      and `postSplashScreenTheme` is what hands control back to Theme.Sinema
+      once the activity is up — without it the app would keep the splash's
+      window background for its whole life.
+
+      This is the API 26–30 copy, and its icon is static on purpose: the compat
+      library shows the drawable but does not animate it below API 31. See
+      values-v31/themes.xml for the animated one.
+    -->
+    <style name="Theme.Sinema.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.Sinema</item>
+    </style>
 </resources>

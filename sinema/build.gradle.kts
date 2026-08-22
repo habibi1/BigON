@@ -85,6 +85,9 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.activity.compose)
     implementation(libs.androidx.core.ktx)
+    // Backports Android 12's splash screen to API 26–30, where the window would
+    // otherwise be blank while the process starts.
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.lifecycle.runtime.compose)
