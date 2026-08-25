@@ -26,11 +26,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -52,6 +52,7 @@ import com.bigon.tmdb.model.Review
 import com.bigon.tmdb.model.WatchProviders
 import com.bigon.core.ui.asString
 import com.bigon.sinema.ui.PosterTransition
+import com.bigon.sinema.ui.trailer.openTrailer
 import com.bigon.sinema.ui.metaLine
 import com.bigon.sinema.ui.posterModifier
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -106,7 +107,7 @@ fun DetailScreen(
 ) {
     val spacing = BigonTheme.spacing
     val colors = BigonTheme.colors
-    val uriHandler = LocalUriHandler.current
+    val activityContext = LocalContext.current
 
     val scrollState = rememberScrollState()
     val density = LocalDensity.current
@@ -174,21 +175,20 @@ fun DetailScreen(
                         text = "Watch trailer",
                         leadingIcon = BigonIcons.Play,
                         enabled = state.detail?.trailerKey != null,
-                        onClick = { /* playback arrives with the trailer feature */ },
+                        onClick = {
+                            val key = state.detail?.trailerKey ?: return@BigonPrimaryButton
+                            // A device with neither YouTube nor a browser is
+                            // rare, but a button that appears to do nothing is
+                            // worse than one that says why.
+                            if (!activityContext.openTrailer(key)) {
+                                onIntent(DetailIntent.TrailerUnavailable)
+                            }
+                        },
                     )
                     BigonFavoriteToggle(
                         checked = state.isFavorite,
                         onCheckedChange = { onIntent(DetailIntent.FavoriteToggled(it)) },
                     )
-                    state.imdbUrl?.let { url ->
-                        BigonTonalButton(
-                            text = "IMDb",
-                            onClick = {
-                                onIntent(DetailIntent.ImdbClicked)
-                                uriHandler.openUri(url)
-                            },
-                        )
-                    }
                 }
 
                 state.error?.let { error ->
@@ -260,13 +260,7 @@ fun DetailScreen(
                 }
 
                 state.watchProviders?.let { providers ->
-                    WhereToWatch(
-                        providers = providers,
-                        onOpen = {
-                            onIntent(DetailIntent.WatchProvidersClicked)
-                            providers.link?.let(uriHandler::openUri)
-                        },
-                    )
+                    WhereToWatch(providers = providers)
                 }
 
                 if (state.recommendations.isNotEmpty()) {
@@ -685,10 +679,7 @@ private fun ReviewCard(review: Review) {
  * indicative rather than deep links into each service.
  */
 @Composable
-private fun WhereToWatch(
-    providers: WatchProviders,
-    onOpen: () -> Unit,
-) {
+private fun WhereToWatch(providers: WatchProviders) {
     val spacing = BigonTheme.spacing
     val colors = BigonTheme.colors
 
@@ -707,20 +698,24 @@ private fun WhereToWatch(
         modifier = Modifier.padding(top = spacing.xl),
     )
 
+    // The row states where the film is available and does nothing else. It
+    // used to open TMDB's own web page, which is a worse answer than the logos
+    // already on screen: the reader learns nothing new and loses the app.
     Row(
         horizontalArrangement = Arrangement.spacedBy(spacing.s),
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .horizontalScroll(rememberScrollState())
-            .padding(top = spacing.m)
-            .clip(BigonTheme.shapes.container)
-            .clickable(onClick = onOpen),
+            .padding(top = spacing.m),
     ) {
         (streaming + alsoAvailable).forEach { provider ->
+            // Square, and deliberately unclipped. TMDB ships these logos as
+            // full-bleed squares with the mark running to the edge, so rounding
+            // the tile cuts the artwork rather than framing it — Prime's arrow
+            // and Apple TV's wordmark both lose a corner.
             Box(
                 modifier = Modifier
                     .size(44.dp)
-                    .clip(BigonTheme.shapes.container)
                     .background(colors.surfaceVariant),
             ) {
                 provider.logoUrl?.let { url ->
