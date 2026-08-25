@@ -1,5 +1,6 @@
 package com.bigon.tmdb.data.movie
 
+import com.bigon.tmdb.database.FavoriteEntity
 import com.bigon.tmdb.database.GenreEntity
 import com.bigon.tmdb.database.MovieEntity
 import com.bigon.tmdb.database.TrendingItemEntity
@@ -58,6 +59,29 @@ internal object MovieMapper {
         releaseDate = entity.releaseDate.toLocalDateOrNull(),
         voteAverage = entity.voteAverage,
         genres = entity.genreIds.mapNotNull(genresById::get),
+    )
+
+    /**
+     * Refreshes a favourite's stored snapshot from a detail response.
+     *
+     * A favourite is written once, the moment the heart is tapped, and nothing
+     * ever refetches it — unlike a category row, which is rewritten every time
+     * its list is refreshed. So this is the only thing standing between a
+     * favourite and artwork, a rating and a title that are years out of date.
+     *
+     * Takes the domain [MovieDetail] rather than the DTO because this row
+     * stores resolved URLs and genre *names*, both of which the mapper has
+     * already worked out by this point. [FavoriteEntity.addedAt] is preserved:
+     * it is the user's ordering, not TMDB's data.
+     */
+    fun patch(entity: FavoriteEntity, detail: MovieDetail): FavoriteEntity = entity.copy(
+        title = detail.title.takeIf { it.isNotBlank() } ?: entity.title,
+        overview = detail.overview,
+        posterUrl = detail.posterUrl,
+        backdropUrl = detail.backdropUrl,
+        releaseDate = detail.releaseDate?.toString(),
+        voteAverage = detail.voteAverage,
+        genreNames = detail.genres,
     )
 
     fun toGenreEntity(dto: GenreDto): GenreEntity = GenreEntity(id = dto.id, name = dto.name)

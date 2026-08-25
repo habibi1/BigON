@@ -31,6 +31,8 @@ class DefaultFavoritesRepositoryTest {
             rows.map { it.values.sortedByDescending(FavoriteEntity::addedAt) }
         override fun observeIsFavorite(movieId: Long): Flow<Boolean> =
             rows.map { movieId in it }
+        override suspend fun byId(movieId: Long): FavoriteEntity? = rows.value[movieId]
+
         override suspend fun upsert(favorite: FavoriteEntity) {
             rows.value = rows.value + (favorite.id to favorite)
         }

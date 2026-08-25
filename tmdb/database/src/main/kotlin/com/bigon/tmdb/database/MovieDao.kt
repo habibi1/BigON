@@ -17,7 +17,15 @@ interface MovieDao {
     @Query("SELECT * FROM movie_entity WHERE list_key = :listKey ORDER BY position ASC")
     fun observeByList(listKey: String): Flow<List<MovieEntity>>
 
-    @Query("SELECT * FROM movie_entity WHERE id = :id LIMIT 1")
+    /**
+     * A movie legitimately has one row per list it appears in, so this matches
+     * several. `rowid` descending picks the most recently written of them:
+     * [replaceList] deletes and reinserts a whole category, so the newest rowid
+     * is the freshest fetch. Without the ordering SQLite returns whichever row
+     * it scans first — in practice the oldest, which is the one most likely to
+     * be carrying artwork TMDB has since replaced.
+     */
+    @Query("SELECT * FROM movie_entity WHERE id = :id ORDER BY rowid DESC LIMIT 1")
     fun observeById(id: Long): Flow<MovieEntity?>
 
     /**
