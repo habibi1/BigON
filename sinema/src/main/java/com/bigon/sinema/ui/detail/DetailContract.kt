@@ -29,8 +29,32 @@ data class DetailUiState(
     val reviewsPage: Int = 0,
     val hasMoreReviews: Boolean = false,
     val totalReviews: Int = 0,
+    /**
+     * The artwork actually on screen, pinned to whatever loaded first and then
+     * left alone for the life of the screen.
+     *
+     * Two sources feed this and they disagree more often than they look like
+     * they should. The cached row was written when its list was last fetched;
+     * the detail response is fetched now. TMDB replaces artwork continuously,
+     * and its list endpoints serve a cached payload that lags detail — both
+     * have been observed live for the same film on the same day. Repainting on
+     * every disagreement means the hero image visibly changes under the reader
+     * a moment after the screen opens, and swapping one valid backdrop for
+     * another buys nothing.
+     *
+     * The fresher value is not discarded: the repository writes it back over
+     * the cached row, so the correction shows up the next time this film is
+     * opened rather than as a flash in front of the user.
+     */
+    val paintedPosterUrl: String? = null,
+    val paintedBackdropUrl: String? = null,
 ) {
     val title: String? get() = detail?.title ?: cached?.title
+
+    /**
+     * The freshest artwork known, which is what a favourite should be saved
+     * with — [paintedPosterUrl] is what is rendered.
+     */
     val posterUrl: String? get() = detail?.posterUrl ?: cached?.posterUrl
     val backdropUrl: String? get() = detail?.backdropUrl ?: cached?.backdropUrl
     val overview: String? get() = (detail?.overview ?: cached?.overview)?.takeIf { it.isNotBlank() }

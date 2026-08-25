@@ -4,6 +4,8 @@ import app.cash.turbine.test
 import com.bigon.core.common.AppError
 import com.bigon.core.common.AppResult
 import com.bigon.core.common.DispatcherProvider
+import com.bigon.tmdb.database.FavoriteDao
+import com.bigon.tmdb.database.FavoriteEntity
 import com.bigon.tmdb.database.GenreDao
 import com.bigon.tmdb.database.GenreEntity
 import com.bigon.tmdb.database.MovieDao
@@ -62,6 +64,20 @@ class DefaultMovieRepositoryTest {
         }
         override suspend fun clearAll() {
             rows.value = emptyMap()
+        }
+    }
+
+    /** In-memory stand-in for the favourites table. */
+    class FakeFavoriteDao : FavoriteDao {
+        val rows = MutableStateFlow<Map<Long, FavoriteEntity>>(emptyMap())
+        override fun observeAll(): Flow<List<FavoriteEntity>> = rows.map { it.values.toList() }
+        override fun observeIsFavorite(movieId: Long): Flow<Boolean> = rows.map { movieId in it }
+        override suspend fun byId(movieId: Long): FavoriteEntity? = rows.value[movieId]
+        override suspend fun upsert(favorite: FavoriteEntity) {
+            rows.value = rows.value + (favorite.id to favorite)
+        }
+        override suspend fun delete(movieId: Long) {
+            rows.value = rows.value - movieId
         }
     }
 
@@ -229,9 +245,11 @@ class DefaultMovieRepositoryTest {
         trendingDao: TrendingItemDao = FakeTrendingItemDao(),
         region: String = "US",
         preferences: PreferenceStorage = FakePreferences(),
+        favoriteDao: FavoriteDao = FakeFavoriteDao(),
     ) = DefaultMovieRepository(
         movieDao,
         genreDao,
+        favoriteDao,
         detailDao,
         trendingDao,
         api,

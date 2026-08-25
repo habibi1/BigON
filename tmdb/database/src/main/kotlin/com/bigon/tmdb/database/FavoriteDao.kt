@@ -14,6 +14,14 @@ interface FavoriteDao {
     @Query("SELECT EXISTS(SELECT 1 FROM favorite_entity WHERE id = :movieId)")
     fun observeIsFavorite(movieId: Long): Flow<Boolean>
 
+    /**
+     * The stored snapshot, or null when the movie is not favourited. Used to
+     * refresh a snapshot in place without ever creating one — a film the user
+     * has not favourited must not become a favourite just by being opened.
+     */
+    @Query("SELECT * FROM favorite_entity WHERE id = :movieId")
+    suspend fun byId(movieId: Long): FavoriteEntity?
+
     @Upsert
     suspend fun upsert(favorite: FavoriteEntity)
 

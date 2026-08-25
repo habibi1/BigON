@@ -3,6 +3,7 @@ package com.bigon.tmdb.data.movie
 import com.bigon.core.common.AppResult
 import com.bigon.core.common.DispatcherProvider
 import com.bigon.core.common.map
+import com.bigon.tmdb.database.FavoriteDao
 import com.bigon.tmdb.database.GenreDao
 import com.bigon.tmdb.database.MovieDao
 import com.bigon.tmdb.database.MovieDetailDao
@@ -46,6 +47,14 @@ import javax.inject.Singleton
 class DefaultMovieRepository @Inject constructor(
     private val movieDao: MovieDao,
     private val genreDao: GenreDao,
+    /**
+     * Read only to find out whether a film is favourited, then written only to
+     * correct that existing row — favourites are owned by
+     * DefaultFavoritesRepository, and nothing here may create one. Detail is
+     * the one response in the app carrying fresh data for a favourited film,
+     * so this is where the snapshot can be brought up to date.
+     */
+    private val favoriteDao: FavoriteDao,
     private val movieDetailDao: MovieDetailDao,
     private val trendingItemDao: TrendingItemDao,
     private val movieApi: MovieApi,
@@ -92,6 +101,7 @@ class DefaultMovieRepository @Inject constructor(
                         regionProvider.language(),
                     )
                     cacheDetail(detail, region)
+                    refreshFavoriteSnapshot(detail)
                     AppResult.Success(detail)
                 }
 
@@ -166,6 +176,34 @@ class DefaultMovieRepository @Inject constructor(
         withContext(dispatchers.io) {
             apiCaller.execute { movieApi.reviews(movieId, page) }.map(MovieMapper::toReviewPage)
         }
+
+    /**
+     * Brings a favourited film's stored snapshot up to date from the response
+     * just fetched.
+     *
+     * Only favourites. Writing the response back over the cached *list* rows
+     * was tried and removed: it worked, but its one visible effect was the
+     * wrong one. Measured on device, opening Motor City rewrote its trending
+     * row's poster from rKws4iqKhr to cWAVzTWm9x — an image neither cached row
+     * held — so the card the reader had just tapped showed a different poster
+     * when they came back to the grid. That is the same swap this branch
+     * exists to remove, relocated from the detail hero to the grid behind it.
+     *
+     * Nothing is lost by leaving those rows alone. observeById already prefers
+     * the freshest of them, and every category is rewritten wholesale the next
+     * time its list is refreshed, so a stale list row is corrected on a
+     * schedule the reader controls and never noticed being wrong.
+     *
+     * A favourite has no such schedule. Nothing refetches it, ever, which is
+     * why this one write stays.
+     */
+    private suspend fun refreshFavoriteSnapshot(detail: MovieDetail) {
+        runCatching {
+            favoriteDao.byId(detail.id)?.let { favoriteDao.upsert(MovieMapper.patch(it, detail)) }
+        }
+        // Same rule as the detail cache below: a write-back that fails must not
+        // fail the read it was improving.
+    }
 
     private suspend fun cacheDetail(detail: MovieDetail, region: String) {
         runCatching {

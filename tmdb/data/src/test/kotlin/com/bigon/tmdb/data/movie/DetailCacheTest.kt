@@ -2,6 +2,8 @@ package com.bigon.tmdb.data.movie
 
 import com.bigon.core.common.AppResult
 import com.bigon.core.common.DispatcherProvider
+import com.bigon.tmdb.database.FavoriteDao
+import com.bigon.tmdb.database.FavoriteEntity
 import com.bigon.tmdb.database.GenreDao
 import com.bigon.tmdb.database.GenreEntity
 import com.bigon.tmdb.database.MovieDao
@@ -73,9 +75,11 @@ class DetailCacheTest {
         api: MovieApi,
         detailDao: DefaultMovieRepositoryTest.FakeMovieDetailDao,
         region: String = "US",
+        favoriteDao: FavoriteDao = DefaultMovieRepositoryTest.FakeFavoriteDao(),
     ) = DefaultMovieRepository(
         NoopMovieDao(),
         StubGenreDao(listOf(GenreEntity(28, "Action"))),
+        favoriteDao,
         detailDao,
         DefaultMovieRepositoryTest.FakeTrendingItemDao(),
         api,
@@ -236,5 +240,36 @@ class DetailCacheTest {
         assertEquals(com.bigon.tmdb.model.VideoType.Trailer, video.type)
         assertEquals(1080, video.sizePx)
         assertEquals(true, video.isOfficial)
+    }
+
+    @Test
+    fun `a detail response refreshes a favourite snapshot without creating one`() = runTest(dispatcher) {
+        val favoriteDao = DefaultMovieRepositoryTest.FakeFavoriteDao()
+        favoriteDao.upsert(
+            FavoriteEntity(
+                id = 1,
+                title = "Heat",
+                overview = "old",
+                posterUrl = "https://image.tmdb.org/t/p/w342/old.jpg",
+                backdropUrl = "https://image.tmdb.org/t/p/w780/old.jpg",
+                releaseDate = "1995-12-15",
+                voteAverage = 7.0,
+                genreNames = emptyList(),
+                addedAt = 4242,
+            ),
+        )
+
+        val api = DetailApi { id -> richResponse(id).copy(backdropPath = "/new.jpg") }
+        val repo = repo(api, DefaultMovieRepositoryTest.FakeMovieDetailDao(), favoriteDao = favoriteDao)
+        repo.detail(1)
+        // A film the user has not favourited must not become one by being opened.
+        repo.detail(2)
+
+        val stored = favoriteDao.rows.value
+        assertEquals(setOf(1L), stored.keys)
+        assertEquals("https://image.tmdb.org/t/p/w780/new.jpg", stored.getValue(1L).backdropUrl)
+        assertEquals(8.3, stored.getValue(1L).voteAverage)
+        // The user's ordering is theirs, not TMDB's.
+        assertEquals(4242, stored.getValue(1L).addedAt)
     }
 }
