@@ -15,6 +15,8 @@ import com.bigon.tmdb.model.MovieCollection
 import com.bigon.tmdb.model.PersonDetail
 import com.bigon.tmdb.model.TrendingItem
 import com.bigon.tmdb.model.TvDetail
+import com.bigon.tmdb.model.Video
+import com.bigon.tmdb.model.VideoType
 import com.bigon.tmdb.model.WatchProvider
 import com.bigon.tmdb.model.WatchProviders
 import java.time.LocalDate
@@ -238,11 +240,62 @@ internal object MovieMapper {
                 )
             },
         // Prefer an official YouTube trailer; fall back to any YouTube trailer.
-        trailerKey = dto.videos.results
-            .filter { it.site.equals("YouTube", ignoreCase = true) && it.type.equals("Trailer", ignoreCase = true) }
-            .minByOrNull { if (it.official) 0 else 1 }
-            ?.key
-            ?.takeIf { it.isNotBlank() },
+        videos = toVideos(dto.videos.results),
+        trailerKey = pickTrailerKey(dto.videos.results),
+    )
+
+    /**
+     * Everything TMDB sent, ranked so the first entry is the one a "Watch
+     * trailer" button should play.
+     *
+     * Official beats unofficial, a Trailer beats a Teaser, and newer beats
+     * older — in that order. The middle rule matters: teasers are cut months
+     * earlier and show less of the film, so a title with both should not open
+     * on the teaser just because it was published later.
+     *
+     * Non-YouTube entries are dropped rather than carried. TMDB has only ever
+     * returned YouTube here, and a key from anywhere else would reach a player
+     * that cannot play it.
+     */
+    private fun toVideos(dtos: List<VideoDto>): List<Video> = dtos
+        .filter { it.site.equals("YouTube", ignoreCase = true) && it.key.isNotBlank() }
+        .map { dto ->
+            Video(
+                key = dto.key,
+                name = dto.name,
+                type = VideoType.from(dto.type),
+                isOfficial = dto.official,
+                sizePx = dto.size,
+                publishedAt = dto.publishedAt,
+            )
+        }
+        .sortedWith(
+            compareByDescending<Video> { it.isOfficial }
+                .thenBy { TYPE_RANK.indexOf(it.type).takeIf { i -> i >= 0 } ?: TYPE_RANK.size }
+                .thenByDescending { it.publishedAt.orEmpty() },
+        )
+
+    /**
+     * What the "Watch trailer" button plays — a trailer, or a teaser when that
+     * is all there is.
+     *
+     * Deliberately narrower than [toVideos], which carries everything. A
+     * featurette is a video but it is not a trailer, and a button labelled
+     * "Watch trailer" that opens a five-minute behind-the-scenes reel is a
+     * button that lied. Titles with only clips get a disabled button instead.
+     */
+    private fun pickTrailerKey(dtos: List<VideoDto>): String? = toVideos(dtos)
+        .firstOrNull { it.type == VideoType.Trailer || it.type == VideoType.Teaser }
+        ?.key
+
+    /** Playback order by kind; anything unlisted sorts last. */
+    private val TYPE_RANK = listOf(
+        VideoType.Trailer,
+        VideoType.Teaser,
+        VideoType.Clip,
+        VideoType.Featurette,
+        VideoType.BehindTheScenes,
+        VideoType.Bloopers,
     )
 
     private const val MAX_CAST = 12
@@ -368,11 +421,8 @@ internal object MovieMapper {
             .sortedBy { it.order }
             .take(MAX_CAST)
             .map { CastMember(it.id, it.name, it.character, TmdbImageUrl.build(it.profilePath, TmdbImageUrl.PROFILE_SMALL)) },
-        trailerKey = dto.videos.results
-            .filter { it.site.equals("YouTube", ignoreCase = true) && it.type.equals("Trailer", ignoreCase = true) }
-            .minByOrNull { if (it.official) 0 else 1 }
-            ?.key
-            ?.takeIf { it.isNotBlank() },
+        videos = toVideos(dto.videos.results),
+        trailerKey = pickTrailerKey(dto.videos.results),
         // Flatter than a film's release_dates: one rating per country, no
         // release-type nesting to pick through.
         certification = dto.contentRatings.results

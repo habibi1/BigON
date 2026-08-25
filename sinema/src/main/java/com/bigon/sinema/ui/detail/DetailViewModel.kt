@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.bigon.core.common.AppResult
 import com.bigon.core.tracker.AnalyticsEvent
 import com.bigon.core.tracker.AnalyticsTracker
+import com.bigon.core.ui.UiText
 import com.bigon.core.ui.toUiText
 import com.bigon.tmdb.domain.movie.GetMovieDetailUseCase
 import com.bigon.tmdb.domain.movie.GetMovieReviewsUseCase
@@ -74,11 +75,8 @@ class DetailViewModel @AssistedInject constructor(
             is DetailIntent.RecommendationClicked ->
                 tracker.track(AnalyticsEvent.MovieOpened(intent.movieId, source = "recommendation"))
 
-            DetailIntent.ImdbClicked ->
-                tracker.track(AnalyticsEvent.OutboundLink("imdb"))
-
-            DetailIntent.WatchProvidersClicked ->
-                tracker.track(AnalyticsEvent.OutboundLink("watch_providers"))
+            DetailIntent.TrailerUnavailable ->
+                _state.update { it.copy(error = UiText.Dynamic("No app on this device can open the trailer.")) }
 
             DetailIntent.ReviewsRequested -> loadReviews(page = 1)
             DetailIntent.MoreReviewsRequested ->
@@ -138,4 +136,5 @@ class DetailViewModel @AssistedInject constructor(
             }
         }
     }
+
 }

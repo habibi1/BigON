@@ -41,7 +41,6 @@ data class DetailUiState(
     /** Detail-only fields: absent on the first paint, and often absent entirely. */
     val certification: String? get() = detail?.certification?.takeIf { it.isNotBlank() }
     val keywords: List<String> get() = detail?.keywords.orEmpty()
-    val imdbUrl: String? get() = detail?.imdbUrl
     val recommendations: List<Movie> get() = detail?.recommendations.orEmpty()
 
     /** Null when TMDB has no availability for the resolved region, which is common. */
@@ -88,9 +87,14 @@ sealed interface DetailIntent {
     data class FavoriteToggled(val favorite: Boolean) : DetailIntent
     /** A recommendation was tapped; the shell decides what opening it means. */
     data class RecommendationClicked(val movieId: Long) : DetailIntent
-    data object ImdbClicked : DetailIntent
-    data object WatchProvidersClicked : DetailIntent
     /** Retrying a failed review load. */
     data object ReviewsRequested : DetailIntent
     data object MoreReviewsRequested : DetailIntent
+
+    /**
+     * Nothing on the device can open the trailer — no YouTube, no browser. The
+     * button stays enabled because a key exists; what is missing is somewhere
+     * to send it.
+     */
+    data object TrailerUnavailable : DetailIntent
 }

@@ -6,6 +6,8 @@ import com.bigon.tmdb.model.Movie
 import com.bigon.tmdb.model.MovieDetail
 import com.bigon.tmdb.model.WatchProvider
 import com.bigon.tmdb.model.WatchProviders
+import com.bigon.tmdb.model.Video
+import com.bigon.tmdb.model.VideoType
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
@@ -39,6 +41,7 @@ internal data class MovieDetailSnapshot(
     @SerialName("g") val genres: List<String> = emptyList(),
     @SerialName("c") val cast: List<CastSnapshot> = emptyList(),
     @SerialName("tk") val trailerKey: String? = null,
+    @SerialName("vid") val videos: List<VideoSnapshot> = emptyList(),
     @SerialName("rec") val recommendations: List<MovieSnapshot> = emptyList(),
     @SerialName("cert") val certification: String? = null,
     @SerialName("kw") val keywords: List<String> = emptyList(),
@@ -49,6 +52,16 @@ internal data class MovieDetailSnapshot(
     @SerialName("loc") val isLocalised: Boolean = false,
     @SerialName("colId") val collectionId: Long? = null,
     @SerialName("colName") val collectionName: String? = null,
+)
+
+@Serializable
+internal data class VideoSnapshot(
+    @SerialName("k") val key: String = "",
+    @SerialName("n") val name: String = "",
+    @SerialName("t") val type: String = "",
+    @SerialName("o") val official: Boolean = false,
+    @SerialName("s") val sizePx: Int = 0,
+    @SerialName("p") val publishedAt: String? = null,
 )
 
 @Serializable
@@ -103,6 +116,7 @@ internal fun MovieDetail.toSnapshot(): MovieDetailSnapshot = MovieDetailSnapshot
     genres = genres,
     cast = cast.map { CastSnapshot(it.id, it.name, it.character, it.profileUrl) },
     trailerKey = trailerKey,
+    videos = videos.map { it.toSnapshot() },
     recommendations = recommendations.map {
         MovieSnapshot(
             id = it.id,
@@ -148,6 +162,7 @@ internal fun MovieDetailSnapshot.toDomain(): MovieDetail = MovieDetail(
     genres = genres,
     cast = cast.map { CastMember(it.id, it.name, it.character, it.profileUrl) },
     trailerKey = trailerKey,
+    videos = videos.map { it.toDomain() },
     recommendations = recommendations.map {
         Movie(
             id = it.id,
@@ -187,3 +202,23 @@ private fun String?.toLocalDateOrNull(): LocalDate? =
             null
         }
     }
+
+private fun VideoSnapshot.toDomain(): Video = Video(
+    key = key,
+    name = name,
+    type = VideoType.from(type),
+    isOfficial = official,
+    sizePx = sizePx,
+    publishedAt = publishedAt,
+)
+
+private fun Video.toSnapshot(): VideoSnapshot = VideoSnapshot(
+    key = key,
+    name = name,
+    // The enum name round-trips through VideoType.from, which lowercases and
+    // falls back to Other — so an unknown kind degrades rather than throwing.
+    type = type.name,
+    official = isOfficial,
+    sizePx = sizePx,
+    publishedAt = publishedAt,
+)

@@ -19,8 +19,18 @@ data class MovieDetail(
     val runtimeMinutes: Int?,
     val genres: List<String>,
     val cast: List<CastMember>,
-    /** YouTube key for the trailer, when TMDB has one. */
+    /**
+     * YouTube key for the best trailer, when TMDB has one. Kept alongside
+     * [videos] because most callers want the one thing the button plays, not
+     * the list.
+     */
     val trailerKey: String?,
+    /**
+     * Everything else TMDB sent: teasers, clips, featurettes. They arrive in
+     * the same detail response as the trailer, so keeping them costs no extra
+     * request — discarding them was the only reason they were not already here.
+     */
+    val videos: List<Video> = emptyList(),
     /**
      * TMDB's own recommendations, already merged with `similar` as a fallback:
      * recommendations are editorially better but thin or absent for obscure
