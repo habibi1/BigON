@@ -53,7 +53,7 @@ class DetailViewModel @AssistedInject constructor(
         // Cached row first, so the shared element lands on real content rather
         // than a spinner while the network request is still in flight.
         observeCachedMovie(movieId)
-            .onEach { movie -> _state.update { it.copy(cached = movie) } }
+            .onEach { movie -> _state.update { it.copy(cached = movie).pinArtwork() } }
             .launchIn(viewModelScope)
 
         observeIsFavorite(movieId)
@@ -127,7 +127,7 @@ class DetailViewModel @AssistedInject constructor(
             _state.update { it.copy(isLoading = true, error = null) }
             when (val result = getMovieDetail(movieId)) {
                 is AppResult.Success -> _state.update {
-                    it.copy(isLoading = false, detail = result.value, error = null)
+                    it.copy(isLoading = false, detail = result.value, error = null).pinArtwork()
                 }
                 // A failure never clears cached content already on screen.
                 is AppResult.Failure -> _state.update {
@@ -137,4 +137,15 @@ class DetailViewModel @AssistedInject constructor(
         }
     }
 
+    /**
+     * Claims the hero artwork for the first source that has any, and never
+     * lets go. Both sources keep arriving after that — the detail response,
+     * and the cached row again once the repository writes the response back
+     * over it — and each one is a chance for the image to change under the
+     * reader for no reason they can see. See [DetailUiState.paintedPosterUrl].
+     */
+    private fun DetailUiState.pinArtwork(): DetailUiState = copy(
+        paintedPosterUrl = paintedPosterUrl ?: posterUrl,
+        paintedBackdropUrl = paintedBackdropUrl ?: backdropUrl,
+    )
 }

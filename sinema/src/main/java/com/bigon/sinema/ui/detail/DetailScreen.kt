@@ -754,7 +754,7 @@ private fun Backdrop(
 
     // Tall enough that the poster clears the back button beneath the status bar.
     Box(modifier = Modifier.fillMaxWidth().height(330.dp)) {
-        state.backdropUrl?.let { url ->
+        state.paintedBackdropUrl?.let { url ->
             AsyncImage(
                 model = url,
                 contentDescription = null,
@@ -782,7 +782,7 @@ private fun Backdrop(
                 .clip(BigonTheme.shapes.card)
                 .then(transition.posterModifier(state.movieId)),
         ) {
-            state.posterUrl?.let { url ->
+            state.paintedPosterUrl?.let { url ->
                 AsyncImage(
                     model = url,
                     contentDescription = null,
