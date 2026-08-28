@@ -40,6 +40,18 @@ import kotlin.math.round
 object BigonMovieCardDefaults {
     val Width: Dp = 120.dp
     const val PosterAspectRatio: Float = 2f / 3f
+
+    /**
+     * How many [BigonShimmerCard]s to lay out while a grid of these loads.
+     * Three full rows on a phone, so the skeleton reaches the bottom of the
+     * screen instead of stopping two thirds of the way down and reading as a
+     * short list that has finished loading.
+     *
+     * Here rather than in each screen: Home and Search both show this grid, and
+     * two private constants that must agree is exactly the drift this object
+     * exists to prevent.
+     */
+    const val SkeletonCount: Int = 9
 }
 
 /**
