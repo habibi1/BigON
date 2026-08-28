@@ -8,7 +8,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -111,6 +110,13 @@ fun BigonSearchBar(
     }
 }
 
+/**
+ * A chip's own padding, shared with [BigonShimmerChip] so the loading state
+ * and the real thing cannot disagree about how tall a chip is.
+ */
+private val ChipPaddingHorizontal = 14.dp
+private val ChipPaddingVertical = 6.dp
+
 /** BigonChip — filter chip, off / on (component gallery §Input). */
 @Composable
 fun BigonChip(
@@ -132,7 +138,7 @@ fun BigonChip(
                 },
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 6.dp),
+            .padding(horizontal = ChipPaddingHorizontal, vertical = ChipPaddingVertical),
     ) {
         Text(
             text = label,
@@ -140,6 +146,53 @@ fun BigonChip(
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
             ),
             color = if (selected) colors.onPrimaryContainer else colors.textSecondary,
+        )
+    }
+}
+
+/**
+ * BigonShimmerChip — the loading variant of [BigonChip], built from the chip's
+ * own padding, border and label style so it occupies exactly the chip's
+ * footprint and reads as the same control. [selected] mirrors [BigonChip]: a
+ * selected chip is the gold one, and its placeholder shimmers in gold too.
+ *
+ * [labelFor] is the only guess, and it is a guess about content rather than
+ * about layout: pass a value of the kind the chip will hold — an age rating,
+ * a genre — and the chip comes out the width that value renders at.
+ */
+@Composable
+fun BigonShimmerChip(
+    modifier: Modifier = Modifier,
+    labelFor: String = "Adventure",
+    selected: Boolean = false,
+) {
+    val colors = BigonTheme.colors
+    Box(
+        modifier = modifier
+            .clip(BigonTheme.shapes.pill)
+            .background(if (selected) colors.primaryContainer else colors.surfaceHigh)
+            // The outline is what makes an unselected chip read as a chip, so
+            // the placeholder carries it too. A selected one has no border,
+            // exactly as in [BigonChip].
+            .then(
+                if (selected) {
+                    Modifier
+                } else {
+                    Modifier.border(1.dp, colors.outline, BigonTheme.shapes.pill)
+                },
+            )
+            .padding(horizontal = ChipPaddingHorizontal, vertical = ChipPaddingVertical),
+    ) {
+        BigonShimmerText(
+            style = BigonTheme.typography.label,
+            placeholderFor = labelFor,
+            // A grey bar inside a gold chip reads as a different component
+            // rather than as that chip loading.
+            colors = if (selected) {
+                BigonShimmerDefaults.onPrimaryContainer
+            } else {
+                BigonShimmerDefaults.colors
+            },
         )
     }
 }
