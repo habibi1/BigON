@@ -42,8 +42,24 @@ android {
 
     buildTypes {
         release {
+            // R8: shrink, optimise, obfuscate, and shrink resources. AGP 9's
+            // `optimization` block turns all of it on and supplies Android's
+            // default keep rules, so there is no getDefaultProguardFile() call
+            // and no proguardFiles list to keep in sync.
+            //
+            // There is deliberately no keep-rule file. Every dependency that
+            // needs rules ships its own — kotlinx.serialization, Retrofit,
+            // OkHttp, Room, Hilt, Coil and Play all contribute to the merged
+            // configuration, and R8 asked for nothing further (no
+            // missing_rules.txt was produced). Nothing in this app reaches for
+            // a type by name at runtime, so there is nothing left to protect.
+            //
+            // If that changes, rules belong in `src/main/keepRules/*.keep` in
+            // the module that needs them, not in one file here: core/ and tmdb/
+            // are meant to be reusable, and a second app should inherit their
+            // rules the same way it inherits their code.
             optimization {
-                enable = false
+                enable = true
             }
         }
     }
