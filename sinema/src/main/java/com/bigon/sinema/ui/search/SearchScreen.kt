@@ -29,6 +29,7 @@ import com.bigon.core.designsystem.components.BigonEmptyState
 import com.bigon.tmdb.ui.BigonMovieCard
 import com.bigon.tmdb.ui.BigonPosterPlaceholder
 import com.bigon.core.designsystem.components.BigonSearchBar
+import com.bigon.tmdb.ui.BigonMovieCardDefaults
 import com.bigon.tmdb.ui.BigonShimmerCard
 import com.bigon.core.designsystem.components.BigonSnackbar
 import com.bigon.core.designsystem.icons.BigonIcons
@@ -286,7 +287,7 @@ private fun ResultGrid(contentPadding: PaddingValues) {
         contentPadding = PaddingValues(bottom = spacing.l + contentPadding.calculateBottomPadding()),
         modifier = Modifier.fillMaxSize().padding(top = spacing.m),
     ) {
-        items(List(6) { it }) {
+        items(List(BigonMovieCardDefaults.SkeletonCount) { it }) {
             BigonShimmerCard(width = Dp.Unspecified, modifier = Modifier.fillMaxWidth())
         }
     }

@@ -37,6 +37,7 @@ import com.bigon.core.designsystem.components.BigonChipRow
 import com.bigon.core.designsystem.components.BigonEmptyState
 import com.bigon.tmdb.ui.BigonMovieCard
 import com.bigon.tmdb.ui.BigonPosterPlaceholder
+import com.bigon.tmdb.ui.BigonMovieCardDefaults
 import com.bigon.tmdb.ui.BigonShimmerCard
 import com.bigon.core.designsystem.components.BigonSnackbar
 import com.bigon.core.designsystem.icons.BigonIcons
@@ -179,7 +180,7 @@ fun HomeScreen(
 
         when {
             state.showSkeletons -> MovieGrid(
-                itemCount = 6,
+                itemCount = BigonMovieCardDefaults.SkeletonCount,
                 contentPadding = PaddingValues(
                     bottom = spacing.l + contentPadding.calculateBottomPadding(),
                 ),
