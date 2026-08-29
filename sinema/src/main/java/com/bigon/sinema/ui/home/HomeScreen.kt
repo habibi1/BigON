@@ -13,12 +13,13 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.key
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.getValue
@@ -41,7 +42,6 @@ import com.bigon.core.designsystem.theme.BigonTheme
 import com.bigon.tmdb.model.Movie
 import com.bigon.tmdb.model.MovieCategory
 import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import com.bigon.core.designsystem.components.BigonLoadingIndicator
 import com.bigon.core.ui.LoadMoreEffect
 import com.bigon.core.ui.ObserveEffects
@@ -100,10 +100,16 @@ fun HomeScreen(
     // behind, and the empty frame between the two lists reset it to zero. Each
     // feed keeps its own, so returning to a chip returns to where you were.
     //
+    // Saved rather than merely remembered. Opening a film takes this screen out
+    // of composition, and a plain remember dies with it — so every return from
+    // a detail screen landed back at the first row, however far down the reader
+    // had been. rememberSaveable outlives that, because the navigation entry
+    // holds a destination's saveable state while it sits in the back stack.
+    //
     // Hoisted rather than declared inside the grid so the chip row can reach
     // the current one — re-tapping the active chip is "take me back to the
     // top", not a reload.
-    val gridStates = remember { mutableMapOf<String, LazyGridState>() }
+    val gridStates = rememberSaveable(saver = FeedScrollPositions) { mutableMapOf() }
     val gridState = gridStates.getOrPut(state.feed.label) { LazyGridState() }
     val scope = rememberCoroutineScope()
 
@@ -271,6 +277,26 @@ private fun MovieCard(movie: Movie, transition: PosterTransition?, onClick: () -
         },
     )
 }
+
+/**
+ * Scroll position per feed, flattened to `label, index, offset` triples so it
+ * survives in a Bundle.
+ *
+ * Positions rather than the states themselves: a LazyGridState is not
+ * parcelable, and the two numbers are the whole of what the reader would miss.
+ */
+private val FeedScrollPositions = listSaver<MutableMap<String, LazyGridState>, Any>(
+    save = { states ->
+        states.flatMap { (label, state) ->
+            listOf(label, state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset)
+        }
+    },
+    restore = { flat ->
+        flat.chunked(3).associate { (label, index, offset) ->
+            label as String to LazyGridState(index as Int, offset as Int)
+        }.toMutableMap()
+    },
+)
 
 @Composable
 private fun MovieGrid(
