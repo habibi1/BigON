@@ -29,6 +29,7 @@ import com.bigon.tmdb.domain.movie.MovieRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -163,11 +164,25 @@ class DefaultMovieRepository @Inject constructor(
     override suspend fun activeRegion(): String = regionProvider.region()
 
     override suspend fun setRegion(code: String?) = withContext(dispatchers.io) {
-        if (code == regionProvider.region() && code != null) return@withContext
+        // Against the *stored* preference, not the effective region. Comparing
+        // against the effective one meant explicitly choosing your own device's
+        // country was a no-op: region() already answered "US" from the locale
+        // fallback, so the choice was never written and Settings went on saying
+        // "United States of America · device" — the app still tracking the
+        // phone the reader had just asked it to stop tracking.
+        if (code == preferences.region.first()) return@withContext
+        val previousRegion = regionProvider.region()
         preferences.setRegion(code)
+
         // Certification, availability and the curated lists were all fetched
         // for the previous region. Detail payloads carry it baked in, so they
         // go too — trending is left alone, being region-independent.
+        //
+        // Only when the region actually moved, though. Pinning the country you
+        // were already following changes what is stored without changing a
+        // single request, and throwing the catalogue away there would empty the
+        // screen and refetch the same films.
+        if (regionProvider.region() == previousRegion) return@withContext
         movieDao.clearAll()
         movieDetailDao.clear()
     }
