@@ -80,7 +80,32 @@ class DefaultMovieRepository @Inject constructor(
             genreDao.observeAll(),
         ) { row, genres ->
             row?.let { MovieMapper.toDomain(it, genres.associate { g -> g.id to g.name }) }
+                ?: seenInResults(movieId)
         }.flowOn(dispatchers.io)
+
+    /**
+     * Films the user has seen in search or discover results, held in memory
+     * only.
+     *
+     * Detail paints its first frame from [observeCached], and a search result
+     * has no row in `movie_entity` by design — those results are transient and
+     * must not pollute the category lists. The visible cost was on the shared
+     * poster: opening a film that Home had never cached flew a placeholder
+     * where the poster should be, for as long as the network took, because the
+     * screen it was flying to had no artwork to show yet.
+     *
+     * Deliberately not persisted and bounded to [MAX_SEEN]: this exists to
+     * survive one navigation, not to become a second catalogue.
+     */
+    private val seen = object : LinkedHashMap<Long, Movie>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: Map.Entry<Long, Movie>): Boolean = size > MAX_SEEN
+    }
+
+    private fun seenInResults(movieId: Long): Movie? = synchronized(seen) { seen[movieId] }
+
+    private fun MoviePage.remember(): MoviePage = apply {
+        synchronized(seen) { movies.forEach { seen[it.id] = it } }
+    }
 
     /**
      * Offline-first, like every other read: the network is tried first because
@@ -258,6 +283,12 @@ class DefaultMovieRepository @Inject constructor(
         const val MAX_CACHED_DETAILS = 50
 
         /**
+         * Enough to cover the results a reader can scroll through and open in
+         * one sitting; small enough that it is never worth thinking about.
+         */
+        const val MAX_SEEN = 200
+
+        /**
          * `ignoreUnknownKeys` is what lets the snapshot format gain fields
          * without invalidating everything already on disk.
          */
@@ -322,7 +353,7 @@ class DefaultMovieRepository @Inject constructor(
             refreshGenresIfNeeded()
             val genresById = genreDao.getAll().associate { it.id to it.name }
             apiCaller.execute { movieApi.search(query, page = page) }
-                .map { response -> MovieMapper.toPage(response, genresById) }
+                .map { response -> MovieMapper.toPage(response, genresById).remember() }
         }
 
     override suspend fun discover(
@@ -350,7 +381,7 @@ class DefaultMovieRepository @Inject constructor(
                     minVotes = filters.minRating?.let { DiscoverFilters.MIN_VOTES_FOR_RATING_FILTER },
                     maxRuntime = filters.maxRuntimeMinutes,
                 )
-            }.map { response -> MovieMapper.toPage(response, genresById) }
+            }.map { response -> MovieMapper.toPage(response, genresById).remember() }
         }
 
     override suspend fun streamingServices(): AppResult<List<WatchProvider>> =
