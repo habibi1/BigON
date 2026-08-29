@@ -39,7 +39,6 @@ import coil3.compose.AsyncImage
 import com.bigon.tmdb.ui.BigonCastCard
 import com.bigon.core.designsystem.components.BigonChip
 import com.bigon.core.designsystem.components.BigonFavoriteToggle
-import com.bigon.core.designsystem.components.BigonLoadingIndicator
 import com.bigon.tmdb.ui.BigonMovieCard
 import com.bigon.tmdb.ui.BigonPosterPlaceholder
 import com.bigon.core.designsystem.components.BigonPrimaryButton
@@ -47,6 +46,10 @@ import com.bigon.core.designsystem.components.BigonSectionHeader
 import com.bigon.core.designsystem.components.BigonSnackbar
 import com.bigon.core.designsystem.components.BigonTonalButton
 import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.components.BigonShimmerText
+import com.bigon.core.designsystem.components.BigonShimmerChip
+import com.bigon.tmdb.ui.BigonShimmerCard
+import com.bigon.tmdb.ui.BigonShimmerCastCard
 import com.bigon.core.designsystem.theme.BigonTheme
 import com.bigon.tmdb.model.Review
 import com.bigon.tmdb.model.WatchProviders
@@ -130,10 +133,16 @@ fun DetailScreen(
             Backdrop(state = state, transition = transition)
 
             Column(modifier = Modifier.padding(horizontal = spacing.l)) {
-                Text(
-                    text = state.title.orEmpty(),
+                state.title?.let { title ->
+                    Text(
+                        text = title,
+                        style = BigonTheme.typography.display,
+                        color = colors.textPrimary,
+                        modifier = Modifier.padding(top = spacing.l),
+                    )
+                } ?: BigonShimmerText(
                     style = BigonTheme.typography.display,
-                    color = colors.textPrimary,
+                    lastLineFraction = 0.7f,
                     modifier = Modifier.padding(top = spacing.l),
                 )
                 state.detail?.tagline?.let { tagline ->
@@ -143,11 +152,21 @@ fun DetailScreen(
                         color = colors.textSecondary,
                         modifier = Modifier.padding(top = spacing.xs),
                     )
-                }
+                } ?: if (state.isDetailPending) {
+                    // Reserved because 17 of 20 sampled trending titles carry a
+                    // tagline: holding 49px for it means the three that do not
+                    // close a small gap, while the seventeen that do stop
+                    // shoving the whole screen down on arrival.
+                    BigonShimmerText(
+                        style = BigonTheme.typography.body,
+                        lastLineFraction = 0.5f,
+                        modifier = Modifier.padding(top = spacing.xs),
+                    )
+                } else Unit
 
                 MetaRow(state = state, modifier = Modifier.padding(top = spacing.m))
 
-                if (state.genres.isNotEmpty() || state.certification != null) {
+                if (state.genres.isNotEmpty() || state.certification != null || state.isDetailPending) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(spacing.s),
                         modifier = Modifier
@@ -159,9 +178,22 @@ fun DetailScreen(
                         // rating rather than another genre.
                         state.certification?.let { certification ->
                             BigonChip(label = certification, selected = true, onClick = {})
-                        }
+                        } ?: if (state.isDetailPending) {
+                            // Certification comes from release_dates, so it
+                            // arrives with the response even when the genres
+                            // beside it came from the cached row — which is why
+                            // it used to appear a beat later and shove them
+                            // sideways. Reserved: 14 of 20 sampled titles carry
+                            // one in this region, 19 of 20 in the US.
+                            BigonShimmerChip(labelFor = "PG-13", selected = true)
+                        } else Unit
+
                         state.genres.forEach { genre ->
                             BigonChip(label = genre, selected = false, onClick = {})
+                        }
+                        if (state.genres.isEmpty() && state.isDetailPending) {
+                            BigonShimmerChip(labelFor = "Adventure")
+                            BigonShimmerChip(labelFor = "Action")
                         }
                     }
                 }
@@ -200,15 +232,26 @@ fun DetailScreen(
                     )
                 }
 
-                state.overview?.let { overview ->
+                // The heading is not data and needs no skeleton — only the
+                // prose beneath it is waiting on the network.
+                if (state.overview != null || state.isDetailPending) {
                     BigonSectionHeader(title = "Overview", modifier = Modifier.padding(top = spacing.xl))
+                }
+                state.overview?.let { overview ->
                     Text(
                         text = overview,
                         style = BigonTheme.typography.body,
                         color = colors.textSecondary,
                         modifier = Modifier.padding(top = spacing.s),
                     )
-                }
+                } ?: if (state.isDetailPending) {
+                    BigonShimmerText(
+                        style = BigonTheme.typography.body,
+                        lines = 4,
+                        lastLineFraction = 0.6f,
+                        modifier = Modifier.padding(top = spacing.s),
+                    )
+                } else Unit
 
                 state.detail?.cast?.takeIf { it.isNotEmpty() }?.let { cast ->
                     BigonSectionHeader(title = "Cast", modifier = Modifier.padding(top = spacing.xl))
@@ -247,6 +290,19 @@ fun DetailScreen(
                     }
                 }
 
+                if (state.detail?.cast.isNullOrEmpty() && state.isDetailPending) {
+                    BigonSectionHeader(title = "Cast", modifier = Modifier.padding(top = spacing.xl))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(spacing.m),
+                        modifier = Modifier.padding(top = spacing.m),
+                    ) {
+                        // Five is roughly what fits across a phone, so the row
+                        // fills the width it is about to occupy without
+                        // pretending to know how long the billed cast is.
+                        repeat(5) { BigonShimmerCastCard() }
+                    }
+                }
+
                 state.detail?.collection?.let { collection ->
                     BigonSectionHeader(
                         title = "Part of a collection",
@@ -261,6 +317,21 @@ fun DetailScreen(
 
                 state.watchProviders?.let { providers ->
                     WhereToWatch(providers = providers)
+                } ?: if (state.isDetailPending) {
+                    WhereToWatchSkeleton()
+                } else Unit
+
+                if (state.recommendations.isEmpty() && state.isDetailPending) {
+                    BigonSectionHeader(
+                        title = "More like this",
+                        modifier = Modifier.padding(top = spacing.xl),
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(spacing.m),
+                        modifier = Modifier.padding(top = spacing.m),
+                    ) {
+                        repeat(3) { BigonShimmerCard() }
+                    }
                 }
 
                 if (state.recommendations.isNotEmpty()) {
@@ -292,6 +363,19 @@ fun DetailScreen(
                                 },
                             )
                         }
+                    }
+                }
+
+                if (state.keywords.isEmpty() && state.isDetailPending) {
+                    BigonSectionHeader(
+                        title = "Themes",
+                        modifier = Modifier.padding(top = spacing.xl),
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(spacing.s),
+                        modifier = Modifier.padding(top = spacing.m),
+                    ) {
+                        repeat(4) { BigonShimmerChip() }
                     }
                 }
 
@@ -333,12 +417,6 @@ fun DetailScreen(
                 // edge-to-edge with no navigation bar beneath it.
                 Spacer(modifier = Modifier.height(spacing.xxl))
             }
-        }
-
-        // Skeleton first, toolbar second: the back button has to stay on top
-        // and tappable while loading, or a slow request traps the user.
-        if (state.showLoader) {
-            DetailSkeleton(modifier = Modifier.fillMaxSize().background(colors.background))
         }
 
         DetailToolbar(
@@ -452,81 +530,6 @@ private fun BoxScope.DetailToolbar(
 }
 
 /**
- * Skeleton of the real layout rather than a centred spinner.
- *
- * Detail is a tall, structured screen, and a lone spinner in the middle of it
- * says nothing about what is coming. These blocks occupy the same positions as
- * the backdrop, poster, title, chips, actions and overview, so the arrival of
- * content is a fill rather than a jump.
- */
-@Composable
-private fun DetailSkeleton(modifier: Modifier = Modifier) {
-    val spacing = BigonTheme.spacing
-
-    Column(modifier = modifier) {
-        BigonShimmerBox(
-            shape = RectangleShape,
-            modifier = Modifier.fillMaxWidth().height(330.dp),
-        )
-
-        Column(modifier = Modifier.padding(horizontal = spacing.l)) {
-            // Poster, overlapping the backdrop exactly as the real one does.
-            BigonShimmerBox(
-                modifier = Modifier
-                    .padding(top = spacing.l)
-                    .width(110.dp)
-                    .height(165.dp),
-            )
-            BigonShimmerBox(
-                shape = BigonTheme.shapes.pill,
-                modifier = Modifier.padding(top = spacing.l).fillMaxWidth(0.7f).height(28.dp),
-            )
-            BigonShimmerBox(
-                shape = BigonTheme.shapes.pill,
-                modifier = Modifier.padding(top = spacing.s).fillMaxWidth(0.45f).height(16.dp),
-            )
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(spacing.s),
-                modifier = Modifier.padding(top = spacing.m),
-            ) {
-                repeat(3) {
-                    BigonShimmerBox(
-                        shape = BigonTheme.shapes.pill,
-                        modifier = Modifier.width(84.dp).height(32.dp),
-                    )
-                }
-            }
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(spacing.m),
-                modifier = Modifier.padding(top = spacing.xl),
-            ) {
-                BigonShimmerBox(
-                    shape = BigonTheme.shapes.pill,
-                    modifier = Modifier.width(180.dp).height(48.dp),
-                )
-                BigonShimmerBox(
-                    shape = BigonTheme.shapes.pill,
-                    modifier = Modifier.size(48.dp),
-                )
-            }
-
-            repeat(4) { line ->
-                BigonShimmerBox(
-                    shape = BigonTheme.shapes.pill,
-                    modifier = Modifier
-                        .padding(top = if (line == 0) spacing.xl else spacing.s)
-                        // The last line stops short, the way a paragraph does.
-                        .fillMaxWidth(if (line == 3) 0.6f else 1f)
-                        .height(14.dp),
-                )
-            }
-        }
-    }
-}
-
-/**
  * Reviews, as a horizontally scrolling row of cards.
  *
  * A stacked list put an unbounded amount of prose in the middle of the screen
@@ -573,12 +576,9 @@ private fun Reviews(
         }
 
         if (state.isLoadingReviews) {
-            Box(
-                modifier = Modifier.width(REVIEW_CARD_WIDTH).height(REVIEW_CARD_HEIGHT),
-                contentAlignment = Alignment.Center,
-            ) {
-                BigonLoadingIndicator(size = 28.dp)
-            }
+            // A spinner in a card-sized hole told the reader something was
+            // happening but not what shape it would be; this is the card.
+            ReviewCardSkeleton()
         }
 
         // "Load more" rides at the end of the row rather than sitting under it,
@@ -602,6 +602,46 @@ private fun Reviews(
         }
     }
 }
+
+/**
+ * The loading form of [ReviewCard], sharing its width, height, padding and
+ * avatar so a review arriving does not resize the row it lands in.
+ */
+@Composable
+private fun ReviewCardSkeleton() {
+    val spacing = BigonTheme.spacing
+
+    Column(
+        modifier = Modifier
+            .width(REVIEW_CARD_WIDTH)
+            .height(REVIEW_CARD_HEIGHT)
+            .clip(BigonTheme.shapes.container)
+            .background(BigonTheme.colors.surface)
+            .padding(spacing.m),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            BigonShimmerBox(
+                shape = BigonTheme.shapes.pill,
+                modifier = Modifier.size(28.dp),
+            )
+            BigonShimmerText(
+                style = BigonTheme.typography.body,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = spacing.s),
+            )
+        }
+        BigonShimmerText(
+            style = BigonTheme.typography.body,
+            lines = 5,
+            lastLineFraction = 0.55f,
+            modifier = Modifier.padding(top = spacing.s),
+        )
+    }
+}
+
+/** Shared by the real provider tile and its skeleton. */
+private val PROVIDER_LOGO_SIZE = 44.dp
 
 private val REVIEW_CARD_WIDTH = 300.dp
 private val REVIEW_CARD_HEIGHT = 200.dp
@@ -671,6 +711,35 @@ private fun ReviewCard(review: Review) {
 }
 
 /**
+ * The loading form of [WhereToWatch]. Reserved because 13 of 20 sampled
+ * trending titles have availability in a given region — a majority, so holding
+ * the space costs the minority a small collapse and saves everyone else a shove.
+ *
+ * The heading drops the region rather than guessing it. That is a text change
+ * on arrival, not a layout one: the header is one line either way.
+ */
+@Composable
+private fun WhereToWatchSkeleton() {
+    val spacing = BigonTheme.spacing
+
+    BigonSectionHeader(
+        title = "Where to watch",
+        modifier = Modifier.padding(top = spacing.xl),
+    )
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(spacing.s),
+        modifier = Modifier.padding(top = spacing.m),
+    ) {
+        repeat(4) {
+            BigonShimmerBox(
+                shape = BigonTheme.shapes.badge,
+                modifier = Modifier.size(PROVIDER_LOGO_SIZE),
+            )
+        }
+    }
+}
+
+/**
  * Streaming availability for one region.
  *
  * TMDB sources this from JustWatch, whose terms require that the data links
@@ -709,13 +778,15 @@ private fun WhereToWatch(providers: WatchProviders) {
             .padding(top = spacing.m),
     ) {
         (streaming + alsoAvailable).forEach { provider ->
-            // Square, and deliberately unclipped. TMDB ships these logos as
-            // full-bleed squares with the mark running to the edge, so rounding
-            // the tile cuts the artwork rather than framing it — Prime's arrow
-            // and Apple TV's wordmark both lose a corner.
+            // Softened with the badge radius rather than the container one.
+            // These logos are full-bleed squares with the mark running to the
+            // edge, so 16dp took a visible bite out of Prime's arrow and Apple
+            // TV's wordmark; 8dp on a 44dp tile reads as rounded without
+            // reaching the artwork.
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(PROVIDER_LOGO_SIZE)
+                    .clip(BigonTheme.shapes.badge)
                     .background(colors.surfaceVariant),
             ) {
                 provider.logoUrl?.let { url ->
@@ -761,6 +832,20 @@ private fun Backdrop(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
             )
+        } ?: if (state.isDetailPending) {
+            BigonShimmerBox(
+                // Square-cornered, because the backdrop it replaces runs to the
+                // edges of the screen.
+                shape = RectangleShape,
+                modifier = Modifier.fillMaxSize(),
+            )
+        } else {
+            // Loaded, and this title genuinely has no backdrop — the scrim over
+            // the background is the whole header, as it was before there was a
+            // skeleton here. Unguarded, this shimmered for the life of the
+            // screen: measured on Rabbit Test (TMDB 102841), a fully loaded
+            // page down to its cast and recommendations, still sweeping.
+            Unit
         }
         // Scrim keeps title text legible over any artwork.
         Box(
@@ -789,7 +874,12 @@ private fun Backdrop(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
                 )
-            } ?: BigonPosterPlaceholder()
+            } ?: if (state.isDetailPending) {
+                BigonShimmerBox(modifier = Modifier.fillMaxSize())
+            } else {
+                // Loaded, and this title genuinely has no poster.
+                BigonPosterPlaceholder()
+            }
         }
     }
 }
@@ -797,20 +887,81 @@ private fun Backdrop(
 @Composable
 private fun MetaRow(state: DetailUiState, modifier: Modifier = Modifier) {
     val colors = BigonTheme.colors
+
     val parts = buildList {
         state.year?.let { add(it.toString()) }
         state.detail?.runtimeMinutes?.let { add("${it / 60}h ${it % 60}m") }
         state.rating?.let { add("★ ${(kotlin.math.round(it * 10) / 10)}") }
         state.detail?.voteCount?.takeIf { it > 0 }?.let { add("$it votes") }
     }
-    if (parts.isEmpty()) return
 
+    if (!state.isDetailPending) {
+        if (parts.isEmpty()) return
+        // Settled: one string, so it can ellipsize as a whole if the type scale
+        // is large enough to overflow.
+        Text(
+            text = parts.joinToString(META_SEPARATOR),
+            style = BigonTheme.typography.caption,
+            color = colors.textSecondary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = modifier,
+        )
+        return
+    }
+
+    // Still loading, and this line is the one place on the screen where the two
+    // sources interleave: year and rating ride in on the cached row, runtime
+    // and the vote count only arrive with the response. Rendering it as a
+    // single joined string would mean either showing a half-line that grows
+    // sideways as the rest lands, or withholding what is already known.
+    // Measured on 20 trending titles: 19 carry a runtime, 20 a vote count.
+    val slots: List<@Composable () -> Unit> = buildList {
+        val year = state.year
+        add { if (year != null) MetaText(year.toString()) else MetaPlaceholder("2026") }
+
+        val runtime = state.detail?.runtimeMinutes
+        add {
+            if (runtime != null) MetaText("${runtime / 60}h ${runtime % 60}m")
+            else MetaPlaceholder("1h 50m")
+        }
+
+        val rating = state.rating
+        add {
+            if (rating != null) MetaText("★ ${(kotlin.math.round(rating * 10) / 10)}")
+            else MetaPlaceholder("★ 7.8")
+        }
+
+        // Vote count is detail-only, so while pending it is always a placeholder.
+        add { MetaPlaceholder("1283 votes") }
+    }
+
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
+        slots.forEachIndexed { index, slot ->
+            if (index > 0) MetaText(META_SEPARATOR)
+            slot()
+        }
+    }
+}
+
+/** The separator between meta values, shared by both forms of the row. */
+private const val META_SEPARATOR = "  ·  "
+
+@Composable
+private fun MetaText(text: String) {
     Text(
-        text = parts.joinToString("  ·  "),
+        text = text,
         style = BigonTheme.typography.caption,
-        color = colors.textSecondary,
+        color = BigonTheme.colors.textSecondary,
         maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier = modifier,
+    )
+}
+
+/** Sized from a representative value, so it holds the width the real one needs. */
+@Composable
+private fun MetaPlaceholder(sample: String) {
+    BigonShimmerText(
+        style = BigonTheme.typography.caption,
+        placeholderFor = sample,
     )
 }
