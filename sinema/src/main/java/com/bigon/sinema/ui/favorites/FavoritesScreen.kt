@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,6 +40,13 @@ fun FavoritesRoute(
     onMovieClick: (Long) -> Unit,
     onBrowseTrending: () -> Unit,
     modifier: Modifier = Modifier,
+    /**
+     * Space navigation floats over: the bar along the bottom at compact widths,
+     * the rail down the start at wider ones. Content clears it rather than
+     * being laid out beside it, so navigation can leave without anything
+     * resizing underneath it.
+     */
+    contentPadding: PaddingValues = PaddingValues(),
     transition: PosterTransition? = null,
     viewModel: FavoritesViewModel = hiltViewModel(),
 ) {
@@ -55,6 +64,7 @@ fun FavoritesRoute(
         onIntent = viewModel::onIntent,
         transition = transition,
         modifier = modifier,
+        contentPadding = contentPadding,
     )
 }
 
@@ -63,6 +73,13 @@ fun FavoritesScreen(
     state: FavoritesUiState,
     onIntent: (FavoritesIntent) -> Unit,
     modifier: Modifier = Modifier,
+    /**
+     * Space navigation floats over: the bar along the bottom at compact widths,
+     * the rail down the start at wider ones. Content clears it rather than
+     * being laid out beside it, so navigation can leave without anything
+     * resizing underneath it.
+     */
+    contentPadding: PaddingValues = PaddingValues(),
     transition: PosterTransition? = null,
 ) {
     val spacing = BigonTheme.spacing
@@ -71,6 +88,7 @@ fun FavoritesScreen(
         modifier = modifier
             .fillMaxSize()
             .statusBarsPadding()
+            .padding(start = contentPadding.calculateStartPadding(LocalLayoutDirection.current))
             .padding(horizontal = spacing.l),
     ) {
         Text(
@@ -99,7 +117,9 @@ fun FavoritesScreen(
                 columns = GridCells.Adaptive(minSize = 120.dp),
                 horizontalArrangement = Arrangement.spacedBy(spacing.l),
                 verticalArrangement = Arrangement.spacedBy(spacing.l),
-                contentPadding = PaddingValues(bottom = spacing.l),
+                contentPadding = PaddingValues(
+                    bottom = spacing.l + contentPadding.calculateBottomPadding(),
+                ),
                 modifier = Modifier.fillMaxSize(),
             ) {
                 items(state.favorites, key = { it.id }) { movie ->
