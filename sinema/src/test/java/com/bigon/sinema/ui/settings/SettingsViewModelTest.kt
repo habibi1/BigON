@@ -172,8 +172,10 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         // Nothing chosen yet: the region came from the device and keeps
-        // tracking it, which the label has to say.
-        assertEquals("Indonesia · device", vm.state.value.regionLabel)
+        // tracking it, which the label has to say. The space before "device"
+        // is non-breaking, so the qualifier wraps as a unit beside a long
+        // country name instead of stranding the separator on its own line.
+        assertEquals("Indonesia ·\u00A0device", vm.state.value.regionLabel)
 
         vm.onIntent(SettingsIntent.RegionSelected("ID"))
         advanceUntilIdle()

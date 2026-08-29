@@ -82,7 +82,10 @@ fun SettingsScreen(
         Column(modifier = Modifier.padding(top = spacing.xl)) {
             BigonSettingRow(
                 title = "Region",
-                subtitle = "Cinema listings, age ratings and streaming services",
+                // Shorter than it was: beside a value as long as "United States
+                // of America" this line has about half the row, and the old
+                // wording broke into three ragged fragments there.
+                subtitle = "Cinema listings, ratings and streaming",
                 value = state.regionLabel,
                 icon = BigonIcons.Search,
                 onClick = { onIntent(SettingsIntent.RegionPickerOpened) },
