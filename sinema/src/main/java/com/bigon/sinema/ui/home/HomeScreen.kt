@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,18 +14,20 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.key
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,6 +37,7 @@ import com.bigon.core.designsystem.components.BigonChipRow
 import com.bigon.core.designsystem.components.BigonEmptyState
 import com.bigon.tmdb.ui.BigonMovieCard
 import com.bigon.tmdb.ui.BigonPosterPlaceholder
+import com.bigon.tmdb.ui.BigonMovieCardDefaults
 import com.bigon.tmdb.ui.BigonShimmerCard
 import com.bigon.core.designsystem.components.BigonSnackbar
 import com.bigon.core.designsystem.icons.BigonIcons
@@ -41,7 +45,6 @@ import com.bigon.core.designsystem.theme.BigonTheme
 import com.bigon.tmdb.model.Movie
 import com.bigon.tmdb.model.MovieCategory
 import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import com.bigon.core.designsystem.components.BigonLoadingIndicator
 import com.bigon.core.ui.LoadMoreEffect
 import com.bigon.core.ui.ObserveEffects
@@ -63,6 +66,13 @@ fun HomeRoute(
     onTvClick: (Long) -> Unit = {},
     onPersonClick: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
+    /**
+     * Space navigation floats over: the bar along the bottom at compact widths,
+     * the rail down the start at wider ones. Content clears it rather than
+     * being laid out beside it, so navigation can leave without anything
+     * resizing underneath it.
+     */
+    contentPadding: PaddingValues = PaddingValues(),
     transition: PosterTransition? = null,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -81,6 +91,7 @@ fun HomeRoute(
         onIntent = viewModel::onIntent,
         transition = transition,
         modifier = modifier,
+        contentPadding = contentPadding,
     )
 }
 
@@ -90,6 +101,13 @@ fun HomeScreen(
     state: HomeUiState,
     onIntent: (HomeIntent) -> Unit,
     modifier: Modifier = Modifier,
+    /**
+     * Space navigation floats over: the bar along the bottom at compact widths,
+     * the rail down the start at wider ones. Content clears it rather than
+     * being laid out beside it, so navigation can leave without anything
+     * resizing underneath it.
+     */
+    contentPadding: PaddingValues = PaddingValues(),
     transition: PosterTransition? = null,
 ) {
     val spacing = BigonTheme.spacing
@@ -100,10 +118,16 @@ fun HomeScreen(
     // behind, and the empty frame between the two lists reset it to zero. Each
     // feed keeps its own, so returning to a chip returns to where you were.
     //
+    // Saved rather than merely remembered. Opening a film takes this screen out
+    // of composition, and a plain remember dies with it — so every return from
+    // a detail screen landed back at the first row, however far down the reader
+    // had been. rememberSaveable outlives that, because the navigation entry
+    // holds a destination's saveable state while it sits in the back stack.
+    //
     // Hoisted rather than declared inside the grid so the chip row can reach
     // the current one — re-tapping the active chip is "take me back to the
     // top", not a reload.
-    val gridStates = remember { mutableMapOf<String, LazyGridState>() }
+    val gridStates = rememberSaveable(saver = FeedScrollPositions) { mutableMapOf() }
     val gridState = gridStates.getOrPut(state.feed.label) { LazyGridState() }
     val scope = rememberCoroutineScope()
 
@@ -111,6 +135,7 @@ fun HomeScreen(
         modifier = modifier
             .fillMaxSize()
             .statusBarsPadding()
+            .padding(start = contentPadding.calculateStartPadding(LocalLayoutDirection.current))
             .padding(horizontal = spacing.l),
     ) {
         Text(
@@ -155,8 +180,10 @@ fun HomeScreen(
 
         when {
             state.showSkeletons -> MovieGrid(
-                itemCount = 6,
-                contentPadding = PaddingValues(bottom = spacing.l),
+                itemCount = BigonMovieCardDefaults.SkeletonCount,
+                contentPadding = PaddingValues(
+                    bottom = spacing.l + contentPadding.calculateBottomPadding(),
+                ),
             ) { BigonShimmerCard(width = Dp.Unspecified, modifier = Modifier.fillMaxWidth()) }
 
             state.showEmptyState -> Box(
@@ -198,7 +225,9 @@ fun HomeScreen(
                     columns = GridCells.Adaptive(minSize = 120.dp),
                     horizontalArrangement = Arrangement.spacedBy(spacing.l),
                     verticalArrangement = Arrangement.spacedBy(spacing.l),
-                    contentPadding = PaddingValues(bottom = spacing.l),
+                    contentPadding = PaddingValues(
+                        bottom = spacing.l + contentPadding.calculateBottomPadding(),
+                    ),
                     // Fixed gutter: contentPadding scrolls away with the content,
                     // which let cards run up against the chips mid-scroll.
                     modifier = Modifier.fillMaxSize().padding(top = spacing.m),
@@ -271,6 +300,26 @@ private fun MovieCard(movie: Movie, transition: PosterTransition?, onClick: () -
         },
     )
 }
+
+/**
+ * Scroll position per feed, flattened to `label, index, offset` triples so it
+ * survives in a Bundle.
+ *
+ * Positions rather than the states themselves: a LazyGridState is not
+ * parcelable, and the two numbers are the whole of what the reader would miss.
+ */
+private val FeedScrollPositions = listSaver<MutableMap<String, LazyGridState>, Any>(
+    save = { states ->
+        states.flatMap { (label, state) ->
+            listOf(label, state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset)
+        }
+    },
+    restore = { flat ->
+        flat.chunked(3).associate { (label, index, offset) ->
+            label as String to LazyGridState(index as Int, offset as Int)
+        }.toMutableMap()
+    },
+)
 
 @Composable
 private fun MovieGrid(

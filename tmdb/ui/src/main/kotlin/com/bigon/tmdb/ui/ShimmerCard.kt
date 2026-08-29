@@ -1,33 +1,19 @@
 package com.bigon.tmdb.ui
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
 import com.bigon.core.designsystem.components.BigonShimmerBox
-import com.bigon.core.designsystem.icons.BigonIcons
+import com.bigon.core.designsystem.components.BigonShimmerText
 import com.bigon.core.designsystem.preview.BigonPreview
 import com.bigon.core.designsystem.preview.BigonPreviewSurface
 import com.bigon.core.designsystem.preview.BigonThemePreview
@@ -51,19 +37,23 @@ fun BigonShimmerCard(
                 .fillMaxWidth()
                 .aspectRatio(BigonMovieCardDefaults.PosterAspectRatio),
         )
-        BigonShimmerBox(
-            shape = RoundedCornerShape(6.dp),
-            modifier = Modifier
-                .padding(top = BigonTheme.spacing.s)
-                .width(100.dp)
-                .height(12.dp),
+        // Two title lines and one meta line, sized from the styles the real
+        // card uses and padded the same way, so the skeleton reserves the
+        // height the card will take rather than an approximation of it.
+        // Measured: the old fixed 12dp/10dp bars left a recommendations row
+        // 46px short — one wrapped title line — and every section below it
+        // moved when the row filled in. BigonMovieCard allows the title two
+        // lines and most film titles use both at this width.
+        BigonShimmerText(
+            style = BigonTheme.typography.cardTitle,
+            lines = 2,
+            lastLineFraction = 0.6f,
+            modifier = Modifier.padding(top = BigonTheme.spacing.s),
         )
-        BigonShimmerBox(
-            shape = RoundedCornerShape(5.dp),
-            modifier = Modifier
-                .padding(top = 5.dp)
-                .width(64.dp)
-                .height(10.dp),
+        BigonShimmerText(
+            style = BigonTheme.typography.caption,
+            lastLineFraction = 0.55f,
+            modifier = Modifier.padding(top = BigonTheme.spacing.xs / 2),
         )
     }
 }

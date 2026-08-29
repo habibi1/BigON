@@ -29,6 +29,7 @@ import com.bigon.tmdb.domain.movie.MovieRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -79,7 +80,32 @@ class DefaultMovieRepository @Inject constructor(
             genreDao.observeAll(),
         ) { row, genres ->
             row?.let { MovieMapper.toDomain(it, genres.associate { g -> g.id to g.name }) }
+                ?: seenInResults(movieId)
         }.flowOn(dispatchers.io)
+
+    /**
+     * Films the user has seen in search or discover results, held in memory
+     * only.
+     *
+     * Detail paints its first frame from [observeCached], and a search result
+     * has no row in `movie_entity` by design — those results are transient and
+     * must not pollute the category lists. The visible cost was on the shared
+     * poster: opening a film that Home had never cached flew a placeholder
+     * where the poster should be, for as long as the network took, because the
+     * screen it was flying to had no artwork to show yet.
+     *
+     * Deliberately not persisted and bounded to [MAX_SEEN]: this exists to
+     * survive one navigation, not to become a second catalogue.
+     */
+    private val seen = object : LinkedHashMap<Long, Movie>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: Map.Entry<Long, Movie>): Boolean = size > MAX_SEEN
+    }
+
+    private fun seenInResults(movieId: Long): Movie? = synchronized(seen) { seen[movieId] }
+
+    private fun MoviePage.remember(): MoviePage = apply {
+        synchronized(seen) { movies.forEach { seen[it.id] = it } }
+    }
 
     /**
      * Offline-first, like every other read: the network is tried first because
@@ -163,11 +189,25 @@ class DefaultMovieRepository @Inject constructor(
     override suspend fun activeRegion(): String = regionProvider.region()
 
     override suspend fun setRegion(code: String?) = withContext(dispatchers.io) {
-        if (code == regionProvider.region() && code != null) return@withContext
+        // Against the *stored* preference, not the effective region. Comparing
+        // against the effective one meant explicitly choosing your own device's
+        // country was a no-op: region() already answered "US" from the locale
+        // fallback, so the choice was never written and Settings went on saying
+        // "United States of America · device" — the app still tracking the
+        // phone the reader had just asked it to stop tracking.
+        if (code == preferences.region.first()) return@withContext
+        val previousRegion = regionProvider.region()
         preferences.setRegion(code)
+
         // Certification, availability and the curated lists were all fetched
         // for the previous region. Detail payloads carry it baked in, so they
         // go too — trending is left alone, being region-independent.
+        //
+        // Only when the region actually moved, though. Pinning the country you
+        // were already following changes what is stored without changing a
+        // single request, and throwing the catalogue away there would empty the
+        // screen and refetch the same films.
+        if (regionProvider.region() == previousRegion) return@withContext
         movieDao.clearAll()
         movieDetailDao.clear()
     }
@@ -243,6 +283,12 @@ class DefaultMovieRepository @Inject constructor(
         const val MAX_CACHED_DETAILS = 50
 
         /**
+         * Enough to cover the results a reader can scroll through and open in
+         * one sitting; small enough that it is never worth thinking about.
+         */
+        const val MAX_SEEN = 200
+
+        /**
          * `ignoreUnknownKeys` is what lets the snapshot format gain fields
          * without invalidating everything already on disk.
          */
@@ -307,7 +353,7 @@ class DefaultMovieRepository @Inject constructor(
             refreshGenresIfNeeded()
             val genresById = genreDao.getAll().associate { it.id to it.name }
             apiCaller.execute { movieApi.search(query, page = page) }
-                .map { response -> MovieMapper.toPage(response, genresById) }
+                .map { response -> MovieMapper.toPage(response, genresById).remember() }
         }
 
     override suspend fun discover(
@@ -335,7 +381,7 @@ class DefaultMovieRepository @Inject constructor(
                     minVotes = filters.minRating?.let { DiscoverFilters.MIN_VOTES_FOR_RATING_FILTER },
                     maxRuntime = filters.maxRuntimeMinutes,
                 )
-            }.map { response -> MovieMapper.toPage(response, genresById) }
+            }.map { response -> MovieMapper.toPage(response, genresById).remember() }
         }
 
     override suspend fun streamingServices(): AppResult<List<WatchProvider>> =

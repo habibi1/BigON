@@ -1,6 +1,8 @@
 package com.bigon.sinema.ui.settings
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bigon.tmdb.ui.BigonAttributionFooter
@@ -37,10 +40,22 @@ import com.bigon.core.ui.asString
 @Composable
 fun SettingsRoute(
     modifier: Modifier = Modifier,
+    /**
+     * Space navigation floats over: the bar along the bottom at compact widths,
+     * the rail down the start at wider ones. Content clears it rather than
+     * being laid out beside it, so navigation can leave without anything
+     * resizing underneath it.
+     */
+    contentPadding: PaddingValues = PaddingValues(),
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    SettingsScreen(state = state, onIntent = viewModel::onIntent, modifier = modifier)
+    SettingsScreen(
+        state = state,
+        onIntent = viewModel::onIntent,
+        modifier = modifier,
+        contentPadding = contentPadding,
+    )
 }
 
 @Composable
@@ -48,6 +63,13 @@ fun SettingsScreen(
     state: SettingsUiState,
     onIntent: (SettingsIntent) -> Unit,
     modifier: Modifier = Modifier,
+    /**
+     * Space navigation floats over: the bar along the bottom at compact widths,
+     * the rail down the start at wider ones. Content clears it rather than
+     * being laid out beside it, so navigation can leave without anything
+     * resizing underneath it.
+     */
+    contentPadding: PaddingValues = PaddingValues(),
 ) {
     val spacing = BigonTheme.spacing
 
@@ -56,7 +78,10 @@ fun SettingsScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .statusBarsPadding()
-            .padding(horizontal = spacing.l),
+            .padding(start = contentPadding.calculateStartPadding(LocalLayoutDirection.current))
+            .padding(horizontal = spacing.l)
+            // Inside the scroll, so the last row clears the floating bar.
+            .padding(bottom = contentPadding.calculateBottomPadding()),
     ) {
         Text(
             text = "Settings",
@@ -82,7 +107,10 @@ fun SettingsScreen(
         Column(modifier = Modifier.padding(top = spacing.xl)) {
             BigonSettingRow(
                 title = "Region",
-                subtitle = "Cinema listings, age ratings and streaming services",
+                // Shorter than it was: beside a value as long as "United States
+                // of America" this line has about half the row, and the old
+                // wording broke into three ragged fragments there.
+                subtitle = "Cinema listings, ratings and streaming",
                 value = state.regionLabel,
                 icon = BigonIcons.Search,
                 onClick = { onIntent(SettingsIntent.RegionPickerOpened) },

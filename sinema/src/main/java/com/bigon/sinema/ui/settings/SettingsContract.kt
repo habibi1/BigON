@@ -33,13 +33,18 @@ data class SettingsUiState(
         get() = regions.firstOrNull { it.code == activeRegion }?.name
 
     /**
-     * "Indonesia" when chosen, "Indonesia (device)" when inherited. The
+     * "Indonesia" when chosen, "Indonesia · device" when inherited. The
      * distinction matters: one keeps tracking the phone, the other does not.
+     *
+     * The space before "device" is non-breaking, so the qualifier wraps as a
+     * unit. Country names run long — "United States of America" — and an
+     * ordinary space let the line break after the separator, leaving a "·"
+     * dangling at the end of one line and the word alone on the next.
      */
     val regionLabel: String
         get() {
             val name = activeRegionName ?: activeRegion ?: "…"
-            return if (chosenRegion == null) "$name · device" else name
+            return if (chosenRegion == null) "$name ·\u00A0device" else name
         }
 
     /** Case-insensitive filter over name and code, so "id" finds Indonesia. */

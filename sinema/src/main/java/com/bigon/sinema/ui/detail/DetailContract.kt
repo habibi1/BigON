@@ -84,8 +84,20 @@ data class DetailUiState(
     val showReviews: Boolean
         get() = reviews.isNotEmpty() || isLoadingReviews || reviewsError != null
 
-    /** Only block the screen when there is genuinely nothing to show yet. */
-    val showLoader: Boolean get() = isLoading && cached == null && detail == null
+    /**
+     * The network response has not arrived and is still expected, so every
+     * section that only it can fill should be showing a skeleton.
+     *
+     * Deliberately not tied to [cached]. Arriving from a list, the cached row
+     * supplies a title, a poster and an overview immediately while runtime,
+     * cast, availability and recommendations are still in flight — and those
+     * used to appear with no warning that they were coming. Pending is about
+     * the response, not about whether the screen looks empty.
+     *
+     * An error clears it: a skeleton that never resolves is a screen claiming
+     * to be busy when nothing is happening, and the retry sits above it.
+     */
+    val isDetailPending: Boolean get() = detail == null && error == null
 
     /**
      * The snapshot written when the user favourites from this screen. Null until

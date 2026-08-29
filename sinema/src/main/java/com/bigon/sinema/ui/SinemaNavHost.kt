@@ -2,6 +2,7 @@ package com.bigon.sinema.ui
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -45,6 +46,8 @@ private const val TRANSITION_MILLIS = 380
 @Composable
 fun SharedTransitionScope.SinemaNavHost(
     navController: NavHostController,
+    /** Space the floating bar or rail covers; only top-level screens need it. */
+    contentPadding: PaddingValues = PaddingValues(),
     modifier: Modifier = Modifier,
 ) {
     NavHost(
@@ -64,6 +67,7 @@ fun SharedTransitionScope.SinemaNavHost(
                 onTvClick = { navController.navigate(TvDetailDestination(it)) },
                 onPersonClick = { navController.navigate(PersonDestination(it)) },
                 transition = PosterTransition(this@SinemaNavHost, this@composable),
+                contentPadding = contentPadding,
             )
         }
 
@@ -71,6 +75,7 @@ fun SharedTransitionScope.SinemaNavHost(
             SearchRoute(
                 onMovieClick = { navController.navigateToMovie(it) },
                 transition = PosterTransition(this@SinemaNavHost, this@composable),
+                contentPadding = contentPadding,
             )
         }
 
@@ -79,11 +84,12 @@ fun SharedTransitionScope.SinemaNavHost(
                 onMovieClick = { navController.navigateToMovie(it) },
                 onBrowseTrending = { navController.navigateToTopLevel(HomeDestination) },
                 transition = PosterTransition(this@SinemaNavHost, this@composable),
+                contentPadding = contentPadding,
             )
         }
 
         composable<SettingsDestination> {
-            SettingsRoute()
+            SettingsRoute(contentPadding = contentPadding)
         }
 
         composable<MovieDetailDestination> { entry ->

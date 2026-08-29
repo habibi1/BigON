@@ -40,6 +40,18 @@ import kotlin.math.round
 object BigonMovieCardDefaults {
     val Width: Dp = 120.dp
     const val PosterAspectRatio: Float = 2f / 3f
+
+    /**
+     * How many [BigonShimmerCard]s to lay out while a grid of these loads.
+     * Three full rows on a phone, so the skeleton reaches the bottom of the
+     * screen instead of stopping two thirds of the way down and reading as a
+     * short list that has finished loading.
+     *
+     * Here rather than in each screen: Home and Search both show this grid, and
+     * two private constants that must agree is exactly the drift this object
+     * exists to prevent.
+     */
+    const val SkeletonCount: Int = 9
 }
 
 /**
@@ -60,9 +72,17 @@ fun BigonMovieCard(
     poster: @Composable BoxScope.() -> Unit = { BigonPosterPlaceholder() },
 ) {
     Column(
+        // Deliberately unclipped. The card is a poster with two lines of text
+        // under it, and the poster clips itself below — rounding the whole
+        // column put a 12dp radius through the bottom corners of the *text*,
+        // which sits flush to the left edge, and shaved the first character of
+        // the meta line: "2026 · Romance" rendered with the 2 sliced in half.
+        //
+        // The cost is a rectangular ripple instead of a rounded one, which is
+        // ordinary for a grid cell. The shape a reader sees is the poster's,
+        // and that is still rounded.
         modifier = modifier
             .then(if (width.isSpecified) Modifier.width(width) else Modifier)
-            .clip(BigonTheme.shapes.card)
             .clickable(onClick = onClick),
     ) {
         Box(

@@ -25,6 +25,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -637,6 +638,27 @@ class DefaultMovieRepositoryTest {
         val services = assertIs<AppResult.Success<List<com.bigon.tmdb.model.WatchProvider>>>(result).value
         assertEquals(listOf("First", "Later"), services.map { it.name })
         assertEquals("https://image.tmdb.org/t/p/w92/a.jpg", services.first().logoUrl)
+    }
+
+    @Test
+    fun `a film seen only in search results is still there for the detail screen`() = runTest(dispatcher) {
+        // Search and discover results deliberately never reach movie_entity, so
+        // without an in-memory fallback the detail screen opens with no artwork
+        // at all — and the poster flying into it is a placeholder rather than
+        // the image just tapped.
+        val movieDao = FakeMovieDao()
+        val api = FakeApi(onList = { MovieListResponse(results = listOf(movieDto(500, "Colony"))) })
+        val repo = repository(movieDao, FakeGenreDao(listOf(GenreEntity(28, "Action"))), api)
+
+        assertEquals(null, repo.observeCached(100L).first())
+
+        val page = assertIs<AppResult.Success<com.bigon.tmdb.model.MoviePage>>(repo.search("spider"))
+        val found = page.value.movies.first()
+
+        val cached = repo.observeCached(found.id).first()
+        assertEquals(found.title, cached?.title)
+        // Still absent from the catalogue: this must not become a second one.
+        assertTrue(movieDao.rows.value.values.flatten().none { it.id == found.id })
     }
 
     @Test

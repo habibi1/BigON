@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.bigon.core.common.AppResult
 import com.bigon.tmdb.model.MovieCategory
 import com.bigon.tmdb.model.TrendingItem
-import com.bigon.tmdb.model.typeLabel
 import com.bigon.core.tracker.AnalyticsEvent
 import com.bigon.core.tracker.AnalyticsTracker
 import com.bigon.core.ui.toUiText
@@ -61,6 +60,14 @@ class HomeViewModel @Inject constructor(
      */
     private var awaitingContentReplacement = false
 
+    /**
+     * True while a refresh is already accounted for, so an empty feed asks for
+     * content once rather than on every emission. Cleared the moment content
+     * arrives; left set after a failure, so a feed that cannot load shows its
+     * error and a retry instead of spinning.
+     */
+    private var refreshRequestedForEmptyFeed = false
+
     private fun HomeUiState.nextGeneration(): Int =
         if (awaitingContentReplacement) {
             awaitingContentReplacement = false
@@ -102,6 +109,33 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Refetches a feed whose cache was emptied underneath it.
+     *
+     * The database is the source of truth and something else is allowed to
+     * empty it: changing the region wipes every cached list, because
+     * certification and availability are per-country, and Clear cache wipes
+     * them on purpose. Home was already observing when that happened, so Room
+     * correctly reported "now empty" and the screen showed its empty state —
+     * which reads as "TMDB has no films" rather than "this was just cleared".
+     * Re-selecting the feed was the only way out, and re-selecting the feed you
+     * are already on is scroll-to-top, so it had to be a different chip.
+     *
+     * Reacting to emptiness rather than to a region-changed signal covers both
+     * causes with one rule, and any future one — the question a cache-backed
+     * screen has to answer is "is there anything here", not "why is there not".
+     */
+    private fun refetchIfEmptied(isEmpty: Boolean) {
+        if (!isEmpty) {
+            refreshRequestedForEmptyFeed = false
+            return
+        }
+        val snapshot = _state.value
+        if (refreshRequestedForEmptyFeed || snapshot.isRefreshing || snapshot.error != null) return
+        refreshRequestedForEmptyFeed = true
+        refreshCurrent()
+    }
+
     private fun refreshCurrent() {
         when (val feed = _state.value.feed) {
             is HomeFeed.Category -> refresh(feed.category)
@@ -129,6 +163,9 @@ class HomeViewModel @Inject constructor(
             )
         }
         awaitingContentReplacement = true
+        // This path refreshes on its own, so the first (usually empty) emission
+        // must not be read as a feed that needs rescuing.
+        refreshRequestedForEmptyFeed = true
 
         observeJob?.cancel()
         when (feed) {
@@ -136,6 +173,7 @@ class HomeViewModel @Inject constructor(
                 observeJob = observeMovies(feed.category)
                     .onEach { movies ->
                         _state.update { it.copy(movies = movies, contentGeneration = it.nextGeneration()) }
+                        refetchIfEmptied(movies.isEmpty())
                     }
                     .launchIn(viewModelScope)
                 refresh(feed.category)
@@ -145,6 +183,7 @@ class HomeViewModel @Inject constructor(
                 observeJob = observeTrendingAll()
                     .onEach { items ->
                         _state.update { it.copy(trendingItems = items, contentGeneration = it.nextGeneration()) }
+                        refetchIfEmptied(items.isEmpty())
                     }
                     .launchIn(viewModelScope)
                 refreshAcrossTypes()
