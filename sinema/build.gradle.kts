@@ -7,6 +7,27 @@ plugins {
     id("convention.android-hilt")
 }
 
+// Firebase is configured by a google-services.json that is deliberately not in
+// the repository — it identifies one project and is gitignored alongside the
+// TMDB keys. The plugins are therefore applied only when that file is here.
+//
+// Not a nicety: `com.google.gms.google-services` fails the build outright when
+// the file is missing, so applying it unconditionally would mean nobody could
+// build this app without credentials for someone else's Firebase project.
+// Without the file the SDKs are still on the classpath but stay unbound (see
+// AnalyticsModule), and the app runs with no analytics and no crash reporting.
+val firebaseConfig = file("google-services.json")
+val firebaseConfigured = firebaseConfig.exists()
+if (firebaseConfigured) {
+    apply(plugin = libs.plugins.google.services.get().pluginId)
+    apply(plugin = libs.plugins.firebase.crashlytics.get().pluginId)
+} else {
+    logger.lifecycle(
+        "google-services.json not found in :sinema — building without Firebase. " +
+            "Analytics and Crashlytics will be inert.",
+    )
+}
+
 // Secrets stay out of the repo: TMDB_API_KEY is read from local.properties.
 val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
@@ -36,6 +57,10 @@ android {
 
         buildConfigField("String", "TMDB_API_KEY", "\"$tmdbApiKey\"")
         buildConfigField("String", "TMDB_READ_ACCESS_TOKEN", "\"$tmdbReadAccessToken\"")
+        // Read by AnalyticsModule: the Firebase sinks are bound only when there
+        // is a project for them to report to. Calling the SDKs without one
+        // throws, so this is a guard rather than a preference.
+        buildConfigField("boolean", "FIREBASE_ENABLED", "$firebaseConfigured")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -90,6 +115,13 @@ dependencies {
     implementation(project(":tmdb:domain"))
 
     // Platform adapters (the only module allowed to know these exist)
+    //
+    // Firebase lands here and nowhere else. :core:tracker owns the SPI, and
+    // §6 keeps every SDK behind it — no feature module has a Firebase import,
+    // so swapping the backend touches this file and two adapters.
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
     implementation(libs.okhttp.logging.interceptor)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.timber)

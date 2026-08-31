@@ -64,17 +64,17 @@ BUILT FOR YOUR SCREEN
 Phones get a bottom navigation bar; tablets and unfolded foldables get a navigation rail and a wider grid. Light and dark themes are both first-class, and you can pin either one or follow your system setting.
 
 RESPECTS YOUR PRIVACY
-No account. No sign-in. No advertising. No tracking or analytics of any kind. Sinema collects nothing about you and has nothing to sell, because it never asks who you are. Everything it remembers — your favourites, your theme, the cached film data — stays on your device and is removed when you uninstall.
+No account. No sign-in. No advertising. Sinema never asks who you are, so it has nothing to sell. Your favourites, your theme and the cached film data stay on your device and are removed when you uninstall. Anonymous usage and crash reports go to Google Firebase so faults can be fixed; they are not tied to any identity.
 
 MANAGE YOUR OWN STORAGE
 A single tap in Settings clears the cached catalogue and images and shows you exactly how much space that reclaims. Your favourites are deliberately left alone.
 
 Film data and imagery are provided by The Movie Database.
 
-This product uses the TMDB API but is not endorsed or certified by TMDB.
+This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.
 ```
 
-<sub>2,303 / 4,000</sub>
+<sub>2,350 / 4,000</sub>
 
 ### Notes on the wording
 

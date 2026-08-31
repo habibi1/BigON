@@ -84,10 +84,14 @@
 <div class="summary">
   <h2>The short version</h2>
   <p>
-    Sinema does not ask who you are and does not collect, transmit or sell personal information. There is no
-    account, no sign-in and no advertising. Everything the app remembers — your favourites, your theme choice and
-    the cached film data that lets it work offline — is stored only on your own device and is removed when you
-    uninstall the app.
+    Sinema does not ask who you are and does not sell personal information. There is no account, no sign-in and no
+    advertising. Your favourites, your theme choice and the cached film data that lets it work offline are stored
+    only on your own device and are removed when you uninstall the app.
+  </p>
+  <p>
+    The app does send <strong>anonymous usage and crash data to Google Firebase</strong> — which screens are opened
+    and what happened before a crash — so that faults can be found and fixed. It is not linked to a name or an
+    account, because the app never learns one. Section 4 sets out exactly what is sent.
   </p>
   <p>
     The one thing you should know: to show you films, the app requests data from
@@ -111,9 +115,13 @@
   <li>Location data, whether precise or approximate</li>
   <li>Contacts, calendar, photos, camera, microphone or files on your device</li>
   <li>Advertising identifiers, and there is no advertising in the app</li>
-  <li>Device identifiers, installed-app lists or usage analytics sent to us or to anyone else</li>
+  <li>Installed-app lists</li>
   <li>Payment or financial information — the app has no purchases</li>
 </ul>
+<p>
+  Usage and crash data <em>is</em> collected, and a device identifier is generated for that purpose. Section 4
+  describes it.
+</p>
 <p>
   The app requests a single Android permission, <code>INTERNET</code>, which it needs to download film information
   and poster images. It requests no other permission.
@@ -156,7 +164,41 @@
   <em>Settings → Apps → Sinema → Storage → Clear storage</em>.
 </p>
 
-<h2>4. The Movie Database (TMDB)</h2>
+<h2>4. Analytics and crash reporting (Google Firebase)</h2>
+<p>
+  The app uses two Google Firebase services: <strong>Firebase Analytics</strong> and
+  <strong>Firebase Crashlytics</strong>. Both are operated by Google, not by us, and what they send goes to Google.
+</p>
+<p><strong>What is sent</strong></p>
+<ul>
+  <li>
+    <strong>App activity</strong> — which screens you open, which film you opened and from where, and whether you
+    followed a link out of the app. These are the events the app itself defines; it does not record what you search
+    for or which films you favourite.
+  </li>
+  <li>
+    <strong>Crash and performance data</strong> — if the app crashes, the technical details of the failure and a
+    short trail of the events immediately before it.
+  </li>
+  <li>
+    <strong>Device and identifiers</strong> — device model, operating system version, country, and identifiers that
+    Google generates for the installation. These identify a copy of the app, not a person.
+  </li>
+</ul>
+<p><strong>What is not sent</strong></p>
+<p>
+  No name, email address, account or contact detail, because the app never asks for one and has no sign-in. No
+  location. No advertising identifier, and there is no advertising in the app.
+</p>
+<p><strong>Why</strong></p>
+<p>
+  To find and fix faults on devices we do not own, and to see which parts of the app are used. Data is retained
+  according to Google's policies, described in the
+  <a href="https://firebase.google.com/support/privacy">Firebase privacy documentation</a> and
+  <a href="https://policies.google.com/privacy">Google's Privacy Policy</a>.
+</p>
+
+<h2>5. The Movie Database (TMDB)</h2>
 <p>
   All film information and imagery in Sinema comes from
   <a href="https://www.themoviedb.org/">The Movie Database (TMDB)</a>, a third-party service. When you browse or
@@ -174,10 +216,10 @@
   <li><a href="https://www.themoviedb.org/terms-of-use">TMDB Terms of Use</a></li>
 </ul>
 <p>
-  This product uses the TMDB API but is not endorsed or certified by TMDB.
+  This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.
 </p>
 
-<h2>5. Google Play</h2>
+<h2>6. Google Play</h2>
 <p>
   If you installed Sinema from Google Play, Google may collect information about the installation and about
   crashes, independently of the app, under
@@ -186,9 +228,9 @@
   platform and your device settings, not through code in Sinema.
 </p>
 
-<h2>6. Children's privacy</h2>
+<h2>7. Children's privacy</h2>
 <p>
-  Sinema is not directed at children under 13, and the app collects no personal information from anyone,
+  Sinema is not directed at children under 13. The app collects no personal information from anyone,
   including children. If you believe a child has provided personal information through the app, please contact
   us — although as described above, the app has no mechanism by which that could occur.
 </p>
@@ -196,28 +238,28 @@
   Note that film information comes from TMDB and may include titles and imagery intended for adult audiences.
 </p>
 
-<h2>7. Security</h2>
+<h2>8. Security</h2>
 <p>
   All network requests use encrypted HTTPS connections. Because the app stores nothing about you on any server,
   there is no account to be breached and no personal data of yours for us to lose. Information cached on your
   device is protected by Android's standard app sandboxing, which prevents other apps from reading it.
 </p>
 
-<h2>8. Your rights and choices</h2>
+<h2>9. Your rights and choices</h2>
 <p>
   Because Sinema holds no personal data about you, there is no personal data for us to show, export, correct or
   delete on request. You remain in full control of everything the app stores locally: clear the cache from the
   app's Settings screen, remove favourites individually, or uninstall the app to erase all of it at once.
 </p>
 
-<h2>9. Changes to this policy</h2>
+<h2>10. Changes to this policy</h2>
 <p>
-  If the app's data practices change — for example if analytics or crash reporting were added in a future
-  version — this policy will be updated before that version is released, and the "last updated" date at the top
-  will change. Continued use of the app after an update means you accept the revised policy.
+  If the app's data practices change — a new third-party service, or a new category of data sent to an existing
+  one — this policy will be updated before that version is released, and the "last updated" date at the top will
+  change. Continued use of the app after an update means you accept the revised policy.
 </p>
 
-<h2>10. Contact</h2>
+<h2>11. Contact</h2>
 <p>
   If you have questions about this policy, or about how Sinema handles information, contact the developer at:
 </p>

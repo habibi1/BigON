@@ -17,6 +17,12 @@ coil = "3.5.0"
 # artifact has been stable since 2023 and there is no 3.x line.
 playAppUpdate = "2.1.0"
 
+# Firebase. The BoM pins Analytics and Crashlytics together; the two Gradle
+# plugins are versioned separately from the SDKs they serve.
+firebaseBom = "34.4.0"
+googleServices = "4.4.4"
+firebaseCrashlyticsPlugin = "3.0.6"
+
 # AndroidX / Compose
 coreKtx = "1.19.0"
 coreSplashscreen = "1.2.0"
@@ -72,6 +78,11 @@ coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp"
 # is what makes the Task API suspendable; without it this would need a
 # hand-rolled Task bridge.
 play-app-update = { group = "com.google.android.play", name = "app-update", version.ref = "playAppUpdate" }
+
+# Firebase — BoM first, then unversioned artifacts it pins.
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
+firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
 play-app-update-ktx = { group = "com.google.android.play", name = "app-update-ktx", version.ref = "playAppUpdate" }
 
 # AndroidX
@@ -119,3 +130,5 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlyticsPlugin" }

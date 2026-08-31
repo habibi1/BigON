@@ -1,5 +1,6 @@
 package com.bigon.sinema.di
 
+import android.content.Context
 import com.bigon.sinema.BuildConfig
 import com.bigon.core.common.DefaultDispatcherProvider
 import com.bigon.core.common.DispatcherProvider
@@ -17,8 +18,12 @@ import com.bigon.core.tracker.StaticConsentProvider
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.analytics.FirebaseAnalytics
+import dagger.multibindings.ElementsIntoSet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.Json
@@ -104,6 +109,32 @@ object AppModule {
     @IntoSet
     @Singleton
     fun provideTimberAnalyticsSink(): AnalyticsSink = TimberAnalyticsSink()
+
+    /**
+     * The Firebase sinks, or none at all.
+     *
+     * `@ElementsIntoSet` rather than two `@IntoSet` providers because the
+     * decision is whether they exist, not what they return. A no-op sink would
+     * still have to be constructed, and constructing `FirebaseAnalytics`
+     * without a configured project throws — so the set is simply empty when
+     * `google-services.json` was absent at build time, and the fan-out in
+     * CompositeAnalyticsTracker has nothing extra to fan out to.
+     *
+     * Crashlytics catches crashes on its own regardless of this binding; what
+     * the sink adds is the breadcrumb trail leading up to them.
+     */
+    @Provides
+    @ElementsIntoSet
+    @Singleton
+    fun provideFirebaseSinks(@ApplicationContext context: Context): Set<@JvmSuppressWildcards AnalyticsSink> =
+        if (!BuildConfig.FIREBASE_ENABLED) {
+            emptySet()
+        } else {
+            setOf(
+                FirebaseAnalyticsSink(FirebaseAnalytics.getInstance(context)),
+                CrashlyticsSink(FirebaseCrashlytics.getInstance()),
+            )
+        }
 
     @Provides
     @Singleton
