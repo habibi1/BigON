@@ -100,6 +100,6 @@ fun BigonAttributionFooter(
 @Composable
 private fun BigonAttributionFooterPreview() {
     BigonPreviewSurface(modifier = Modifier.width(320.dp)) {
-        BigonAttributionFooter(versionLabel = "Sinema v0.0.1")
+        BigonAttributionFooter(versionLabel = "Sinema v1.0.0")
     }
 }

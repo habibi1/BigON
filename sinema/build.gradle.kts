@@ -53,8 +53,12 @@ android {
         applicationId = "com.bigon.sinema"
         minSdk = 26
         targetSdk = 37
+        // Play orders uploads by versionCode and never accepts one twice, so
+        // this only has to rise — it does not have to mean anything. Nothing
+        // has been uploaded yet, so the first release is still 1.
         versionCode = 1
-        versionName = "0.0.1"
+        // What the reader sees, in Settings and under the TMDB mark.
+        versionName = "1.0.0"
 
         buildConfigField("String", "TMDB_API_KEY", "\"$tmdbApiKey\"")
         buildConfigField("String", "TMDB_READ_ACCESS_TOKEN", "\"$tmdbReadAccessToken\"")
