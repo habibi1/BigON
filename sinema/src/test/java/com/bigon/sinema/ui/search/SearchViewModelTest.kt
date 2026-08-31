@@ -26,6 +26,7 @@ import com.bigon.tmdb.domain.movie.ObserveGenresUseCase
 import com.bigon.tmdb.domain.movie.SearchMoviesUseCase
 import com.bigon.tmdb.model.MovieCategory
 import com.bigon.tmdb.model.MovieDetail
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -92,12 +93,16 @@ class SearchViewModelTest {
             AppResult.Failure(AppError.Unknown("unused"))
         override suspend fun tvDetail(tvId: Long): AppResult<TvDetail> =
             AppResult.Failure(AppError.Unknown("unused"))
+        /** Held open by a test that needs to observe a request in flight. */
+        var discoverGate: CompletableDeferred<Unit>? = null
+
         override suspend fun discover(
             genreId: Int?,
             page: Int,
             streamingProviderId: Int?,
             filters: DiscoverFilters,
         ): AppResult<MoviePage> {
+            discoverGate?.await()
             lastFilters = filters
             discoverCalls += genreId
             lastProviderId = streamingProviderId
@@ -173,17 +178,25 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `clearing the query returns to discover immediately`() = runTest(dispatcher) {
-        val vm = viewModel()
-        advanceUntilIdle()
-        vm.onIntent(SearchIntent.QueryChanged("dune"))
-        advanceUntilIdle()
+    fun `clearing the query returns to the browse list without refetching it`() =
+        runTest(dispatcher) {
+            val vm = viewModel()
+            advanceUntilIdle()
+            val browsing = vm.state.value.results.map { it.title }
 
-        vm.onIntent(SearchIntent.QueryChanged(""))
-        advanceUntilIdle()
+            vm.onIntent(SearchIntent.QueryChanged("dune"))
+            advanceUntilIdle()
 
-        assertEquals(2, repository.discoverCalls.size) // initial + after clear
-    }
+            vm.onIntent(SearchIntent.QueryChanged(""))
+            advanceUntilIdle()
+
+            // The browse list comes back from memory. This used to assert a
+            // second discover call; a selection already fetched is now restored
+            // instead, which is what lets the screen return the reader to where
+            // they were rather than to page 1.
+            assertEquals(browsing, vm.state.value.results.map { it.title })
+            assertEquals(1, repository.discoverCalls.size)
+        }
 
     @Test
     fun `selecting a genre with a blank query hits discover with that genre`() = runTest(dispatcher) {
@@ -317,15 +330,78 @@ class SearchViewModelTest {
     fun `clearing the service returns to unfiltered browsing`() = runTest(dispatcher) {
         val vm = viewModel()
         advanceUntilIdle()
+        val unfiltered = vm.state.value.results.map { it.title }
+
         vm.onIntent(SearchIntent.ServiceSelected(8))
         advanceUntilIdle()
+        assertEquals(8, repository.lastProviderId)
+
+        val callsWhileFiltered = repository.discoverCalls.size
 
         vm.onIntent(SearchIntent.ServiceSelected(null))
         advanceUntilIdle()
 
-        assertEquals(null, repository.lastProviderId)
         assertEquals(null, vm.state.value.selectedServiceId)
+        assertEquals(unfiltered, vm.state.value.results.map { it.title })
+        // Restored, not refetched — so `lastProviderId` still records the
+        // filtered request and is no longer the thing worth asserting.
+        assertEquals(callsWhileFiltered, repository.discoverCalls.size)
     }
+
+    @Test
+    fun `a chip being fetched shows no films from the chip before it`() = runTest(dispatcher) {
+        val vm = viewModel()
+        advanceUntilIdle()
+        val previousChip = vm.state.value.results
+        assertTrue(previousChip.isNotEmpty())
+
+        // Hold the request open so the in-flight window can be inspected — the
+        // window in which the old chip's films used to still be on screen.
+        val inFlight = CompletableDeferred<Unit>()
+        repository.discoverGate = inFlight
+
+        vm.onIntent(SearchIntent.GenreSelected(878))
+        advanceUntilIdle()
+
+        assertEquals(emptyList(), vm.state.value.results)
+        assertTrue(vm.state.value.showSkeletons)
+
+        inFlight.complete(Unit)
+        repository.discoverGate = null
+        advanceUntilIdle()
+
+        assertTrue(vm.state.value.results.isNotEmpty())
+        assertFalse(vm.state.value.showSkeletons)
+    }
+
+    @Test
+    fun `a chip returned to keeps its appended pages and is not refetched`() =
+        runTest(dispatcher) {
+            val vm = viewModel()
+            repository.totalPages = 2
+            advanceUntilIdle()
+
+            vm.onIntent(SearchIntent.GenreSelected(878))
+            advanceUntilIdle()
+            vm.onIntent(SearchIntent.LoadMore)
+            advanceUntilIdle()
+            val bothPages = vm.state.value.results.map { it.title }
+            assertEquals(listOf("Discover p1", "Discover p2"), bothPages)
+
+            // Away to another chip, then back to this one.
+            vm.onIntent(SearchIntent.GenreSelected(null))
+            advanceUntilIdle()
+            val callsBeforeReturning = repository.discoverCalls.size
+
+            vm.onIntent(SearchIntent.GenreSelected(878))
+            advanceUntilIdle()
+
+            // Page 2 survives the round trip. Refetching would have returned
+            // page 1 alone, and a scroll position remembered against two pages
+            // would then have pointed past the end of one.
+            assertEquals(bothPages, vm.state.value.results.map { it.title })
+            assertEquals(callsBeforeReturning, repository.discoverCalls.size)
+        }
 
     @Test
     fun `a failed service catalogue leaves search working with no filter row`() =

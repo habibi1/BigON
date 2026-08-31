@@ -36,13 +36,17 @@ import com.bigon.core.designsystem.icons.BigonIcons
 import com.bigon.core.designsystem.theme.BigonTheme
 import com.bigon.tmdb.model.Movie
 import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import com.bigon.core.designsystem.components.BigonLoadingIndicator
 import com.bigon.core.ui.LoadMoreEffect
 import com.bigon.core.ui.ObserveEffects
 import com.bigon.core.ui.asString
 import com.bigon.sinema.ui.PosterTransition
 import com.bigon.sinema.ui.posterModifier
+import kotlinx.coroutines.flow.Flow
+import com.bigon.sinema.ui.PosterViewport
+import com.bigon.sinema.ui.posterViewport
+import com.bigon.sinema.ui.rememberPosterViewport
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -63,6 +67,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.Dialog
 import com.bigon.core.designsystem.components.BigonChip
@@ -84,6 +90,11 @@ fun SearchRoute(
      */
     contentPadding: PaddingValues = PaddingValues(),
     transition: PosterTransition? = null,
+    /**
+     * Emits when this screen's tab is tapped while it is already open — the one
+     * gesture that reaches a screen without any state of its own changing.
+     */
+    reselected: Flow<Unit>? = null,
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -100,6 +111,7 @@ fun SearchRoute(
         transition = transition,
         modifier = modifier,
         contentPadding = contentPadding,
+        reselected = reselected,
     )
 }
 
@@ -116,8 +128,20 @@ fun SearchScreen(
      */
     contentPadding: PaddingValues = PaddingValues(),
     transition: PosterTransition? = null,
+    /**
+     * Emits when this screen's tab is tapped while it is already open — the one
+     * gesture that reaches a screen without any state of its own changing.
+     */
+    reselected: Flow<Unit>? = null,
 ) {
     val spacing = BigonTheme.spacing
+
+    // One scroll position per list, matched to the view model's one set of
+    // results per list. Held above the `when` below so a chip change passing
+    // briefly through the skeleton branch cannot dispose the positions it is
+    // meant to preserve.
+    val gridStates = rememberSaveable(saver = SelectionScrollPositions) { mutableMapOf() }
+    val gridState = gridStates.stateFor(state.selectionKey)
 
     Column(
         modifier = modifier
@@ -231,17 +255,16 @@ fun SearchScreen(
             }
 
             else -> {
-                val gridState = rememberLazyGridState()
-                // Land at the top of the new results rather than mid-way
-                // through them. Keyed on the replacement, not on isSearching,
-                // so the previous films stay where they are while the request
-                // is in flight.
-                LaunchedEffect(state.contentGeneration) {
-                    if (state.contentGeneration > 0) gridState.scrollToItem(0)
+                // No scroll-to-top effect any more, and none needed: a list
+                // never seen before has no stored position, so it opens at the
+                // top on its own, and one seen before opens where it was left.
+                LaunchedEffect(reselected, gridState) {
+                    reselected?.collect { gridState.animateScrollToItem(0) }
                 }
                 gridState.LoadMoreEffect(enabled = state.canLoadMore) {
                     onIntent(SearchIntent.LoadMore)
                 }
+                val posterViewport = rememberPosterViewport()
                 LazyVerticalGrid(
                     state = gridState,
                     columns = GridCells.Adaptive(minSize = 120.dp),
@@ -251,13 +274,17 @@ fun SearchScreen(
                         bottom = spacing.l + contentPadding.calculateBottomPadding(),
                     ),
                     // Fixed gutter so results never touch the chip row mid-scroll.
-                    modifier = Modifier.fillMaxSize().padding(top = spacing.m),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = spacing.m)
+                        .posterViewport(transition, posterViewport),
                 ) {
                     items(state.visibleResults, key = { it.id }) { movie ->
                         ResultCard(
                             movie = movie,
                             transition = transition,
                             onClick = { onIntent(SearchIntent.MovieClicked(movie)) },
+                            viewport = posterViewport,
                         )
                     }
                     if (state.isAppending) {
@@ -294,7 +321,12 @@ private fun ResultGrid(contentPadding: PaddingValues) {
 }
 
 @Composable
-private fun ResultCard(movie: Movie, transition: PosterTransition?, onClick: () -> Unit) {
+private fun ResultCard(
+    movie: Movie,
+    transition: PosterTransition?,
+    onClick: () -> Unit,
+    viewport: PosterViewport,
+) {
     BigonMovieCard(
         title = movie.title,
         meta = listOfNotNull(movie.releaseYear?.toString(), movie.genres.firstOrNull())
@@ -314,7 +346,7 @@ private fun ResultCard(movie: Movie, transition: PosterTransition?, onClick: () 
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
-                        .then(transition.posterModifier(movie.id)),
+                        .then(transition.posterModifier(movie.id, viewport = viewport)),
                 )
             }
         },
@@ -585,3 +617,35 @@ private fun FilterAction(activeCount: Int, onClick: () -> Unit) {
         }
     }
 }
+
+
+/**
+ * How many lists keep a remembered position. Matches the view model's cap on
+ * remembered results: a position outlasting its films would be the very bug
+ * this pair exists to avoid.
+ */
+private const val MAX_REMEMBERED_SELECTIONS = 16
+
+private fun MutableMap<String, LazyGridState>.stateFor(key: String): LazyGridState =
+    this[key] ?: LazyGridState().also { fresh ->
+        // Insertion-ordered, so the first key is the least recently added.
+        if (size >= MAX_REMEMBERED_SELECTIONS) remove(keys.first())
+        put(key, fresh)
+    }
+
+/**
+ * Positions rather than the states themselves: a LazyGridState is not
+ * parcelable, and the two numbers are the whole of what the reader would miss.
+ */
+private val SelectionScrollPositions = listSaver<MutableMap<String, LazyGridState>, Any>(
+    save = { states ->
+        states.flatMap { (key, state) ->
+            listOf(key, state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset)
+        }
+    },
+    restore = { flat ->
+        flat.chunked(3).associate { (key, index, offset) ->
+            key as String to LazyGridState(index as Int, offset as Int)
+        }.toMutableMap()
+    },
+)

@@ -10,7 +10,16 @@ import com.bigon.sinema.navigation.HomeDestination
 import com.bigon.sinema.navigation.SearchDestination
 import com.bigon.sinema.navigation.SettingsDestination
 import com.bigon.sinema.navigation.TopLevelDestination
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.ImageVector
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
 
 /**
@@ -52,3 +61,42 @@ fun NavHostController.navigateToTopLevel(destination: TopLevelDestination) {
         restoreState = true
     }
 }
+
+/**
+ * Taps on the tab that is already showing.
+ *
+ * Navigating to where you already are is a no-op, so the bar's usual signal —
+ * a destination change — says nothing here. This carries the tap itself, which
+ * is the only way the screen can learn that anything happened.
+ *
+ * A shared flow rather than state: "tapped again" is an event, and two taps in
+ * a row have to read as two. Buffered by one and dropping the oldest on
+ * overflow, so an impatient double-tap while a screen is not collecting cannot
+ * queue up a second scroll to run after the first.
+ */
+@Stable
+class TabReselects internal constructor() {
+    private val _events = MutableSharedFlow<TopLevelTab>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+
+    internal fun reselected(tab: TopLevelTab) {
+        _events.tryEmit(tab)
+    }
+
+    /** Emits every time [tab] is tapped while it is already the open tab. */
+    internal fun forTab(tab: TopLevelTab): Flow<Unit> =
+        _events.asSharedFlow().filter { it == tab }.map { }
+}
+
+@Composable
+fun rememberTabReselects(): TabReselects = remember { TabReselects() }
+
+/**
+ * The stream a screen collects to know its own tab was tapped again. Remembered
+ * so collection is not restarted on every recomposition.
+ */
+@Composable
+fun TabReselects?.forTabOrNull(tab: TopLevelTab): Flow<Unit>? =
+    this?.let { reselects -> remember(reselects, tab) { reselects.forTab(tab) } }

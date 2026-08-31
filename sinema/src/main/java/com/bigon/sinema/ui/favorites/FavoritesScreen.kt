@@ -33,7 +33,13 @@ import com.bigon.core.designsystem.theme.BigonTheme
 import com.bigon.tmdb.model.Movie
 import com.bigon.core.ui.ObserveEffects
 import com.bigon.sinema.ui.PosterTransition
+import com.bigon.sinema.ui.PosterViewport
 import com.bigon.sinema.ui.posterModifier
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.flow.Flow
+import com.bigon.sinema.ui.posterViewport
+import com.bigon.sinema.ui.rememberPosterViewport
 
 @Composable
 fun FavoritesRoute(
@@ -48,6 +54,11 @@ fun FavoritesRoute(
      */
     contentPadding: PaddingValues = PaddingValues(),
     transition: PosterTransition? = null,
+    /**
+     * Emits when this screen's tab is tapped while it is already open — the one
+     * gesture that reaches a screen without any state of its own changing.
+     */
+    reselected: Flow<Unit>? = null,
     viewModel: FavoritesViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -65,6 +76,7 @@ fun FavoritesRoute(
         transition = transition,
         modifier = modifier,
         contentPadding = contentPadding,
+        reselected = reselected,
     )
 }
 
@@ -81,6 +93,11 @@ fun FavoritesScreen(
      */
     contentPadding: PaddingValues = PaddingValues(),
     transition: PosterTransition? = null,
+    /**
+     * Emits when this screen's tab is tapped while it is already open — the one
+     * gesture that reaches a screen without any state of its own changing.
+     */
+    reselected: Flow<Unit>? = null,
 ) {
     val spacing = BigonTheme.spacing
 
@@ -113,17 +130,26 @@ fun FavoritesScreen(
                 )
             }
         } else {
+            val posterViewport = rememberPosterViewport()
+            val gridState = rememberLazyGridState()
+            LaunchedEffect(reselected, gridState) {
+                reselected?.collect { gridState.animateScrollToItem(0) }
+            }
             LazyVerticalGrid(
+                state = gridState,
                 columns = GridCells.Adaptive(minSize = 120.dp),
                 horizontalArrangement = Arrangement.spacedBy(spacing.l),
                 verticalArrangement = Arrangement.spacedBy(spacing.l),
                 contentPadding = PaddingValues(
                     bottom = spacing.l + contentPadding.calculateBottomPadding(),
                 ),
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .posterViewport(transition, posterViewport),
             ) {
                 items(state.favorites, key = { it.id }) { movie ->
                     FavoriteCard(
+                        viewport = posterViewport,
                         movie = movie,
                         transition = transition,
                         onClick = { onIntent(FavoritesIntent.MovieClicked(movie)) },
@@ -135,7 +161,12 @@ fun FavoritesScreen(
 }
 
 @Composable
-private fun FavoriteCard(movie: Movie, transition: PosterTransition?, onClick: () -> Unit) {
+private fun FavoriteCard(
+    movie: Movie,
+    transition: PosterTransition?,
+    onClick: () -> Unit,
+    viewport: PosterViewport,
+) {
     BigonMovieCard(
         title = movie.title,
         meta = listOfNotNull(movie.releaseYear?.toString(), movie.genres.firstOrNull())
@@ -155,7 +186,7 @@ private fun FavoriteCard(movie: Movie, transition: PosterTransition?, onClick: (
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
-                        .then(transition.posterModifier(movie.id)),
+                        .then(transition.posterModifier(movie.id, viewport = viewport)),
                 )
             }
         },

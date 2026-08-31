@@ -8,6 +8,8 @@ import com.bigon.core.config.Flags
 import com.bigon.core.tracker.AnalyticsEvent
 import com.bigon.core.tracker.AnalyticsTracker
 import com.bigon.core.ui.toUiText
+import com.bigon.tmdb.model.Movie
+import com.bigon.tmdb.model.MoviePage
 import com.bigon.tmdb.domain.movie.DiscoverFilters
 import com.bigon.tmdb.domain.movie.DiscoverMoviesUseCase
 import com.bigon.tmdb.domain.movie.GetStreamingServicesUseCase
@@ -28,6 +30,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -61,6 +64,43 @@ class SearchViewModel @Inject constructor(
 
     private val debounceMillis = flags.get(Flags.SearchDebounceMs).toLong()
 
+    // Declared above `init` deliberately. Kotlin runs property initialisers and
+    // init blocks in source order, and the pipeline in `init` reaches this map
+    // on its very first emission — which happens during construction. Declared
+    // below, it is still null at that point and the screen crashes on open.
+    /**
+     * One list of results per selection, so a chip returned to is the chip that
+     * was left rather than a fresh page 1.
+     *
+     * Deliberately in memory and deliberately not in Room: these are transient
+     * views of TMDB's catalogue — a genre page, a query's hits — and writing
+     * them to the tables that back Home would mix them into content the app
+     * treats as its own cache. They live as long as the screen does.
+     *
+     * The trade is staleness: a list returned to inside one session is the list
+     * that was fetched, not what TMDB holds now. For a film catalogue that is
+     * invisible, and it costs a request rather than making one.
+     */
+    private data class RememberedList(
+        val movies: List<Movie>,
+        val page: Int,
+        val totalPages: Int,
+    )
+
+    /** Insertion-ordered, so the first key is the least recently stored. */
+    private val remembered = LinkedHashMap<String, RememberedList>()
+
+    private fun keep(key: String, list: RememberedList) {
+        // Re-inserting moves a refreshed list to the newest end, so appending to
+        // a list cannot get it evicted while it is the one being read.
+        remembered.remove(key)
+        if (remembered.size >= MAX_REMEMBERED_LISTS) {
+            remembered.remove(remembered.keys.first())
+        }
+        remembered[key] = list
+    }
+
+
     init {
         tracker.track(AnalyticsEvent.ScreenView("search"))
 
@@ -87,34 +127,91 @@ class SearchViewModel @Inject constructor(
             }
             // Retries re-emit the same request; StateFlow inputs dedupe themselves.
             .combine(retries) { request, _ -> request }
-            .mapLatest { (query, genreId, serviceId, filters) ->
-                _state.update { it.copy(isSearching = true, error = null) }
-                if (query.isBlank()) {
-                    discoverMovies(genreId, streamingProviderId = serviceId, filters = filters)
+            .mapLatest { request ->
+                val key = SearchUiState.selectionKey(
+                    request.query,
+                    request.genreId,
+                    request.serviceId,
+                    request.filters,
+                )
+
+                // A list already fetched comes back exactly as it was left,
+                // every appended page included. Refetching would return page 1
+                // and silently shorten the list, which is what used to make a
+                // remembered scroll position meaningless.
+                //
+                // Failures are never stored, so a retry finds nothing here and
+                // goes to the network as it should.
+                remembered[key]?.let { return@mapLatest Restored(key, it) }
+
+                // The previous selection's films are not this selection's, so
+                // they go the moment the request starts rather than sitting
+                // there until it lands. Leaving them up meant a chip change
+                // showed the old chip's films first and swapped them a moment
+                // later, which reads as the wrong list having been opened.
+                //
+                // Clearing here, past the cache check, keeps a remembered
+                // selection off this path: that one swaps straight to its own
+                // films with no skeleton in between.
+                _state.update {
+                    it.copy(
+                        isSearching = true,
+                        error = null,
+                        results = emptyList(),
+                        page = 1,
+                        totalPages = 1,
+                    )
+                }
+                val result = if (request.query.isBlank()) {
+                    discoverMovies(
+                        request.genreId,
+                        streamingProviderId = request.serviceId,
+                        filters = request.filters,
+                    )
                 } else {
                     // `/search/movie` takes no provider filter and its results
                     // carry no provider data, so the service selection simply
                     // does not apply here — see SearchUiState.
-                    searchMovies(query)
+                    searchMovies(request.query)
                 }
+                Fetched(key, result)
             }
-            .onEach { result ->
-                when (result) {
-                    // A new request always replaces: page 1 of a different query.
-                    is AppResult.Success -> _state.update {
+            .onEach { outcome ->
+                when (outcome) {
+                    is Restored -> _state.update {
                         it.copy(
                             isSearching = false,
-                            results = result.value.movies,
-                            page = result.value.page,
-                            totalPages = result.value.totalPages,
-                            // A different set of films, so the viewport should
-                            // not stay at an offset that belonged to the last
-                            // one — 20 results do not have an item 90.
-                            contentGeneration = it.contentGeneration + 1,
+                            error = null,
+                            results = outcome.results.movies,
+                            page = outcome.results.page,
+                            totalPages = outcome.results.totalPages,
                         )
                     }
-                    is AppResult.Failure -> _state.update {
-                        it.copy(isSearching = false, error = result.error.toUiText())
+
+                    is Fetched -> when (val result = outcome.result) {
+                        // A new request always replaces: page 1 of a different query.
+                        is AppResult.Success -> {
+                            keep(
+                                outcome.key,
+                                RememberedList(
+                                    movies = result.value.movies,
+                                    page = result.value.page,
+                                    totalPages = result.value.totalPages,
+                                ),
+                            )
+                            _state.update {
+                                it.copy(
+                                    isSearching = false,
+                                    results = result.value.movies,
+                                    page = result.value.page,
+                                    totalPages = result.value.totalPages,
+                                )
+                            }
+                        }
+
+                        is AppResult.Failure -> _state.update {
+                            it.copy(isSearching = false, error = result.error.toUiText())
+                        }
                     }
                 }
             }
@@ -125,6 +222,8 @@ class SearchViewModel @Inject constructor(
         val snapshot = _state.value
         if (!snapshot.canLoadMore) return
         val nextPage = snapshot.page + 1
+
+        val snapshotKey = snapshot.selectionKey
 
         viewModelScope.launch {
             _state.update { it.copy(isAppending = true) }
@@ -138,7 +237,7 @@ class SearchViewModel @Inject constructor(
             } else {
                 searchMovies(snapshot.query, nextPage)
             }
-            _state.update { current ->
+            val updated = _state.updateAndGet { current ->
                 // Guard against a race: if the query changed while this page was
                 // in flight, drop the response rather than mixing result sets.
                 val stale = current.query != snapshot.query ||
@@ -157,6 +256,18 @@ class SearchViewModel @Inject constructor(
                     // Appending fails quietly — scrolling again retries.
                     else -> current.copy(isAppending = false)
                 }
+            }
+
+            // The remembered copy has to grow with the visible one. Without this
+            // a list is stored at page 1 forever, and returning to it would
+            // rewind past everything the reader had scrolled through — the same
+            // shortening as a refetch, just arriving from the cache instead.
+            // Skipped when the update above judged the response stale.
+            if (result is AppResult.Success && updated.selectionKey == snapshotKey) {
+                keep(
+                    snapshotKey,
+                    RememberedList(updated.results, updated.page, updated.totalPages),
+                )
             }
         }
     }
@@ -188,6 +299,13 @@ class SearchViewModel @Inject constructor(
         }
     }
 
+    /** What one turn of the pipeline produced: a stored list, or a request. */
+    private sealed interface Outcome
+
+    private data class Restored(val key: String, val results: RememberedList) : Outcome
+
+    private data class Fetched(val key: String, val result: AppResult<MoviePage>) : Outcome
+
     /** Four inputs is past what Triple can carry legibly. */
     private data class Request(
         val query: String,
@@ -203,5 +321,12 @@ class SearchViewModel @Inject constructor(
          * the genre chips beneath it.
          */
         const val MAX_SERVICES = 12
+
+        /**
+         * Every keystroke is its own list, so this is bounded by what a reader
+         * plausibly returns to rather than by what they can generate. Being
+         * evicted costs one refetch, which is what every selection cost before.
+         */
+        const val MAX_REMEMBERED_LISTS = 16
     }
 }

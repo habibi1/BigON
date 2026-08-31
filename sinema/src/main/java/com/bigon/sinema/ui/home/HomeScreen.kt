@@ -51,7 +51,11 @@ import com.bigon.core.ui.ObserveEffects
 import com.bigon.core.ui.asString
 import com.bigon.sinema.ui.PosterTransition
 import com.bigon.sinema.ui.metaLine
+import com.bigon.sinema.ui.PosterViewport
 import com.bigon.sinema.ui.posterModifier
+import kotlinx.coroutines.flow.Flow
+import com.bigon.sinema.ui.posterViewport
+import com.bigon.sinema.ui.rememberPosterViewport
 import androidx.compose.foundation.layout.BoxScope
 import com.bigon.tmdb.model.TrendingItem
 import com.bigon.tmdb.model.typeLabel
@@ -74,6 +78,11 @@ fun HomeRoute(
      */
     contentPadding: PaddingValues = PaddingValues(),
     transition: PosterTransition? = null,
+    /**
+     * Emits when this screen's tab is tapped while it is already open — the one
+     * gesture that reaches a screen without any state of its own changing.
+     */
+    reselected: Flow<Unit>? = null,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -92,6 +101,7 @@ fun HomeRoute(
         transition = transition,
         modifier = modifier,
         contentPadding = contentPadding,
+        reselected = reselected,
     )
 }
 
@@ -109,6 +119,11 @@ fun HomeScreen(
      */
     contentPadding: PaddingValues = PaddingValues(),
     transition: PosterTransition? = null,
+    /**
+     * Emits when this screen's tab is tapped while it is already open — the one
+     * gesture that reaches a screen without any state of its own changing.
+     */
+    reselected: Flow<Unit>? = null,
 ) {
     val spacing = BigonTheme.spacing
     // One scroll position per feed, not one shared by all of them.
@@ -129,6 +144,12 @@ fun HomeScreen(
     // top", not a reload.
     val gridStates = rememberSaveable(saver = FeedScrollPositions) { mutableMapOf() }
     val gridState = gridStates.getOrPut(state.feed.label) { LazyGridState() }
+
+    // Re-keyed on gridState so a tap always moves the feed currently on screen,
+    // not whichever one was showing when collection started.
+    LaunchedEffect(reselected, gridState) {
+        reselected?.collect { gridState.animateScrollToItem(0) }
+    }
     val scope = rememberCoroutineScope()
 
     Column(
@@ -220,6 +241,7 @@ fun HomeScreen(
                     onRefresh = { onIntent(HomeIntent.Refresh) },
                     modifier = Modifier.fillMaxSize(),
                 ) {
+                val posterViewport = rememberPosterViewport()
                 LazyVerticalGrid(
                     state = gridState,
                     columns = GridCells.Adaptive(minSize = 120.dp),
@@ -230,7 +252,10 @@ fun HomeScreen(
                     ),
                     // Fixed gutter: contentPadding scrolls away with the content,
                     // which let cards run up against the chips mid-scroll.
-                    modifier = Modifier.fillMaxSize().padding(top = spacing.m),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = spacing.m)
+                        .posterViewport(transition, posterViewport),
                 ) {
                     if (state.isAcrossTypes) {
                         // Keyed by type as well as id: TMDB ids are unique only
@@ -245,6 +270,7 @@ fun HomeScreen(
                                 item = item,
                                 transition = transition,
                                 onClick = { onIntent(HomeIntent.TrendingItemClicked(item)) },
+                                viewport = posterViewport,
                             )
                         }
                     } else {
@@ -253,6 +279,7 @@ fun HomeScreen(
                                 movie = movie,
                                 transition = transition,
                                 onClick = { onIntent(HomeIntent.MovieClicked(movie)) },
+                                viewport = posterViewport,
                             )
                         }
                     }
@@ -275,7 +302,12 @@ fun HomeScreen(
 }
 
 @Composable
-private fun MovieCard(movie: Movie, transition: PosterTransition?, onClick: () -> Unit) {
+private fun MovieCard(
+    movie: Movie,
+    transition: PosterTransition?,
+    onClick: () -> Unit,
+    viewport: PosterViewport,
+) {
     BigonMovieCard(
         title = movie.title,
         meta = movie.metaLine(),
@@ -294,7 +326,7 @@ private fun MovieCard(movie: Movie, transition: PosterTransition?, onClick: () -
                     // Same key as the detail poster: this is the element that flies.
                     modifier = Modifier
                         .fillMaxSize()
-                        .then(transition.posterModifier(movie.id)),
+                        .then(transition.posterModifier(movie.id, viewport = viewport)),
                 )
             }
         },
@@ -353,9 +385,18 @@ private fun TrendingCard(
     item: TrendingItem,
     transition: PosterTransition?,
     onClick: () -> Unit,
+    viewport: PosterViewport,
 ) {
     when (item) {
-        is TrendingItem.Film -> MovieCard(movie = item.movie, transition = transition, onClick = onClick)
+        // Only a film flies: series and people have no detail poster to
+        // fly to, so they draw a plain image with no shared element.
+        is TrendingItem.Film ->
+            MovieCard(
+                movie = item.movie,
+                transition = transition,
+                onClick = onClick,
+                viewport = viewport,
+            )
 
         is TrendingItem.Series -> BigonMovieCard(
             title = item.name,

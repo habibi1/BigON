@@ -49,6 +49,8 @@ fun SharedTransitionScope.SinemaNavHost(
     /** Space the floating bar or rail covers; only top-level screens need it. */
     contentPadding: PaddingValues = PaddingValues(),
     modifier: Modifier = Modifier,
+    /** Taps on the already-open tab; each list screen scrolls itself to the top. */
+    reselects: TabReselects? = null,
 ) {
     NavHost(
         navController = navController,
@@ -68,6 +70,7 @@ fun SharedTransitionScope.SinemaNavHost(
                 onPersonClick = { navController.navigate(PersonDestination(it)) },
                 transition = PosterTransition(this@SinemaNavHost, this@composable),
                 contentPadding = contentPadding,
+                reselected = reselects.forTabOrNull(TopLevelTab.Home),
             )
         }
 
@@ -76,6 +79,7 @@ fun SharedTransitionScope.SinemaNavHost(
                 onMovieClick = { navController.navigateToMovie(it) },
                 transition = PosterTransition(this@SinemaNavHost, this@composable),
                 contentPadding = contentPadding,
+                reselected = reselects.forTabOrNull(TopLevelTab.Search),
             )
         }
 
@@ -85,6 +89,7 @@ fun SharedTransitionScope.SinemaNavHost(
                 onBrowseTrending = { navController.navigateToTopLevel(HomeDestination) },
                 transition = PosterTransition(this@SinemaNavHost, this@composable),
                 contentPadding = contentPadding,
+                reselected = reselects.forTabOrNull(TopLevelTab.Favorites),
             )
         }
 

@@ -47,6 +47,7 @@ fun SinemaApp() {
         val navController = rememberNavController()
         val currentEntry by navController.currentBackStackEntryAsState()
         val currentDestination = currentEntry?.destination
+        val reselects = rememberTabReselects()
 
         // One wrapper is the whole in-app update integration; :core:update owns
         // both flows — the blocking screen for a forced update and the sheet for
@@ -59,7 +60,15 @@ fun SinemaApp() {
                 },
                 selectedId = (currentDestination.currentTab() ?: TopLevelTab.Home).name,
                 onSelect = { id ->
-                    navController.navigateToTopLevel(TopLevelTab.valueOf(id).destination)
+                    val tab = TopLevelTab.valueOf(id)
+                    // Tapping the open tab is a separate gesture, not a
+                    // navigation: navigateToTopLevel would restore the very
+                    // state the tap is asking to leave, so it is never called.
+                    if (currentDestination.currentTab() == tab) {
+                        reselects.reselected(tab)
+                    } else {
+                        navController.navigateToTopLevel(tab.destination)
+                    }
                 },
                 // Detail is full-bleed: its backdrop runs under the status bar
                 // and would fight a navigation bar.
@@ -85,7 +94,11 @@ fun SinemaApp() {
                 // stays as a cheap guard on the other edges, not as the
                 // mechanism.
                 SharedTransitionLayout(modifier = Modifier.fillMaxSize().clipToBounds()) {
-                    SinemaNavHost(navController = navController, contentPadding = contentPadding)
+                    SinemaNavHost(
+                        navController = navController,
+                        contentPadding = contentPadding,
+                        reselects = reselects,
+                    )
                 }
             }
         }

@@ -34,15 +34,31 @@ data class SearchUiState(
     val page: Int = 1,
     val totalPages: Int = 1,
     val error: UiText? = null,
-    /**
-     * Bumped when the results are replaced wholesale — a new query, genre,
-     * service or filter. The screen scrolls to the top on a change. Appended
-     * pages deliberately do not bump it.
-     */
-    val contentGeneration: Int = 0,
 ) {
     val canLoadMore: Boolean
         get() = !isSearching && !isAppending && page < totalPages && results.isNotEmpty()
+
+    /**
+     * Identifies the list on screen: every input that decides which films these
+     * are, and nothing that does not. The view model keeps one set of results
+     * per key and the screen keeps one scroll position per key, which is what
+     * lets a chip you return to still be where you left it.
+     *
+     * Those two caches are only useful if they agree on what "the same list"
+     * means, so the key is built here, once, and both call this. Appended pages
+     * deliberately do not change it — page 2 is the same list, further down.
+     */
+    val selectionKey: String
+        get() = selectionKey(query, selectedGenreId, selectedServiceId, filters)
+
+    companion object {
+        fun selectionKey(
+            query: String,
+            genreId: Int?,
+            serviceId: Int?,
+            filters: DiscoverFilters,
+        ): String = "${query.trim()}|$genreId|$serviceId|$filters"
+    }
 
     val selectedGenreName: String? get() = genres.firstOrNull { it.id == selectedGenreId }?.name
 
