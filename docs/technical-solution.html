@@ -941,14 +941,20 @@ graph TD
         each; search paged through five pages of <code>/discover</code>.
       </p>
 
-      <div class="panel flag">
-        <div class="eyebrow">Attribution — currently non-compliant</div>
+      <div class="panel">
+        <div class="eyebrow">Attribution — resolved</div>
         <p>
           TMDB's Terms of Use §3 require the TMDB logo plus this exact notice: <em>"This [application] uses TMDB and
-          the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB."</em>
-          <code>SinemaAttributionFooter</code> ships different wording ("uses the TMDB API … not endorsed or certified"),
-          displays no logo, and appears only on the Settings screen although the terms ask for prominence. Fixing the
-          string and adding the logo asset is small work that should not wait for launch.
+          the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB."</em> This paragraph previously
+          recorded three defects: the footer paraphrased the notice, showed no logo, and appeared on Settings only.
+          The logo shipped, and the wording is now quoted character-for-character in <code>TMDB_ATTRIBUTION</code>.
+          Settings-only placement stands — the terms ask that the mark be <em>less</em> prominent than the app's own
+          branding, which a footer satisfies.
+        </p>
+        <p class="t-note">
+          The paraphrase survived a review that had already caught it, because a later section of this same document
+          declared the work done and quoted the wrong string back. A licence condition is worth checking against the
+          licence, not against your own notes.
         </p>
       </div>
 
@@ -968,27 +974,49 @@ graph TD
       <h3>Attribution — done</h3>
       <p>
         TMDB requires two things together: their mark, and the notice
-        <em>"This product uses the TMDB API but is not endorsed or certified by TMDB."</em> Both now ship, emitted by a
-        single <code>SinemaAttributionFooter</code> so no screen can paraphrase the wording — the same
-        define-it-once rule the design system applies to colour and spacing, for the same reason.
+        <em>"This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by
+        TMDB."</em> Both now ship, emitted by a single <code>SinemaAttributionFooter</code> so no screen can paraphrase
+        the wording — the same define-it-once rule the design system applies to colour and spacing, for the same
+        reason. Defining it once is why correcting it later was a one-line change; it did not stop the wrong string
+        being defined in the first place.
       </p>
       <p>
-        The interesting part was verifying it rather than writing it. The bundled mark is a monochrome silhouette:
-        every opaque pixel is pure black. Drawn as-is it looked perfect in light theme and was
+        The interesting part was verifying it rather than writing it. The mark shipped here as a monochrome
+        silhouette: every opaque pixel pure black. Drawn as-is it looked perfect in light theme and was
         <strong>invisible in dark</strong> — measured at <strong>1.14:1</strong> against the dark background, where
-        WCAG asks 3:1 for a graphical object. The notice was technically present and practically unreadable, which is
-        not compliance. Tinting the mark to the caption colour makes it theme-aware in one line and puts it at
-        <strong>7.45:1 dark / 6.52:1 light</strong>:
+        WCAG asks 3:1 for a graphical object. The fix applied at the time was a tint to the caption colour, which
+        put it at <strong>7.45:1 dark / 6.52:1 light</strong> in one line.
       </p>
-      <pre><code>Image(
+      <div class="panel flag">
+        <div class="eyebrow">…and that fix was wrong</div>
+        <p>
+          Two mistakes, stacked. WCAG 1.4.11 <em>exempts</em> logos from contrast requirements — for exactly this
+          reason, that a trademark is not the implementer's to adjust. And the governing rule for this asset was never
+          WCAG at all; it is TMDB's terms, which forbid derivatives of their content. The measurement was sound and
+          the conclusion inverted: a mark invisible in dark theme was evidence of <strong>the wrong asset</strong>,
+          not of a missing colour filter.
+        </p>
+        <p>
+          The silhouette was not an official asset. TMDB publishes five variants and every one is their
+          green→teal→blue gradient; there is no monochrome version, so there was nothing to tint that would still be
+          their logo. Sinema now ships the official <em>Alt short</em> SVG as a gradient
+          <code>VectorDrawable</code>, unmodified, with no <code>colorFilter</code>:
+        </p>
+        <pre><code>Image(
     painter = painterResource(R.drawable.ic_tmdb_logo),
     contentDescription = <span class="c">"The Movie Database (TMDB)"</span>,
-    colorFilter = ColorFilter.tint(SinemaTheme.colors.textSecondary),   <span class="c">// compliance, not styling</span>
-    modifier = Modifier.width(72.dp),
+    modifier = Modifier.width(72.dp),   <span class="c">// no tint: not ours to recolour</span>
 )</code></pre>
+        <p>
+          It measures roughly <strong>2:1 on light</strong> and <strong>8:1 on dark</strong>. The low end stands, and
+          is the correct outcome — that is the mark as its owner draws it.
+        </p>
+      </div>
       <p class="t-note">
-        Worth generalising: a monochrome asset dropped into a themed app is a latent defect in whichever theme matches
-        its ink. Screenshot review in one theme cannot catch it — the contrast has to be measured in both.
+        Worth generalising twice. A monochrome asset dropped into a themed app is a latent defect in whichever theme
+        matches its ink, and screenshot review in one theme cannot catch it — contrast has to be measured in both.
+        But measuring the right number does not mean you are applying the right rule: before styling a third-party
+        asset into compliance, check whether the rule you are satisfying is the one that governs it.
       </p>
       <div class="panel flag">
         <div class="eyebrow">Placement — a judgement call, not an oversight</div>

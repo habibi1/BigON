@@ -21,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -40,14 +39,35 @@ import com.bigon.core.designsystem.theme.BigonTheme
 
 
 /**
+ * TMDB API Terms of Use §3, verbatim, with the bracketed choice resolved to
+ * "product". https://www.themoviedb.org/api-terms-of-use
+ */
+const val TMDB_ATTRIBUTION: String =
+    "This product uses TMDB and the TMDB APIs but is not endorsed, certified, " +
+        "or otherwise approved by TMDB."
+
+/**
  * BigonAttributionFooter — TMDB's required notice: their mark plus the exact
  * wording they mandate, defined exactly once (N4.3) so no screen can paraphrase
  * it (component gallery §Scaffolding & feedback).
  *
- * The bundled mark is a monochrome silhouette, so it is tinted to the caption
- * colour rather than drawn as-is. Untinted it is pure black, which scores 1.14:1
- * against the dark background — an attribution nobody can see is not an
- * attribution, so the tint is a compliance requirement, not styling.
+ * [TMDB_ATTRIBUTION] is quoted character-for-character from §3 of TMDB's API
+ * Terms of Use. It reads redundantly — "uses TMDB and the TMDB APIs" — because
+ * the terms require crediting the database and the API separately, and it ends
+ * on three verbs, not two. Both are load-bearing: this is a licence condition,
+ * not copy. Do not tighten it.
+ *
+ * The mark is TMDB's official SVG, drawn in their gradient and never tinted.
+ *
+ * It used to be a black silhouette recoloured to the caption colour, because
+ * black scored 1.14:1 against the dark background and WCAG asks 3:1 of a
+ * graphical object. That reasoning had the rule backwards twice over: WCAG
+ * 1.4.11 exempts logos from contrast requirements precisely because they are not
+ * ours to adjust, and TMDB's terms are what actually govern this asset. The fix
+ * for an invisible mark was the right file, not a colour filter.
+ *
+ * The gradient measures ~2:1 on the light background and ~8:1 on the dark one.
+ * The low end is deliberate and correct: it is the mark as its owner draws it.
  */
 @Composable
 fun BigonAttributionFooter(
@@ -62,11 +82,10 @@ fun BigonAttributionFooter(
         Image(
             painter = painterResource(id = R.drawable.ic_tmdb_logo),
             contentDescription = "The Movie Database (TMDB)",
-            colorFilter = ColorFilter.tint(BigonTheme.colors.textSecondary),
             modifier = Modifier.width(72.dp),
         )
         Text(
-            text = "$versionLabel · This product uses the TMDB API but is not endorsed or certified by TMDB.",
+            text = "$versionLabel · $TMDB_ATTRIBUTION",
             style = BigonTheme.typography.caption.copy(fontSize = 10.5.sp, lineHeight = 16.sp),
             color = BigonTheme.colors.textSecondary,
             textAlign = TextAlign.Center,
