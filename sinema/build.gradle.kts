@@ -53,10 +53,11 @@ android {
         applicationId = "com.bigon.sinema"
         minSdk = 26
         targetSdk = 37
-        // Play orders uploads by versionCode and never accepts one twice, so
-        // this only has to rise — it does not have to mean anything. Nothing
-        // has been uploaded yet, so the first release is still 1.
-        versionCode = 1
+        // Play orders uploads by versionCode and never accepts one twice — not
+        // even after a release is deleted, and not even for a build it rejected
+        // at review. So this only ever rises, it does not have to match
+        // versionName, and there is no cost to leaving gaps in it.
+        versionCode = 2
         // What the reader sees, in Settings and under the TMDB mark.
         versionName = "1.0.0"
 

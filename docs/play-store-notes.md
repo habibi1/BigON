@@ -120,7 +120,7 @@ Remote Config remains unimplemented; `StaticFeatureFlagDataSource` is still the 
   pass; the minified build has been smoke-tested on device) but produces `sinema-release-unsigned.apk` — there is
   no `signingConfigs` block yet. A release keystore is needed, kept out of version control (`.gitignore` already
   covers `*.jks`, `*.keystore` and `signing.properties`) with its passwords out of the build files.
-- **`versionCode` / `versionName`:** `1` and `1.0.0`. The two are independent: `versionName` is a string shown to
+- **`versionCode` / `versionName`:** `2` and `1.0.0`. The two are independent: `versionName` is a string shown to
   readers, while `versionCode` is the integer Play orders uploads by. Play never accepts a `versionCode` twice —
   not even after a release is deleted or rolled back — so **every** upload after this one must increment it,
   including a re-upload of a build rejected at review. `1.0.0` can stay put while `versionCode` climbs.
