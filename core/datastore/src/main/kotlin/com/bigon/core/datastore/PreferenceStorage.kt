@@ -13,7 +13,9 @@ interface PreferenceStorage {
     /**
      * Persisted theme selection. Stored as a plain string ("system"/"dark"/
      * "light") so this module never depends on presentation enums; null means
-     * the user has never chosen and the app should follow the system.
+     * the user has never chosen. What that resolves to is a presentation
+     * decision and lives in ThemeMode.fromStorage, not here — this layer only
+     * reports the absence.
      */
     val themeMode: Flow<String?>
     suspend fun setThemeMode(value: String)

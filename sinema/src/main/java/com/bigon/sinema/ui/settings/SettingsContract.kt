@@ -5,7 +5,7 @@ import com.bigon.core.ui.UiText
 import com.bigon.sinema.ui.ThemeMode
 
 data class SettingsUiState(
-    val themeMode: ThemeMode = ThemeMode.System,
+    val themeMode: ThemeMode = ThemeMode.Default,
     val cacheBytes: Long? = null,
     val isClearingCache: Boolean = false,
     /**

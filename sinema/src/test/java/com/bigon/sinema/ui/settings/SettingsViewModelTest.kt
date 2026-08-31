@@ -132,13 +132,16 @@ class SettingsViewModelTest {
         val preferences = FakePreferences()
         val vm = SettingsViewModel(preferences, FakeCache(), FakeRepository(), NoopTracker)
         advanceUntilIdle()
-        assertEquals(ThemeMode.System, vm.state.value.themeMode)
+        // Nothing stored yet, so this is the fresh-install default.
+        assertEquals(ThemeMode.Dark, vm.state.value.themeMode)
 
-        vm.onIntent(SettingsIntent.ThemeChanged(ThemeMode.Dark))
+        // Selecting away from the default, so the round-trip cannot pass by
+        // landing back on the value the state already held.
+        vm.onIntent(SettingsIntent.ThemeChanged(ThemeMode.Light))
         advanceUntilIdle()
 
-        assertEquals("dark", preferences.theme.value)
-        assertEquals(ThemeMode.Dark, vm.state.value.themeMode)
+        assertEquals("light", preferences.theme.value)
+        assertEquals(ThemeMode.Light, vm.state.value.themeMode)
     }
 
     @Test
