@@ -74,7 +74,7 @@ internal object MovieMapper {
      * already worked out by this point. [FavoriteEntity.addedAt] is preserved:
      * it is the user's ordering, not TMDB's data.
      */
-    fun patch(entity: FavoriteEntity, detail: MovieDetail): FavoriteEntity = entity.copy(
+    fun patch(entity: FavoriteEntity, detail: MovieDetail, now: Long): FavoriteEntity = entity.copy(
         title = detail.title.takeIf { it.isNotBlank() } ?: entity.title,
         overview = detail.overview,
         posterUrl = detail.posterUrl,
@@ -82,6 +82,9 @@ internal object MovieMapper {
         releaseDate = detail.releaseDate?.toString(),
         voteAverage = detail.voteAverage,
         genreNames = detail.genres,
+        // addedAt is deliberately untouched: it is the user's action, not TMDB's
+        // data, and moving it would reshuffle the Favorites screen.
+        snapshotAt = now,
     )
 
     fun toGenreEntity(dto: GenreDto): GenreEntity = GenreEntity(id = dto.id, name = dto.name)

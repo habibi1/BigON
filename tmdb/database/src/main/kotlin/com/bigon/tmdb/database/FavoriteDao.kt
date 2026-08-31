@@ -27,4 +27,12 @@ interface FavoriteDao {
 
     @Query("DELETE FROM favorite_entity WHERE id = :movieId")
     suspend fun delete(movieId: Long)
+
+    /**
+     * Favourites whose cached TMDB content predates [cutoff] and so may no
+     * longer be shown without being refetched. Oldest first, so a partial pass
+     * over a flaky connection always makes progress on the worst offenders.
+     */
+    @Query("SELECT id FROM favorite_entity WHERE snapshot_at < :cutoff ORDER BY snapshot_at ASC")
+    suspend fun staleIds(cutoff: Long): List<Long>
 }

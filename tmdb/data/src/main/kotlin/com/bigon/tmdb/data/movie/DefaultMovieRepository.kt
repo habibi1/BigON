@@ -239,7 +239,9 @@ class DefaultMovieRepository @Inject constructor(
      */
     private suspend fun refreshFavoriteSnapshot(detail: MovieDetail) {
         runCatching {
-            favoriteDao.byId(detail.id)?.let { favoriteDao.upsert(MovieMapper.patch(it, detail)) }
+            favoriteDao.byId(detail.id)?.let {
+                favoriteDao.upsert(MovieMapper.patch(it, detail, now = System.currentTimeMillis()))
+            }
         }
         // Same rule as the detail cache below: a write-back that fails must not
         // fail the read it was improving.
@@ -255,6 +257,7 @@ class DefaultMovieRepository @Inject constructor(
                     fetchedAt = System.currentTimeMillis(),
                 ),
                 keep = MAX_CACHED_DETAILS,
+                cutoff = TmdbCachePolicy.cutoff(System.currentTimeMillis()),
             )
         }
         // A cache write failing must not fail the read it was serving.
@@ -262,6 +265,10 @@ class DefaultMovieRepository @Inject constructor(
 
     private suspend fun cachedDetail(movieId: Long): AppResult<MovieDetail>? {
         val row = movieDetailDao.byId(movieId) ?: return null
+        // TMDB caps how long their content may be held (TmdbCachePolicy). Expiring
+        // on read rather than trusting the sweep means an over-age payload is never
+        // served, however long the app has sat unopened between the two.
+        if (TmdbCachePolicy.isExpired(row.fetchedAt, System.currentTimeMillis())) return null
         return runCatching {
             AppResult.Success(detailJson.decodeFromString<MovieDetailSnapshot>(row.payload).toDomain())
         }.getOrNull()

@@ -33,10 +33,19 @@ class DefaultFavoritesRepository @Inject constructor(
 
     override suspend fun setFavorite(movie: Movie, favorite: Boolean) =
         withContext(dispatchers.io) {
-            if (favorite) favoriteDao.upsert(movie.toSnapshot(addedAt = clock())) else favoriteDao.delete(movie.id)
+            if (favorite) favoriteDao.upsert(movie.toSnapshot(now = clock())) else favoriteDao.delete(movie.id)
         }
 
-    private fun Movie.toSnapshot(addedAt: Long) = FavoriteEntity(
+    override suspend fun staleSnapshotIds(): List<Long> = withContext(dispatchers.io) {
+        favoriteDao.staleIds(TmdbCachePolicy.cutoff(clock()))
+    }
+
+    /**
+     * Both timestamps start together, then diverge: [FavoriteEntity.addedAt]
+     * stays put for as long as the favourite exists, while
+     * [FavoriteEntity.snapshotAt] moves each time the TMDB content is refetched.
+     */
+    private fun Movie.toSnapshot(now: Long) = FavoriteEntity(
         id = id,
         title = title,
         overview = overview,
@@ -45,7 +54,8 @@ class DefaultFavoritesRepository @Inject constructor(
         releaseDate = releaseDate?.toString(),
         voteAverage = voteAverage,
         genreNames = genres,
-        addedAt = addedAt,
+        addedAt = now,
+        snapshotAt = now,
     )
 
     private fun FavoriteEntity.toDomain() = Movie(

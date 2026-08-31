@@ -39,6 +39,10 @@ class DefaultFavoritesRepositoryTest {
         override suspend fun delete(movieId: Long) {
             rows.value = rows.value - movieId
         }
+        override suspend fun staleIds(cutoff: Long): List<Long> =
+            rows.value.values.filter { it.snapshotAt < cutoff }
+                .sortedBy(FavoriteEntity::snapshotAt)
+                .map(FavoriteEntity::id)
     }
 
     private fun repository(dao: FakeFavoriteDao, clock: () -> Long = { 0L }) =
@@ -109,7 +113,7 @@ class DefaultFavoritesRepositoryTest {
     fun `corrupt stored date degrades to null instead of crashing`() = runTest(dispatcher) {
         val dao = FakeFavoriteDao()
         dao.rows.value = mapOf(
-            9L to FavoriteEntity(9, "Broken", "", null, null, "not-a-date", null, emptyList(), 0),
+            9L to FavoriteEntity(9, "Broken", "", null, null, "not-a-date", null, emptyList(), 0, 0),
         )
         repository(dao).observeFavorites().test {
             assertNull(awaitItem().single().releaseDate)

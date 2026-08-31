@@ -12,7 +12,7 @@ import androidx.room.TypeConverters
         MovieDetailEntity::class,
         TrendingItemEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = false,
 )
 @TypeConverters(DatabaseConverters::class)

@@ -80,6 +80,8 @@ class DefaultMovieRepositoryTest {
         override suspend fun delete(movieId: Long) {
             rows.value = rows.value - movieId
         }
+        override suspend fun staleIds(cutoff: Long): List<Long> =
+            rows.value.values.filter { it.snapshotAt < cutoff }.map(FavoriteEntity::id)
     }
 
     private class FakeGenreDao(initial: List<GenreEntity> = emptyList()) : GenreDao {
@@ -235,6 +237,10 @@ class DefaultMovieRepositoryTest {
             rows.entries.sortedByDescending { it.value.fetchedAt }
                 .drop(keep)
                 .forEach { rows.remove(it.key) }
+        }
+
+        override suspend fun purgeOlderThan(cutoff: Long) {
+            rows.entries.filter { it.value.fetchedAt < cutoff }.forEach { rows.remove(it.key) }
         }
     }
 

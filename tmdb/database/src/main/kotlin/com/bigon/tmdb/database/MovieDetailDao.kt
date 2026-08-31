@@ -36,9 +36,19 @@ interface MovieDetailDao {
     )
     suspend fun trimTo(keep: Int)
 
+    /**
+     * Drops payloads cached before [cutoff]. TMDB's terms cap how long their
+     * content may be held, so this is an obligation rather than housekeeping:
+     * [trimTo] bounds the cache by size, this bounds it by age, and the two are
+     * independent — fewer than `keep` rows still expire.
+     */
+    @Query("DELETE FROM movie_detail_entity WHERE fetched_at < :cutoff")
+    suspend fun purgeOlderThan(cutoff: Long)
+
     @Transaction
-    suspend fun save(entity: MovieDetailEntity, keep: Int) {
+    suspend fun save(entity: MovieDetailEntity, keep: Int, cutoff: Long) {
         upsert(entity)
+        purgeOlderThan(cutoff)
         trimTo(keep)
     }
 }

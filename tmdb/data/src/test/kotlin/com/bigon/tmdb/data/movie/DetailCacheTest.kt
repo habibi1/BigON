@@ -256,6 +256,7 @@ class DetailCacheTest {
                 voteAverage = 7.0,
                 genreNames = emptyList(),
                 addedAt = 4242,
+                snapshotAt = 4242,
             ),
         )
 
@@ -271,5 +272,8 @@ class DetailCacheTest {
         assertEquals(8.3, stored.getValue(1L).voteAverage)
         // The user's ordering is theirs, not TMDB's.
         assertEquals(4242, stored.getValue(1L).addedAt)
+        // ...but the six-month clock on TMDB's copy of the data restarts, or the
+        // refresh pass would keep refetching a row it had just brought up to date.
+        assertTrue(stored.getValue(1L).snapshotAt > 4242)
     }
 }

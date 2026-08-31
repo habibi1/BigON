@@ -23,4 +23,12 @@ data class FavoriteEntity(
     @ColumnInfo(name = "genres") val genreNames: List<String>,
     /** Insertion order drives the Favorites screen (newest first). */
     @ColumnInfo(name = "added_at") val addedAt: Long,
+    /**
+     * When the TMDB-derived fields above were last fetched — distinct from
+     * [addedAt], which records the user's action and must never move. Refreshing
+     * a snapshot would otherwise reorder the Favorites screen under the reader.
+     *
+     * Drives the six-month refresh required by TMDB's terms.
+     */
+    @ColumnInfo(name = "snapshot_at") val snapshotAt: Long,
 )
