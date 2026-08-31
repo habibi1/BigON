@@ -164,10 +164,11 @@
   <em>Settings → Apps → Sinema → Storage → Clear storage</em>.
 </p>
 
-<h2>4. Analytics and crash reporting (Google Firebase)</h2>
+<h2>4. Analytics, crash reporting and performance (Google Firebase)</h2>
 <p>
-  The app uses two Google Firebase services: <strong>Firebase Analytics</strong> and
-  <strong>Firebase Crashlytics</strong>. Both are operated by Google, not by us, and what they send goes to Google.
+  The app uses three Google Firebase services: <strong>Firebase Analytics</strong>,
+  <strong>Firebase Crashlytics</strong> and <strong>Firebase Performance Monitoring</strong>. All three are
+  operated by Google, not by us, and what they send goes to Google.
 </p>
 <p><strong>What is sent</strong></p>
 <ul>
@@ -177,12 +178,18 @@
     for or which films you favourite.
   </li>
   <li>
-    <strong>Crash and performance data</strong> — if the app crashes, the technical details of the failure and a
-    short trail of the events immediately before it.
+    <strong>Crash data</strong> — if the app crashes, the technical details of the failure and a short trail of the
+    events immediately before it.
   </li>
   <li>
-    <strong>Device and identifiers</strong> — device model, operating system version, country, and identifiers that
-    Google generates for the installation. These identify a copy of the app, not a person.
+    <strong>Performance data</strong> — how long the app takes to start, how smoothly screens draw, and timing for
+    the requests it makes to TMDB: the address requested, how long it took, how much data came back and whether it
+    succeeded. The address is a TMDB endpoint, never a page you chose to visit, and no request body is recorded.
+  </li>
+  <li>
+    <strong>Device and identifiers</strong> — device model, operating system version, country, mobile carrier and
+    connection type, and identifiers that Google generates for the installation. These identify a copy of the app,
+    not a person.
   </li>
 </ul>
 <p><strong>What is not sent</strong></p>

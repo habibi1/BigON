@@ -11,4 +11,5 @@ plugins {
     // see that module's build file for why.
     alias(libs.plugins.google.services) apply false
     alias(libs.plugins.firebase.crashlytics) apply false
+    alias(libs.plugins.firebase.perf) apply false
 }

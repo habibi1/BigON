@@ -52,10 +52,11 @@ Based on the code as it stands:
 
 | Question | Answer | Why |
 | --- | --- | --- |
-| Does your app collect or share any of the required user data types? | **Yes** | Firebase Analytics and Crashlytics are bound in `AppModule` whenever a `google-services.json` is present. |
+| Does your app collect or share any of the required user data types? | **Yes** | Firebase Analytics and Crashlytics are bound in `AppModule`, and Performance Monitoring reports on its own, whenever a `google-services.json` is present. |
 | **App activity** — other actions | **Collected, not shared.** Not linked to identity. Purpose: Analytics | `AnalyticsEvent` sends `screen_view`, `movie_opened`, `outbound_link`, `experiment_exposed`. No search terms, no favourites. |
 | **App info and performance** — crash logs | **Collected, not shared.** Not linked to identity. Purpose: Analytics, App functionality | Crashlytics, plus the event breadcrumbs preceding a crash. |
-| **Device or other IDs** | **Collected, not shared.** Not linked to identity. Purpose: Analytics | Firebase generates an installation ID. It identifies an install, not a person. |
+| **App info and performance** — diagnostics | **Collected, not shared.** Not linked to identity. Purpose: Analytics, App functionality | Performance Monitoring: start-up time, frame rendering, and automatic traces of the app's own HTTPS calls to TMDB — URL, latency, payload size, response code. No request bodies. |
+| **Device or other IDs** | **Collected, not shared.** Not linked to identity. Purpose: Analytics | Firebase generates an installation ID. It identifies an install, not a person. Performance Monitoring adds carrier and radio type to the device picture. |
 | Is all user data encrypted in transit? | **Yes** | HTTPS to TMDB; Firebase SDKs use TLS. |
 | Do you provide a way for users to request data deletion? | No in-app route; uninstall stops collection | There is no account to delete. In-app *Settings → Clear cache* and per-item favourite removal clear local data. Firebase data is deleted per Google's retention policy. |
 | Data collected for advertising or personalisation | **None** | No ad SDK, no attribution SDK, no advertising ID. |
@@ -80,10 +81,12 @@ alongside the TMDB credentials. To configure it:
 Without that file the build still succeeds and prints:
 
 ```
-google-services.json not found in :sinema — building without Firebase. Analytics and Crashlytics will be inert.
+google-services.json not found in :sinema — building without Firebase. Analytics, Crashlytics and Performance will be inert.
 ```
 
-`BuildConfig.FIREBASE_ENABLED` is then false, the sinks are never bound, and nothing is collected. **A release
+`BuildConfig.FIREBASE_ENABLED` is then false, the sinks are never bound, and nothing is collected. Performance
+Monitoring is not gated by that flag because it is not bound through the graph at all — its Gradle plugin is what
+instruments the app, so it is absent from the build entirely rather than switched off inside it. **A release
 built without the file reports nothing and says so only in the Gradle log** — check for that line before shipping,
 because the Data safety declaration above claims collection that would not be happening.
 

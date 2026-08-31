@@ -21,10 +21,11 @@ val firebaseConfigured = firebaseConfig.exists()
 if (firebaseConfigured) {
     apply(plugin = libs.plugins.google.services.get().pluginId)
     apply(plugin = libs.plugins.firebase.crashlytics.get().pluginId)
+    apply(plugin = libs.plugins.firebase.perf.get().pluginId)
 } else {
     logger.lifecycle(
         "google-services.json not found in :sinema — building without Firebase. " +
-            "Analytics and Crashlytics will be inert.",
+            "Analytics, Crashlytics and Performance will be inert.",
     )
 }
 
@@ -122,6 +123,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.perf)
     implementation(libs.okhttp.logging.interceptor)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.timber)
