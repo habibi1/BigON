@@ -1,0 +1,1384 @@
+<title>Sinema Tracking Architecture</title>
+
+<style>
+  /* ─────────── tokens: inherited from the technical solution, which mirrors SinemaColors ─────────── */
+  :root {
+    --ground: #EFEDE9;
+    --surface: #FFFFFF;
+    --surface-2: #F6F3EE;
+    --hairline: #D9D3C9;
+    --hairline-soft: #E6E1D8;
+    --accent: #8A5A00;
+    --accent-dim: #FFDDB0;
+    --accent-ink: #6E4700;
+    --ink: #1C1B18;
+    --ink-2: #5E5A52;
+    --ink-3: #857F74;
+    --ok-bg: #DCEEE2;
+    --ok-ink: #1F6B45;
+    --gap-bg: #FFDAD6;
+    --gap-ink: #8C000B;
+    --warn-bg: #FBEBC8;
+    --warn-ink: #6B4E10;
+
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+    --measure: 68ch;
+    --pad: clamp(20px, 5vw, 60px);
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0A0D10;
+      --surface: #151A1F;
+      --surface-2: #1D242B;
+      --hairline: #2C353E;
+      --hairline-soft: #212931;
+      --accent: #FFB648;
+      --accent-dim: #4A3600;
+      --accent-ink: #FFC978;
+      --ink: #E8ECEF;
+      --ink-2: #9AA6B0;
+      --ink-3: #6B7783;
+      --ok-bg: #16281F;
+      --ok-ink: #79C79B;
+      --gap-bg: #2E1F1F;
+      --gap-ink: #F0A9A2;
+      --warn-bg: #2C2413;
+      --warn-ink: #D9B463;
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0A0D10; --surface: #151A1F; --surface-2: #1D242B;
+    --hairline: #2C353E; --hairline-soft: #212931;
+    --accent: #FFB648; --accent-dim: #4A3600; --accent-ink: #FFC978;
+    --ink: #E8ECEF; --ink-2: #9AA6B0; --ink-3: #6B7783;
+    --ok-bg: #16281F; --ok-ink: #79C79B;
+    --gap-bg: #2E1F1F; --gap-ink: #F0A9A2;
+    --warn-bg: #2C2413; --warn-ink: #D9B463;
+    color-scheme: dark;
+  }
+
+  /* ─────────── base ─────────── */
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 var(--pad) 96px;
+  }
+  p, ul, ol { max-width: var(--measure); }
+  p { margin: 0; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+  a:hover { border-bottom-color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  /* ─────────── masthead ─────────── */
+  header.mast {
+    padding: clamp(48px, 9vw, 96px) 0 32px;
+    border-bottom: 1px solid var(--hairline);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  h1 {
+    font-size: clamp(34px, 7vw, 52px);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    font-weight: 700;
+    text-wrap: balance;
+    margin: 0;
+  }
+  h1 .dim { color: var(--ink-3); font-weight: 400; letter-spacing: -0.02em; }
+  .standfirst {
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    max-width: 60ch;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 0;
+    border-top: 1px solid var(--hairline-soft);
+    padding-top: 18px;
+    margin-top: 6px;
+  }
+  .meta div {
+    flex: 1 1 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding-right: 18px;
+  }
+  .meta .k {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .meta .v {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ─────────── sections ─────────── */
+  section { padding-top: 56px; }
+  .shead {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: 10px;
+    margin-bottom: 24px;
+  }
+  .shead .no {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    flex: none;
+  }
+  h2 {
+    font-size: clamp(21px, 3.4vw, 27px);
+    letter-spacing: -0.02em;
+    font-weight: 650;
+    margin: 0;
+    text-wrap: balance;
+  }
+  h3 {
+    font-size: 15px;
+    font-weight: 650;
+    letter-spacing: 0.005em;
+    margin: 0;
+  }
+  .stack { display: flex; flex-direction: column; gap: 16px; }
+  .stack-lg { display: flex; flex-direction: column; gap: 28px; }
+
+  /* ─────────── panels ─────────── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--hairline-soft);
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .panel.flag { background: var(--surface-2); border-color: var(--hairline); }
+  .callout {
+    border-left: 2px solid var(--accent);
+    background: var(--surface);
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .callout.stop { border-left-color: var(--gap-ink); }
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+
+  /* ─────────── defect list: the severity stripe carries the state, not a card ─────────── */
+  ol.defects { list-style: none; padding: 0; margin: 0; max-width: none; display: flex; flex-direction: column; gap: 2px; }
+  ol.defects > li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    background: var(--surface);
+    border-left: 3px solid var(--gap-ink);
+    padding: 16px 20px;
+  }
+  ol.defects > li.soft { border-left-color: var(--warn-ink); }
+  ol.defects .dhead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+  ol.defects .dhead h3 { flex: 1 1 auto; }
+  ol.defects p { color: var(--ink-2); max-width: 74ch; }
+  ol.defects .site { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3); white-space: nowrap; }
+
+  /* ─────────── tables ─────────── */
+  .scroller { overflow-x: auto; border: 1px solid var(--hairline-soft); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 560px; }
+  th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--hairline-soft); vertical-align: top; }
+  thead th {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 400;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--hairline);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.mono, td .mono, th.mono { font-family: var(--font-mono); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .t-note { color: var(--ink-2); }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--surface-2);
+    border: 1px solid var(--hairline-soft);
+    padding: 1px 5px;
+    color: var(--accent-ink);
+    white-space: nowrap;
+  }
+  pre {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.62;
+    background: var(--surface);
+    border: 1px solid var(--hairline-soft);
+    padding: 16px 18px;
+    overflow-x: auto;
+    margin: 0;
+  }
+  pre code { background: none; border: none; padding: 0; color: var(--ink); white-space: pre; font-size: 12.5px; }
+  pre .c { color: var(--ink-3); }
+  pre .k { color: var(--accent); }
+
+  /* ─────────── pills ─────────── */
+  .pill {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    white-space: nowrap;
+  }
+  .pill.ok { background: var(--ok-bg); color: var(--ok-ink); }
+  .pill.gap { background: var(--gap-bg); color: var(--gap-ink); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn-ink); }
+
+  /* ─────────── roadmap spine ─────────── */
+  ol.spine { list-style: none; padding: 0; margin: 0; max-width: none; display: flex; flex-direction: column; }
+  ol.spine > li {
+    display: grid;
+    grid-template-columns: 42px 1fr;
+    gap: 0 18px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--hairline-soft);
+  }
+  ol.spine > li:last-child { border-bottom: none; }
+  ol.spine .step {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    padding-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  ol.spine .body { display: flex; flex-direction: column; gap: 6px; }
+  ol.spine .body p { color: var(--ink-2); font-size: 14px; max-width: 74ch; }
+  ol.spine .body .tag { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+  ol.spine .body .tag h3 { flex: 0 1 auto; }
+
+  ul.tight { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+  ul.tight li { color: var(--ink-2); }
+  ul.tight li strong { color: var(--ink); font-weight: 600; }
+  ul.none { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+
+  .mermaid { background: var(--surface); border: 1px solid var(--hairline-soft); padding: 20px; overflow-x: auto; }
+
+  footer {
+    margin-top: 72px;
+    padding-top: 20px;
+    border-top: 1px solid var(--hairline);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 0.05em;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="mast">
+    <div class="eyebrow">Tracking system · Revision 1 · Plan</div>
+    <h1>Tracking <span class="dim">— system design &amp; architecture</span></h1>
+    <p class="standfirst">
+      How Sinema will measure itself: a typed event catalog, a consent gate that defaults to no, a durable
+      offline buffer, and one release gate that outranks all of it. Standards are named per concern rather than
+      asserted collectively, so each obligation can be checked against the code that claims to satisfy it.
+    </p>
+    <div class="meta">
+      <div><span class="k">Subject</span><span class="v">:core:tracker</span></div>
+      <div><span class="k">Platform</span><span class="v">minSdk 26 / SDK 37</span></div>
+      <div><span class="k">Consent default</span><span class="v">denied</span></div>
+      <div><span class="k">Off-device sinks</span><span class="v">0 today</span></div>
+      <div><span class="k">Modules to add</span><span class="v">6</span></div>
+      <div><span class="k">Status</span><span class="v">design, unverified</span></div>
+    </div>
+  </header>
+
+  <section>
+    <div class="shead"><span class="no">§1</span><h2>Scope, and the constraint that outranks the design</h2></div>
+    <div class="stack-lg">
+
+      <div class="callout stop">
+        <div class="eyebrow">Release gate — not a checklist item</div>
+        <p>
+          The published privacy policy states that Sinema collects no usage analytics and no device identifiers,
+          and its §9 commits to updating the policy <em>before</em> a version that adds analytics is released.
+          That sentence is a promise already made to every current user. So the pipeline is designed and built
+          now, and <strong>nothing leaves the device</strong> until a revised policy and a matching Play Data
+          Safety declaration ship in the same release as the first off-device sink.
+        </p>
+        <p>
+          The practical consequence runs through the whole design: consent defaults to denied, the consent state
+          is tri-state rather than boolean, and adding an SDK sink must not be a one-line change that quietly
+          starts transmitting. Today it is exactly that (§3).
+        </p>
+      </div>
+
+      <div class="stack">
+        <h3>In scope</h3>
+        <ul class="tight">
+          <li><strong>Product analytics</strong> — screen views and a small set of deliberate interaction events.</li>
+          <li><strong>Experiment exposure</strong> — which variant a screen actually rendered, paired with the
+            existing <code>:core:config:api</code> flag registry.</li>
+          <li><strong>Technical quality</strong> — the pipeline's own loss and latency counters, and cache/refresh
+            outcomes that explain a bad session.</li>
+          <li><strong>Stability</strong> — crash and ANR reporting, treated as a <em>separate</em> consent purpose
+            with its own decision (§7).</li>
+        </ul>
+      </div>
+
+      <div class="stack">
+        <h3>Non-goals, written down so they cannot drift</h3>
+        <ul class="tight">
+          <li><strong>No advertising identifier.</strong> The app will not declare
+            <code>com.google.android.gms.permission.AD_ID</code>, which since API 33 is what gates access to it.
+            There is no advertising in Sinema and no reason to hold a cross-app identifier.</li>
+          <li><strong>No cross-app, cross-device or cross-install identity.</strong> One pseudonymous id per
+            install, and it does not survive a consent withdrawal.</li>
+          <li><strong>No free-text user content.</strong> Search terms are the tempting exception — they are the
+            single most useful and most identifying field the app could send — and they are excluded. Counts and
+            result-set sizes are not.</li>
+          <li><strong>No third-party attribution or ad SDK</strong>, at any tier.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§2</span><h2>Standards baseline</h2></div>
+    <div class="stack-lg">
+      <p>
+        "Industry standard" is not a design decision; a named specification with a stated obligation is. Each row
+        below is a standard this system conforms to, and the obligation it actually imposes on the code — so a
+        reviewer can check the claim rather than accept it.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <thead>
+            <tr><th>Concern</th><th>Standard</th><th>What it obliges here</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Event envelope</td>
+              <td class="mono">CloudEvents 1.0</td>
+              <td class="t-note">Every event carries <code>id</code>, <code>source</code>, <code>type</code>,
+                <code>time</code>, <code>specversion</code>, <code>dataschema</code> — so ingest routes and
+                validates without a bespoke parser per event.</td>
+            </tr>
+            <tr>
+              <td>Attribute semantics</td>
+              <td class="mono">OpenTelemetry semantic conventions</td>
+              <td class="t-note">Resource and mobile attribute names are adopted, not invented:
+                <code>service.name</code>, <code>service.version</code>, <code>os.*</code>, <code>device.*</code>,
+                <code>session.id</code>, <code>app.installation.id</code>.</td>
+            </tr>
+            <tr>
+              <td>Correlation</td>
+              <td class="mono">W3C Trace Context</td>
+              <td class="t-note">A batch upload sends <code>traceparent</code>, so a client-side complaint can be
+                joined to its server-side ingest span. Debug builds only; it is not per-event.</td>
+            </tr>
+            <tr>
+              <td>Identifiers</td>
+              <td class="mono">RFC 9562 (UUID)</td>
+              <td class="t-note">v4 for the install id — unordered on purpose. v7 for event ids: time-ordered, so
+                ingest dedupe and storage stay sequential rather than scattering writes.</td>
+            </tr>
+            <tr>
+              <td>Timestamps</td>
+              <td class="mono">RFC 3339 / ISO 8601-1:2019</td>
+              <td class="t-note">UTC, millisecond precision, one format everywhere. Device clock skew is carried
+                as a field rather than assumed away (§5).</td>
+            </tr>
+            <tr>
+              <td>Locale, region, currency</td>
+              <td class="mono">BCP 47 · ISO 3166-1 alpha-2 · ISO 4217 · IANA tzdb</td>
+              <td class="t-note">The app already resolves a content region; the event stream uses the same
+                two-letter codes rather than a display name.</td>
+            </tr>
+            <tr>
+              <td>Schema contract</td>
+              <td class="mono">JSON Schema 2020-12 · SemVer 2.0.0</td>
+              <td class="t-note">One schema file per event type, versioned. Additive changes are minor; a removed
+                or retyped field is a major and needs a new event name.</td>
+            </tr>
+            <tr>
+              <td>Wire format</td>
+              <td class="mono">RFC 8259 · NDJSON · gzip</td>
+              <td class="t-note">One event per line, so a partially corrupt batch loses one line rather than all
+                of it.</td>
+            </tr>
+            <tr>
+              <td>HTTP semantics</td>
+              <td class="mono">RFC 9110 · RFC 9457</td>
+              <td class="t-note"><code>Retry-After</code> is honoured over the local backoff curve; errors come
+                back as Problem Details, not as a bespoke error envelope.</td>
+            </tr>
+            <tr>
+              <td>Delivery guarantee</td>
+              <td class="mono">At-least-once + idempotency key</td>
+              <td class="t-note">Exactly-once is not attainable across a mobile network. Dedupe is the ingest's
+                job, keyed on the event <code>id</code>; the client's job is never to lose an event silently.</td>
+            </tr>
+            <tr>
+              <td>Transport security</td>
+              <td class="mono">RFC 8446 (TLS 1.3) · OWASP MASVS-NETWORK</td>
+              <td class="t-note">TLS 1.3, no cleartext, certificate pinning with a backup pin and a documented
+                expiry (§9).</td>
+            </tr>
+            <tr>
+              <td>Mobile security &amp; privacy</td>
+              <td class="mono">OWASP MASVS v2 · MASTG</td>
+              <td class="t-note">MASVS-STORAGE for the on-device buffer, MASVS-NETWORK for transport,
+                MASVS-PRIVACY for identifier handling and the data inventory.</td>
+            </tr>
+            <tr>
+              <td>Lawful basis</td>
+              <td class="mono">GDPR Art. 5(1)(c), 6, 7, 25, 32</td>
+              <td class="t-note">Data minimisation, consent as the basis, privacy by default, and security of
+                processing. Art. 25 is why the default is denied rather than configurable.</td>
+            </tr>
+            <tr>
+              <td>Storing an identifier on the device</td>
+              <td class="mono">ePrivacy Directive 2002/58/EC Art. 5(3)</td>
+              <td class="t-note">The rule that actually governs analytics identifiers: consent is required before
+                writing or reading one, independently of whether the data is personal. The install id is
+                therefore minted <em>after</em> consent, never before.</td>
+            </tr>
+            <tr>
+              <td>Consent signalling</td>
+              <td class="mono">IAB TCF v2.2 · Google Consent Mode v2</td>
+              <td class="t-note">Purposes 1, 8, 10 and Special Purpose 1 are the only ones in play; the sink
+                receives an <code>analytics_storage</code> signal rather than being started or not started.</td>
+            </tr>
+            <tr>
+              <td>Opt-out</td>
+              <td class="mono">CCPA/CPRA · W3C Global Privacy Control</td>
+              <td class="t-note">No sale or sharing occurs, so the obligation is honest disclosure plus a
+                withdrawal that is as easy as the grant (Art. 7(3)).</td>
+            </tr>
+            <tr>
+              <td>Notice &amp; consent records</td>
+              <td class="mono">ISO/IEC 29184 · ISO/IEC 27701 · ISO/IEC 29100</td>
+              <td class="t-note">A consent record stores <em>what</em> was agreed to, <em>when</em>, and against
+                <em>which policy version</em> — not merely a boolean.</td>
+            </tr>
+            <tr>
+              <td>Store policy</td>
+              <td class="mono">Play User Data policy · Data Safety</td>
+              <td class="t-note">The Data Safety form and the in-app disclosure must agree with the code. This is
+                the gate in §1, and it is enforced by release process, not by a test.</td>
+            </tr>
+            <tr>
+              <td>Reliability targets</td>
+              <td class="mono">Google SRE — SLI/SLO, error budget</td>
+              <td class="t-note">Delivery has an explicit objective and a budget (§8). Spent budget stops new
+                events being added until the pipeline is fixed.</td>
+            </tr>
+            <tr>
+              <td>Pipeline self-health</td>
+              <td class="mono">OpenTelemetry SDK metric conventions</td>
+              <td class="t-note">Queued, dropped and retried counters are exported as events. A pipeline that
+                cannot report its own loss rate cannot be trusted about anything else.</td>
+            </tr>
+            <tr>
+              <td>Battery &amp; background behaviour</td>
+              <td class="mono">Android vitals thresholds</td>
+              <td class="t-note">Uploads run under WorkManager with constraints, never <code>AlarmManager</code>
+                and never a wake lock — so the excessive-wakeup and stuck-wake-lock thresholds are structurally
+                out of reach rather than monitored.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel flag">
+        <div class="eyebrow">What is deliberately <em>not</em> adopted</div>
+        <p class="t-note">
+          Full OTLP and a trace pipeline. Sinema has one client, no services, and no distributed call graph to
+          reconstruct — OTLP's transport and span model would be machinery for a problem the app does not have.
+          The <em>naming</em> conventions are worth adopting on their own, because they are the part that makes a
+          field mean the same thing in two systems. Segment's <code>track</code>/<code>identify</code>/
+          <code>screen</code> call taxonomy is likewise cited as prior art for the catalog shape, not adopted as
+          a vendor contract.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§3</span><h2>What exists today, and four ways it fails §2</h2></div>
+    <div class="stack-lg">
+      <p>
+        The ports are already in place and are the right shape: screens depend on <code>AnalyticsTracker</code>
+        and a sealed <code>AnalyticsEvent</code> catalog, each SDK arrives as an <code>AnalyticsSink</code>
+        contributed to a Hilt multibinding, and <code>CompositeAnalyticsTracker</code> fans out off the caller's
+        thread. Eight ViewModels already emit events. The existing technical solution rates this
+        <span class="pill warn">speculative</span> — full port machinery, one debug sink, no backend — which is
+        accurate but understates it. Read against §2, four of the defects below are live today.
+      </p>
+
+      <ol class="defects">
+        <li>
+          <div class="dhead">
+            <span class="pill gap">Blocking</span>
+            <h3>Consent is hard-coded to granted</h3>
+            <span class="site">sinema/di/AppModule.kt:101</span>
+          </div>
+          <p>
+            <code>StaticConsentProvider(allowed = true)</code> is bound in the production graph. It is harmless
+            while the only sink writes to logcat — and it becomes a policy breach the moment a second
+            <code>@IntoSet</code> line adds an SDK, which is precisely the one-line extensibility the design
+            advertises. The failure mode is that the cheapest possible change is also the one that starts
+            transmitting without consent, against a published policy that says the app does not.
+          </p>
+          <p>
+            <strong>Fix:</strong> <code>ConsentState</code> becomes an enum — <code>Unknown</code>,
+            <code>Granted</code>, <code>Denied</code> — with no boolean anywhere in the type, defaulting to
+            <code>Unknown</code> and treated as denied. <code>StaticConsentProvider</code> moves to test
+            fixtures, and a Konsist rule fails the build if it appears in production sources again.
+          </p>
+        </li>
+        <li>
+          <div class="dhead">
+            <span class="pill gap">Blocking</span>
+            <h3>The gate is evaluated at dispatch, not at enqueue</h3>
+            <span class="site">core/tracker/api/…/CompositeAnalyticsTracker.kt</span>
+          </div>
+          <p>
+            <code>queue.receiveAsFlow().filter { consent.analyticsAllowed.value }</code> reads consent when the
+            collector drains an item, while <code>track()</code> buffers into a 256-slot channel unconditionally.
+            The decision applied to an event is therefore whatever consent happens to say at an unspecified later
+            moment — so an event recorded while consent was absent can be emitted if the state flips before the
+            queue drains.
+          </p>
+          <p>
+            The existing test asserts the opposite and passes, because <code>UnconfinedTestDispatcher</code>
+            drains eagerly and collapses the window the bug lives in. That makes it a test that certifies the
+            defect. <strong>Fix:</strong> gate at enqueue, so a denied event is never buffered at all, and clear
+            the queue on withdrawal. Re-test on a scheduled dispatcher with an explicit
+            <code>runCurrent()</code>.
+          </p>
+        </li>
+        <li>
+          <div class="dhead">
+            <span class="pill gap">Blocking</span>
+            <h3>Identity bypasses the gate entirely</h3>
+            <span class="site">CompositeAnalyticsTracker.setUserId / setUserProperty</span>
+          </div>
+          <p>
+            Both forward straight to every sink, on the caller's thread, with no consent check — so the one call
+            that <em>establishes who this is</em> is the one call the pipeline does not police. Under ePrivacy
+            Art. 5(3) it is also the call most likely to write an identifier.
+            <strong>Fix:</strong> route identity through the same gate and the same queue, and make it ordered
+            with respect to events so a property cannot land after the event that depends on it.
+          </p>
+        </li>
+        <li>
+          <div class="dhead">
+            <span class="pill gap">Blocking</span>
+            <h3>Backpressure is silent</h3>
+            <span class="site">CompositeAnalyticsTracker.track</span>
+          </div>
+          <p>
+            <code>queue.trySend(event)</code> returns a result nobody reads. A full channel discards events with
+            no counter, which means a sampling error, a burst of legitimate traffic and a dropped-event storm are
+            indistinguishable downstream — every one of them just looks like fewer events.
+            <strong>Fix:</strong> count every rejection by reason and export the counters as an event (§8). A
+            pipeline may drop data; it may not drop data quietly.
+          </p>
+        </li>
+        <li class="soft">
+          <div class="dhead">
+            <span class="pill warn">Contract</span>
+            <h3>Events carry no envelope</h3>
+            <span class="site">AnalyticsEvent.kt</span>
+          </div>
+          <p>
+            An event is a name and a <code>Map&lt;String, Any&gt;</code>. There is no event id, no timestamp, no
+            session, no schema version and no resource context — so nothing downstream can deduplicate, order or
+            validate anything, and <code>Any</code> admits values no sink will accept. §5 replaces this.
+          </p>
+        </li>
+        <li class="soft">
+          <div class="dhead">
+            <span class="pill warn">Contract</span>
+            <h3>Nothing enforces sink limits</h3>
+            <span class="site">catalog-wide</span>
+          </div>
+          <p>
+            A destination SDK imposes hard caps — for Firebase/GA4, 40 characters for an event or parameter name,
+            100 for a string value, 25 parameters per event, 25 user properties, 500 distinct event names — and
+            events over them are rejected or truncated at the far end, silently, in production only. These belong
+            in a build-time check against the catalog, where they cost nothing.
+          </p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§4</span><h2>Pipeline architecture</h2></div>
+    <div class="stack-lg">
+      <p>
+        Eleven stages, each one a pure step where it can be. The shape follows the project's existing ports-and-
+        adapters rule: the call site names an intent, and every decision about whether, how and where that intent
+        becomes data is made behind the port. A screen must never be able to get this wrong, because a screen is
+        where it would be got wrong.
+      </p>
+
+      <pre class="mermaid">
+graph TD
+  VM["ViewModel — typed intent"]
+  subgraph JVM["Framework-free Kotlin/JVM"]
+    CAT["Catalog — sealed AnalyticsEvent"]
+    ENR["Enricher — envelope, session, resource"]
+    GATE["Consent gate — deny by default"]
+    VAL["Validator — caps, redaction"]
+    SAM["Sampler — consistent hash"]
+    RT["Router — per-sink accepts + purpose"]
+  end
+  subgraph ANDROID["Android adapters"]
+    BUF["Buffer — Room, bounded, TTL"]
+    UPL["Uploader — WorkManager, batched"]
+    SDK["SDK sink — isolated module"]
+    DBG["Debug sink — logcat + inspector"]
+  end
+  ING["Ingest — OpenAPI 3.1, dedupe by id"]
+
+  VM --> CAT --> ENR --> GATE --> VAL --> SAM --> RT
+  RT --> BUF
+  RT --> SDK
+  RT --> DBG
+  BUF --> UPL --> ING
+  GATE -. "withdrawal purges" .-> BUF
+      </pre>
+
+      <div class="scroller">
+        <table>
+          <thead>
+            <tr><th>Stage</th><th>Responsibility</th><th>Why it is its own stage</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">Catalog</td><td>Names and payload of every event that exists.</td>
+              <td class="t-note">A sealed hierarchy makes the full event surface reviewable in one file and
+                auditable by the compiler. Already the design in place, and worth keeping.</td></tr>
+            <tr><td class="mono">Enricher</td><td>Wraps the event in the §5 envelope.</td>
+              <td class="t-note">A pure function of (event, clock, session, resource). Golden-file testable, and
+                the only place that knows what an envelope looks like.</td></tr>
+            <tr><td class="mono">Gate</td><td>Applies consent at enqueue; purges on withdrawal.</td>
+              <td class="t-note">One place answers "is this allowed", for events and identity alike. Two places
+                would eventually disagree, and the permissive one wins by default.</td></tr>
+            <tr><td class="mono">Validator</td><td>Caps, key deny-list, type narrowing.</td>
+              <td class="t-note">Turns a production-only silent truncation into a unit-test failure.</td></tr>
+            <tr><td class="mono">Sampler</td><td>Consistent hash of the install id.</td>
+              <td class="t-note">Hashing the id rather than rolling per event keeps a user wholly in or wholly
+                out, so funnels stay comparable instead of leaking at each step.</td></tr>
+            <tr><td class="mono">Router</td><td>Per-sink filtering and purpose mapping.</td>
+              <td class="t-note">Extends the existing <code>accepts()</code> hook: a sink that is authorised for
+                one purpose must not receive events collected under another.</td></tr>
+            <tr><td class="mono">Buffer</td><td>Durable, bounded queue of pending envelopes.</td>
+              <td class="t-note">Offline-first is already the app's rule for content; telemetry gets the same
+                treatment — process death must not be a data-loss event.</td></tr>
+            <tr><td class="mono">Uploader</td><td>Batching, compression, retry, backoff.</td>
+              <td class="t-note">Network policy in one adapter, so retry behaviour is tested against
+                MockWebServer rather than reasoned about.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Modules</h3>
+      <p>
+        Six new Gradle modules, following the tiering the Konsist suite already enforces —
+        <code>core/</code> knows nothing about Sinema or TMDB, and business logic stays framework-free.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <thead>
+            <tr><th>Module</th><th>Tier</th><th>Contents</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">:core:tracker:api</td><td>JVM <span class="pill ok">exists</span></td>
+              <td class="t-note">Ports and catalog. Keeps its current role; gains the envelope types.</td></tr>
+            <tr><td class="mono">:core:tracker:runtime</td><td>JVM</td>
+              <td class="t-note">Enricher, gate, validator, sampler, router, counters. All of the logic, none of
+                the platform — so all of it runs on the JVM in milliseconds.</td></tr>
+            <tr><td class="mono">:core:tracker:consent</td><td>Android</td>
+              <td class="t-note">Persisted consent state and audit record over DataStore.</td></tr>
+            <tr><td class="mono">:core:tracker:store</td><td>Android</td>
+              <td class="t-note">Room-backed durable buffer, eviction, TTL.</td></tr>
+            <tr><td class="mono">:core:tracker:upload</td><td>Android</td>
+              <td class="t-note">WorkManager worker, batch assembly, transport against the §9 contract.</td></tr>
+            <tr><td class="mono">:core:tracker:debug</td><td>Android</td>
+              <td class="t-note">The existing Timber sink plus an on-device event inspector, so QA can read the
+                stream without a vendor console. Debug variant only.</td></tr>
+            <tr><td class="mono">:core:tracker:firebase</td><td>Android</td>
+              <td class="t-note">The SDK adapter, if step 06 chooses it. Isolated so that no other module can
+                import a vendor type — enforced, not asked for.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Rules worth enforcing in Konsist</h3>
+      <p>
+        The project's own position is that rules which are not enforced decay, and the architecture suite already
+        scans the whole tree from disk. Five additions belong in it, each one the mechanical form of a decision
+        made above:
+      </p>
+      <ul class="tight">
+        <li><code>StaticConsentProvider</code> appears in <strong>no production source</strong> — the defect in
+          §3 cannot recur by inattention.</li>
+        <li><code>com.google.firebase.*</code> appears only in <code>com.bigon.core.tracker.firebase</code>, the
+          same containment already applied to Play's update API.</li>
+        <li><code>:core:tracker:api</code> and <code>:runtime</code> import no <code>android.*</code> or
+          <code>androidx.*</code> — add both to the existing JVM prefix list.</li>
+        <li>Every <code>AnalyticsEvent.name</code> is snake_case, at most 40 characters, and unique across the
+          catalog.</li>
+        <li>No <code>AnalyticsSink</code> implementation exists outside a tracker module, so a feature cannot
+          hand-roll a second path to a vendor.</li>
+      </ul>
+
+      <div class="panel">
+        <div class="eyebrow">The call site does not change</div>
+        <pre><code><span class="c">// Unchanged from today — which is the point of the port.</span>
+tracker.track(AnalyticsEvent.MovieOpened(movieId, source = <span class="k">"recommendation"</span>))
+
+<span class="c">// Everything below is added behind it: envelope, consent, caps,</span>
+<span class="c">// sampling, routing, durability, upload. None of it is visible here,</span>
+<span class="c">// and none of it can be skipped by a screen that forgets to ask.</span></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§5</span><h2>The event contract</h2></div>
+    <div class="stack-lg">
+      <p>
+        A CloudEvents envelope carrying OpenTelemetry-named context. The envelope is what makes the stream
+        self-describing: ingest can validate, deduplicate and route an event it has never seen before, and a
+        schema change becomes a version bump rather than a coordinated deploy.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <thead>
+            <tr><th>Field</th><th>Shape</th><th>Source</th><th>Note</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">specversion</td><td class="mono">"1.0"</td><td class="mono">CloudEvents</td>
+              <td class="t-note">Envelope version, not schema version.</td></tr>
+            <tr><td class="mono">id</td><td class="mono">UUIDv7</td><td class="mono">RFC 9562</td>
+              <td class="t-note">The dedupe key. Time-ordered, so ingest writes stay sequential.</td></tr>
+            <tr><td class="mono">type</td><td class="mono">com.bigon.sinema.movie_opened</td><td class="mono">CloudEvents</td>
+              <td class="t-note">Reverse-DNS prefix + the catalog name, unchanged.</td></tr>
+            <tr><td class="mono">source</td><td class="mono">/sinema/android</td><td class="mono">CloudEvents</td>
+              <td class="t-note">Producer identity, not a user identity.</td></tr>
+            <tr><td class="mono">time</td><td class="mono">2026-09-03T14:02:11.482Z</td><td class="mono">RFC 3339</td>
+              <td class="t-note">When the event occurred, by the device clock.</td></tr>
+            <tr><td class="mono">dataschema</td><td class="mono">…/movie_opened/1.0.0.json</td><td class="mono">JSON Schema</td>
+              <td class="t-note">Resolvable URI; the version is SemVer.</td></tr>
+            <tr><td class="mono">data</td><td class="mono">object</td><td>—</td>
+              <td class="t-note">The event's own parameters, snake_case, validated against the schema.</td></tr>
+            <tr><td class="mono">service.name / .version</td><td class="mono">sinema / 1.4.2</td><td class="mono">OTel</td>
+              <td class="t-note">Which build produced this. The first question asked of any anomaly.</td></tr>
+            <tr><td class="mono">os.name / .version</td><td class="mono">android / 15</td><td class="mono">OTel</td>
+              <td class="t-note">API level travels alongside as an integer.</td></tr>
+            <tr><td class="mono">device.model.identifier</td><td class="mono">Pixel 10 Pro Fold</td><td class="mono">OTel</td>
+              <td class="t-note">Model only. No serial, no build fingerprint, nothing device-unique.</td></tr>
+            <tr><td class="mono">session.id</td><td class="mono">UUIDv4</td><td class="mono">OTel</td>
+              <td class="t-note">Rotates on 30 minutes of inactivity (§6).</td></tr>
+            <tr><td class="mono">app.installation.id</td><td class="mono">UUIDv4</td><td class="mono">OTel</td>
+              <td class="t-note">The only durable identifier in the system.</td></tr>
+            <tr><td class="mono">sent_at</td><td class="mono">RFC 3339</td><td>—</td>
+              <td class="t-note">When the batch left the device, so queue latency is measurable.</td></tr>
+            <tr><td class="mono">clock_offset_ms</td><td class="mono">integer</td><td>—</td>
+              <td class="t-note">Device clock minus elapsed-realtime drift. Ingest records its own receive time;
+                with all three, skew is recoverable rather than guessed at.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <div class="eyebrow">One event on the wire</div>
+        <pre><code>{
+  <span class="k">"specversion"</span>: "1.0",
+  <span class="k">"id"</span>: "01922b7e-3f21-7c44-9a10-6f2b3c4d5e6f",
+  <span class="k">"type"</span>: "com.bigon.sinema.movie_opened",
+  <span class="k">"source"</span>: "/sinema/android",
+  <span class="k">"time"</span>: "2026-09-03T14:02:11.482Z",
+  <span class="k">"dataschema"</span>: "https://sinema.example/schemas/movie_opened/1.0.0.json",
+  <span class="k">"data"</span>: { "movie_id": 27205, "source": "recommendation" },
+  <span class="k">"resource"</span>: {
+    "service.name": "sinema", "service.version": "1.4.2",
+    "os.name": "android", "os.version": "15", "os.api_level": 35,
+    "device.manufacturer": "Google", "device.model.identifier": "Pixel 10 Pro Fold",
+    "app.installation.id": "9d1f0e6a-5c8b-4a2e-9f31-0c7a6b5d4e33",
+    "session.id": "5f4e3d2c-1b0a-4998-8877-665544332211",
+    "content.region": "ID", "locale": "en-GB"
+  },
+  <span class="k">"clock_offset_ms"</span>: -412
+}</code></pre>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <h3>Naming</h3>
+          <ul class="tight">
+            <li><strong>snake_case</strong>, unique, ≤ 40 characters — enforced by the Konsist rule in §4.</li>
+            <li><strong>noun then past-tense verb</strong>: <code>movie_opened</code>, not
+              <code>open_movie</code>. An event records what happened, not what was requested.</li>
+            <li><code>screen_view</code> keeps its name because GA4 reserves it; fighting a reserved name costs
+              the platform's own reporting for nothing.</li>
+            <li>Parameters are snake_case, ≤ 40 characters, string values ≤ 100, at most 25 per event.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Evolution</h3>
+          <ul class="tight">
+            <li><strong>Additive only</strong> within a major: new optional parameter, minor bump.</li>
+            <li><strong>Removing or retyping</strong> a parameter is a major bump and a new event name — old
+              clients keep sending the old shape for as long as they exist, which on Android is years.</li>
+            <li><strong>Deprecation</strong> marks the catalog entry and keeps accepting it for two release
+              cycles; ingest never rejects an event it once accepted.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§6</span><h2>Identity</h2></div>
+    <div class="stack-lg">
+      <p>
+        Four identifiers could exist here. Three of them will not.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <thead>
+            <tr><th>Identifier</th><th>Shape</th><th>Lifetime</th><th>Reset</th><th>Leaves device</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">app.installation.id</td><td class="mono">UUIDv4, DataStore</td>
+              <td class="t-note">Minted on consent, not on install</td>
+              <td class="t-note">Withdrawal, clear-data, or a button in Settings</td>
+              <td><span class="pill warn">yes — pseudonymous</span></td></tr>
+            <tr><td class="mono">session.id</td><td class="mono">UUIDv4, in memory</td>
+              <td class="t-note">30 min inactivity, or process death</td>
+              <td class="t-note">Automatic</td><td><span class="pill warn">yes</span></td></tr>
+            <tr><td class="mono">user id</td><td class="t-note">none</td>
+              <td class="t-note">—</td><td class="t-note">—</td>
+              <td><span class="pill ok">never — no accounts</span></td></tr>
+            <tr><td class="mono">advertising id</td><td class="t-note">not requested</td>
+              <td class="t-note">—</td><td class="t-note">—</td>
+              <td><span class="pill ok">never — no AD_ID permission</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <div class="eyebrow">Pseudonymous, not anonymous</div>
+        <p>
+          The install id is pseudonymisation in the sense of GDPR Art. 4(5), which means the data remains
+          personal data and retention, deletion and access obligations all still apply. Calling the stream
+          "anonymous" would be the convenient description and the wrong one — the EDPB's bar for anonymisation is
+          irreversibility, and an id that links every event from one device does not clear it. The design
+          consequence is §10: there has to be a real deletion path, not a claim that none is needed.
+        </p>
+      </div>
+
+      <p>
+        <strong>The id is minted after consent, and rotated on re-grant.</strong> A pre-consent id would be an
+        identifier written to storage before permission, which is the specific thing ePrivacy Art. 5(3)
+        prohibits. Rotating on re-grant costs the ability to join a returning user's old and new data — which is
+        exactly the join a withdrawal was meant to prevent.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§7</span><h2>Consent</h2></div>
+    <div class="stack-lg">
+      <p>
+        Three states, one of which is not a decision. <code>Unknown</code> is the state before anyone has been
+        asked, and it behaves exactly as <code>Denied</code> — the distinction exists so the app knows whether it
+        still owes the user a question, never so it can treat silence as agreement.
+      </p>
+
+      <pre class="mermaid">
+stateDiagram-v2
+  [*] --> Unknown: install
+  Unknown --> Granted: explicit accept
+  Unknown --> Denied: explicit decline
+  Granted --> Denied: withdrawal
+  Denied --> Granted: re-grant, new install id
+  note right of Unknown
+    behaves as Denied
+    nothing buffered, nothing sent
+  end note
+      </pre>
+
+      <div class="scroller">
+        <table>
+          <thead>
+            <tr><th>Purpose</th><th>Asked</th><th>Standard mapping</th><th>Default</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Product analytics</td><td class="t-note">Explicitly, once, in Settings and on first run</td>
+              <td class="mono">TCF P8, P10 · <code>analytics_storage</code></td>
+              <td><span class="pill gap">denied</span></td></tr>
+            <tr><td>Storing the install id</td><td class="t-note">Part of the same question</td>
+              <td class="mono">TCF P1 · ePrivacy Art. 5(3)</td>
+              <td><span class="pill gap">denied</span></td></tr>
+            <tr><td>Crash &amp; ANR reporting</td><td class="t-note">Separately — see below</td>
+              <td class="mono">TCF SP1</td><td><span class="pill gap">denied</span></td></tr>
+            <tr><td>Advertising, personalisation</td><td class="t-note">Not asked</td>
+              <td class="mono">TCF P3, P4, P7 · <code>ad_*</code></td>
+              <td><span class="pill ok">not collected</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <h3>On withdrawal, in this order</h3>
+          <ul class="tight">
+            <li>Stop the gate — synchronously, before the call returns.</li>
+            <li>Purge the durable buffer and cancel scheduled uploads.</li>
+            <li>Delete the install id.</li>
+            <li>Signal the SDK sink (<code>analytics_storage: denied</code>) rather than merely stopping calls to
+              it — a vendor SDK with its own queue will otherwise keep flushing.</li>
+            <li>Write the audit record.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>The audit record</h3>
+          <p class="t-note">
+            ISO/IEC 29184 asks for a record of what was agreed to, not a boolean. Stored: the decision, the
+            timestamp, the privacy-policy version in force, the app version, and which surface asked. Without the
+            policy version, a future change to the notice makes every prior consent unaccountable — nobody can
+            say what the user actually agreed to.
+          </p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <div class="eyebrow">Crash reporting is a separate question</div>
+        <p>
+          Bundling stability into the analytics consent is the industry default and is wrong for this app,
+          because the two have genuinely different bargains: a crash report is data about a failure the app owes
+          the user, while an analytics event is data about a user the app owes nobody. The published policy
+          currently promises neither, so both need asking — and a user who declines analytics but wants their
+          crashes fixed should be able to say so. Play already reports crashes independently of the app, which
+          the policy discloses; that channel is unaffected either way.
+        </p>
+      </div>
+
+      <p>
+        No dark patterns, and this is a design constraint rather than a sentiment: accept and decline get equal
+        visual weight in the same style, declining takes exactly one tap, and withdrawal lives at the same depth
+        in Settings as the grant. Art. 7(3) requires withdrawal to be as easy as consent, and an asymmetric pair
+        of buttons is the most common way that requirement is failed.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§8</span><h2>Delivery, reliability and the pipeline's own health</h2></div>
+    <div class="stack-lg">
+      <p>
+        At-least-once delivery with ingest-side deduplication. Exactly-once across a mobile network is not
+        available: a client force-stopped between upload and acknowledgement cannot know which happened, and the
+        only honest choices are to risk a duplicate or risk a loss. This design duplicates and dedupes, because a
+        duplicate is recoverable at ingest and a loss is not recoverable anywhere.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <thead>
+            <tr><th>Parameter</th><th>Value</th><th>Reasoning</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Flush triggers</td><td class="mono">app backgrounded · 6-hourly periodic · buffer 80% full</td>
+              <td class="t-note">Backgrounding is the moment the user is not waiting; periodic catches the
+                install that is never backgrounded cleanly.</td></tr>
+            <tr><td>Scheduler</td><td class="mono">WorkManager, NetworkType.CONNECTED</td>
+              <td class="t-note">Doze and App Standby are respected by construction. No alarms, no wake locks,
+                so Android vitals' bad-behaviour thresholds are unreachable rather than monitored.</td></tr>
+            <tr><td>Batch cap</td><td class="mono">500 events or 1 MiB uncompressed</td>
+              <td class="t-note">Whichever comes first; gzip on the wire. A 413 splits the batch rather than
+                dropping it.</td></tr>
+            <tr><td>Retry</td><td class="mono">exponential, full jitter, 30 s base, 6 h cap, 7 attempts</td>
+              <td class="t-note">Full jitter rather than plain doubling: a server that recovers must not be hit
+                by every client in the same second. <code>Retry-After</code> overrides the curve.</td></tr>
+            <tr><td>Buffer cap</td><td class="mono">10 000 events · 5 MiB · 7-day TTL</td>
+              <td class="t-note">Oldest evicted first, and counted. A device offline for a week has more
+                interesting problems than its telemetry.</td></tr>
+            <tr><td>Never retried</td><td class="mono">4xx except 408, 429</td>
+              <td class="t-note">A rejected schema will be rejected identically forever; retrying it spends
+                battery to no effect.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Counters, and why they are events too</h3>
+      <p>
+        Every drop has a reason and every reason has a counter — <code>dropped_backpressure</code>,
+        <code>dropped_ttl</code>, <code>dropped_consent</code>, <code>dropped_invalid</code>,
+        <code>retries</code>, <code>queue_depth</code>, <code>upload_latency_ms</code> — emitted as an event on
+        each flush. This is what OpenTelemetry's SDKs expose for the same reason: without it, the pipeline's loss
+        rate is invisible precisely when it matters, because loss looks identical to low usage. It is also the
+        one piece of instrumentation that pays for itself before a single product question is answered.
+      </p>
+
+      <div class="panel flag">
+        <div class="eyebrow">Objectives — targets, not measurements</div>
+        <ul class="tight">
+          <li><strong>≥ 99%</strong> of gated events accepted by ingest within 24 hours of enqueue.</li>
+          <li><strong>≤ 0.5%</strong> permanent loss, excluding withdrawal purges, measured against the counters
+            above rather than inferred from volume.</li>
+          <li><strong>p95 &lt; 1 ms</strong> added to the calling frame — telemetry must never be a jank source,
+            and on a foldable at 2076×2152 the frame budget is not generous.</li>
+          <li><strong>Zero</strong> foreground network requests attributable to tracking.</li>
+        </ul>
+        <p class="t-note">
+          Error-budget rule: while the loss objective is breached, no new events are added to the catalog. A
+          pipeline that is losing data does not need more data put into it.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§9</span><h2>Transport &amp; ingest contract</h2></div>
+    <div class="stack-lg">
+      <p>
+        One endpoint, described by an OpenAPI 3.1 document that is the contract rather than a description of one.
+        The client's OkHttp stack, <code>ApiCaller</code> and the <code>AppResult</code>/<code>AppError</code>
+        vocabulary already exist in <code>:core:network</code> and are reused — a failed upload is a value, not
+        an exception crossing a boundary.
+      </p>
+
+      <div class="panel">
+        <pre><code><span class="k">POST</span> /v1/events
+Content-Type: application/x-ndjson
+Content-Encoding: gzip
+Idempotency-Key: 01922b7e-3f21-7c44-9a10-6f2b3c4d5e6f   <span class="c">// per batch</span>
+traceparent: 00-4bf92f...-00f067aa0ba902b7-01           <span class="c">// debug builds only</span>
+
+<span class="c">// 202 Accepted  → { "accepted": 500, "rejected": 0 }</span>
+<span class="c">// 400 / 422     → RFC 9457 problem+json, never retried</span>
+<span class="c">// 413           → split the batch, retry the halves</span>
+<span class="c">// 429 / 503     → honour Retry-After, else backoff with jitter</span></code></pre>
+      </div>
+
+      <ul class="tight">
+        <li><strong>TLS 1.3, no cleartext</strong>, declared in the Network Security Config so a debug proxy
+          cannot silently downgrade a release build.</li>
+        <li><strong>Certificate pinning</strong> with at least one backup pin and a documented expiry date. A pin
+          that outlives its certificate does not degrade — it bricks the endpoint for every installed build,
+          which is unrecallable in the same way a bad forced update is. The pin set is a release-blocking review
+          item, and the failure mode on a pin mismatch is to drop telemetry, never to affect the app.</li>
+        <li><strong>No credential in the client.</strong> The ingest endpoint is unauthenticated-but-attested if
+          abuse becomes real; Play Integrity is the mechanism and it is explicitly deferred, because an
+          anti-abuse control on a pipeline that carries no revenue and no personal profile is cost before
+          benefit.</li>
+        <li><strong>The uploader is not on the app's Retrofit instance.</strong> A separate client keeps
+          telemetry's timeouts, pinning and interceptors from touching the path that serves the user content.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§10</span><h2>Governance, retention and rights</h2></div>
+    <div class="stack-lg">
+      <div class="grid-2">
+        <div class="panel">
+          <h3>The catalog is the registry</h3>
+          <p class="t-note">
+            Schemas live in the repository at <code>docs/schemas/&lt;event&gt;/&lt;semver&gt;.json</code>,
+            generated from the sealed catalog and committed — so a schema change is a reviewable diff and a code
+            change cannot land without one. The generator failing is a build failure. No vendor console is the
+            source of truth for what an event means.
+          </p>
+        </div>
+        <div class="panel">
+          <h3>Retention</h3>
+          <p class="t-note">
+            Event-level rows: <strong>14 months</strong>, then deleted — GA4's own maximum for standard
+            properties, adopted rather than argued about. Derived aggregates carrying no install id: retained
+            indefinitely. Deletion is a scheduled job whose last run is monitored, because an unmonitored
+            retention job is a retention policy that exists only on paper.
+          </p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <div class="eyebrow">The access and deletion problem, stated honestly</div>
+        <p>
+          Sinema has no accounts, so there is no way for the developer to identify a requester's data. The only
+          mechanism that can satisfy GDPR Art. 15 and Art. 17 for a pseudonymous install id is a client-side one:
+          a button in Settings that sends the install id with an export or erasure request, because the app is
+          the only party that knows it. If the id has already been reset, the link is gone and the request cannot
+          be served — and the policy must say so plainly rather than implying a capability that does not exist.
+        </p>
+      </div>
+
+      <ul class="tight">
+        <li><strong>Data inventory</strong> — one table, in the policy and in this document, listing every field
+          that leaves the device. Any field not on it is a defect, and the golden-file envelope test is what
+          makes that checkable.</li>
+        <li><strong>Processor disclosure</strong> — a vendor sink adds a processor and changes the Play Data
+          Safety answers. That is a policy revision, not a dependency bump.</li>
+        <li><strong>Children</strong> — the app is not directed at children; no vendor sink may be configured
+          with an advertising identifier, which Play's Families policy would prohibit in any case.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§11</span><h2>Testing &amp; enforcement</h2></div>
+    <div class="stack-lg">
+      <p>
+        The project's existing shape holds: JVM unit tests by default, Robolectric for Compose, Konsist for
+        structure, MockWebServer for transport. Because most of this pipeline is framework-free, most of it is
+        directly testable. The tests below are the ones that correspond to a decision that could silently regress
+        — each one exists because a specific failure would otherwise reach production unnoticed.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <thead>
+            <tr><th>Test</th><th>Asserts</th><th>Failure it prevents</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="t-note">Consent at enqueue, on a <em>scheduled</em> dispatcher</td>
+              <td class="t-note">An event tracked while <code>Unknown</code> never reaches a sink, even if
+                consent is granted before the queue drains.</td>
+              <td class="t-note">The §3 defect — and the current test, which hides it.</td></tr>
+            <tr><td class="t-note">Identity is gated</td>
+              <td class="t-note"><code>setUserId</code> while denied reaches no sink.</td>
+              <td class="t-note">Identity established without permission.</td></tr>
+            <tr><td class="t-note">Withdrawal purges</td>
+              <td class="t-note">Buffer empty, work cancelled, id deleted, audit written — in that order.</td>
+              <td class="t-note">Data uploaded after a user said stop.</td></tr>
+            <tr><td class="t-note">Backpressure is counted</td>
+              <td class="t-note">1 000 events into a 256-slot queue drop 744 and report 744.</td>
+              <td class="t-note">Silent loss indistinguishable from low usage.</td></tr>
+            <tr><td class="t-note">Envelope golden file</td>
+              <td class="t-note">A fixed event, clock and resource serialise byte-for-byte, and validate against
+                the committed JSON Schema.</td>
+              <td class="t-note">A field appearing on the wire that the data inventory does not list.</td></tr>
+            <tr><td class="t-note">Catalog caps</td>
+              <td class="t-note">Every event and parameter is within the strictest destination's limits.</td>
+              <td class="t-note">Production-only truncation at the far end.</td></tr>
+            <tr><td class="t-note">Transport, against MockWebServer</td>
+              <td class="t-note"><code>429</code> + <code>Retry-After: 120</code> schedules at 120 s, not the
+                backoff curve; <code>422</code> is never retried; <code>413</code> splits.</td>
+              <td class="t-note">A retry storm, or a battery drain against a permanent failure.</td></tr>
+            <tr><td class="t-note">Buffer eviction</td>
+              <td class="t-note">TTL and cap evict oldest-first and survive process death.</td>
+              <td class="t-note">Unbounded growth on a long-offline device.</td></tr>
+            <tr><td class="t-note">Konsist — the five rules in §4</td>
+              <td class="t-note">Structure matches the design.</td>
+              <td class="t-note">Vendor types leaking; the consent default returning.</td></tr>
+            <tr><td class="t-note">Macrobenchmark</td>
+              <td class="t-note">Tracking adds under 1 ms to the p95 frame; no foreground request.</td>
+              <td class="t-note">Jank introduced by measurement.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <div class="eyebrow">One thing no unit test can establish</div>
+        <p>
+          "No sink was called" and "nothing left the device" look identical in a JVM test and are not the same
+          claim — the same distinction as a screen drawn on top of the app versus a screen that actually blocks
+          it. Before the first release with a sink, the consent-denied state has to be verified on the wire:
+          drive the app through every screen with consent denied and confirm no request to the ingest host
+          appears, in <code>adb logcat</code> and at a proxy. That is a scripted rehearsal with an artefact
+          attached to the release, not a test suite entry.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§12</span><h2>Delivery sequence</h2></div>
+    <div class="stack-lg">
+      <p>
+        Ordered so that the first four steps ship no data at all, and the step that could is gated behind the one
+        that makes it lawful. This slots into step 05 of the existing delivery plan — production hardening —
+        without reordering anything already committed to there.
+      </p>
+
+      <ol class="spine">
+        <li>
+          <span class="step">01</span>
+          <div class="body">
+            <div class="tag"><h3>Fix the four defects in place</h3><span class="pill gap">blocking</span></div>
+            <p>
+              No new modules. Consent becomes tri-state and denies by default; the gate moves to enqueue;
+              identity goes through it; drops are counted by reason. Tests first, including the one that replaces
+              the test currently certifying defect 2. Nothing about the app's behaviour changes — which is the
+              point: this is the step that makes every later step safe to take.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="step">02</span>
+          <div class="body">
+            <div class="tag"><h3>Envelope and contract</h3></div>
+            <p>
+              <code>:core:tracker:runtime</code> with the enricher, validator and sampler. Schema generation from
+              the catalog, golden files, the Konsist naming and containment rules. The debug sink starts printing
+              full envelopes, so the stream is reviewable on a device before it is transmissible anywhere.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="step">03</span>
+          <div class="body">
+            <div class="tag"><h3>Consent surface and persistence</h3></div>
+            <p>
+              <code>:core:tracker:consent</code>, DataStore-backed, with the audit record and the purge path. A
+              Settings entry and a first-run question, both with equal-weight choices. Still no off-device sink:
+              the whole consent mechanism is built and tested while the answer cannot yet matter.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="step">04</span>
+          <div class="body">
+            <div class="tag"><h3>Buffer and uploader, against a mock</h3></div>
+            <p>
+              <code>:core:tracker:store</code> and <code>:core:tracker:upload</code>. MockWebServer for the
+              transport matrix, WorkManager tests for scheduling and constraints, the counter event wired to the
+              debug inspector. The pipeline is complete and demonstrably end-to-end while pointing at nothing
+              real.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="step">05</span>
+          <div class="body">
+            <div class="tag"><h3>The policy gate</h3><span class="pill gap">gates 06</span></div>
+            <p>
+              Privacy policy revision naming every field in the data inventory, the processor if there is one, the
+              retention period and the deletion path. Play Data Safety declaration updated to match. In-app
+              notice. The consent-denied wire rehearsal from §11, with its artefact. Nothing in step 06 ships
+              before all of this has landed.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="step">06</span>
+          <div class="body">
+            <div class="tag"><h3>First real sink, behind a kill switch</h3></div>
+            <p>
+              Either the first-party ingest or <code>:core:tracker:firebase</code>. Gated by a flag in the
+              existing <code>Flags</code> registry so it can be switched off without a release, and rolled at
+              1% → 10% → 100% with the counter event watched at each step. The kill switch is checked before the
+              rollout begins, not assumed.
+            </p>
+          </div>
+        </li>
+      </ol>
+
+      <div class="panel flag">
+        <div class="eyebrow">Decisions this plan does not make</div>
+        <ul class="tight">
+          <li><strong>First-party ingest or Firebase.</strong> Not a preference — they have different policy
+            consequences. A Firebase sink adds Google as a processor, changes the Data Safety answers and brings
+            an SDK with its own queue and its own consent surface. First-party means owning an endpoint,
+            retention and a deletion job. The architecture is indifferent; the disclosure is not.</li>
+          <li><strong>Whether crash reporting is asked separately.</strong> Recommended above; it costs a second
+            question on first run, which is a real product cost.</li>
+          <li><strong>Sampling rate at launch.</strong> §13 explains why 100% is the likely right answer for a
+            first release, and it is still a decision.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead"><span class="no">§13</span><h2>Known limits</h2></div>
+    <div class="stack-lg">
+      <ul class="tight">
+        <li><strong>Consent denied is not zero telemetry.</strong> Play reports installs, crashes and vitals
+          independently of the app, which the current policy already discloses. "No analytics" never means "no
+          data about you exists", and the notice should not imply otherwise.</li>
+        <li><strong>No exactly-once.</strong> A device force-stopped between upload and acknowledgement resends.
+          Duplicates are the ingest's problem by design, and an ingest that stops deduplicating produces inflated
+          counts that look like growth.</li>
+        <li><strong>Sampling makes small cohorts unmeasurable.</strong> At 1%, a 200-install cohort yields two
+          users and no usable funnel. For a first release the honest options are 100% or accepting that the
+          release measures nothing — a rate chosen for a scale the app does not have is the worst of both.</li>
+        <li><strong>Clock skew is recoverable, not solved.</strong> A device with a wrong clock that never
+          successfully uploads has no reference point at all, and its events carry a plausible-looking timestamp
+          that is simply wrong.</li>
+        <li><strong>The remote kill switch needs a network.</strong> A device that never fetches config cannot be
+          stopped remotely, so the local caps in §8 are the real backstop. A kill switch is a convenience; the
+          bounds are the control.</li>
+        <li><strong>The buffer is readable on a rooted device.</strong> Bounded, short-lived and free of content
+          is the mitigation; encrypting it would protect pseudonymous event names from someone who already has
+          the device, which is not the threat worth paying for.</li>
+        <li><strong>Every number in §8 is a target.</strong> Nothing in this document has been measured on a
+          device, because none of it is built yet. The §11 suite is what turns the targets into claims, and until
+          it runs they should be read as intent.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <span>Sinema · tracking system</span>
+    <span>Revision 1 — design, unverified</span>
+    <span>Companion to the technical solution (§4 cross-cutting contracts)</span>
+  </footer>
+
+</div>
